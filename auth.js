@@ -99,7 +99,42 @@ const oldComplete=complete;complete=function(title,result,xp){oldComplete(title,
 const oldRender=render;render=function(){oldRender();const button=document.getElementById("avatar");if(button&&sb&&profile?.avatar_path){const url=sb.storage.from("edgy-avatars").getPublicUrl(profile.avatar_path).data.publicUrl;const img=document.createElement("img");img.src=url;img.alt="Foto de perfil";img.style.cssText="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block";button.style.padding="0";button.style.overflow="hidden";button.replaceChildren(img)}if(page==="profile"&&!game){const host=document.querySelector("#screen");if(!host)return;const box=document.createElement("section");box.className="section panel";box.innerHTML='<h3>Identidade EDGY</h3><p class="sub">'+(!configured?"Modo local — liga o Supabase para ativar contas online.":account&&!account.is_anonymous?"Conta online com progresso sincronizado.":account?"Convidado online. Podes transformar este perfil numa conta.":"Convidado local.")+'</p>'+(profile?.avatar_path?'<img class="authAvatar" alt="Foto de perfil" src="'+sb.storage.from("edgy-avatars").getPublicUrl(profile.avatar_path).data.publicUrl+'">':'')+'<div class="actionrow"><button class="secondary" id="edgy-account">'+(account&&!account.is_anonymous?"Gerir conta":"Criar conta / Entrar")+'</button>'+(account?'<button class="secondary" id="edgy-logout">Sair</button>':'')+'</div>'+(account&&!account.is_anonymous?'<div class="authPhoto"><label class="formLabel" for="edgy-photo">Foto de perfil (JPEG, PNG ou WebP, até 2 MB)</label><input id="edgy-photo" type="file" accept="image/jpeg,image/png,image/webp"><p class="authStatus" id="edgy-photo-msg"></p></div>':'');host.appendChild(box);
 box.querySelector("#edgy-account").onclick=()=>{if(account&&!account.is_anonymous)manage();else start()};
 box.querySelector("#edgy-logout")?.addEventListener("click",async()=>{await sb.auth.signOut();account=null;profile=null;localStorage.removeItem("edgy_entry_mode");localStorage.removeItem("edgy_owner_id");localStorage.removeItem(upgradeKey);entryMode="";state={name:"Jogador",xp:0,history:[]};save();render();start()});
-box.querySelector("#edgy-photo")?.addEventListener("change",async e=>{const file=e.target.files?.[0];if(!file)return;const msg=box.querySelector("#edgy-photo-msg");if(file.size>2097152||!["image/jpeg","image/png","image/webp"].includes(file.type)){msg.textContent="Escolhe uma imagem JPEG, PNG ou WebP até 2 MB.";return}msg.textContent="A enviar...";const ext=file.type.split("/")[1]==="jpeg"?"jpg":file.type.split("/")[1];const path=account.id+"/"+uuid()+"."+ext;const result=await sb.storage.from("edgy-avatars").upload(path,file,{contentType:file.type});if(result.error){msg.textContent=result.error.message;return}const upd=await sb.from("profiles").update({avatar_path:path}).eq("id",account.id);if(upd.error){msg.textContent=upd.error.message;return}profile.avatar_path=path;msg.textContent="Foto atualizada!";render()});
+box.querySelector("#edgy-photo")?.addEventListener("change",async event=>{
+ const input=event.target,original=input.files?.[0],msg=box.querySelector("#edgy-photo-msg");
+ if(!original)return;
+ if(!["image/jpeg","image/png","image/webp"].includes(original.type)||original.size>12*1024*1024){
+  msg.textContent="Escolhe uma imagem JPG, PNG ou WebP até 12 MB para ajustar.";
+  input.value="";return;
+ }
+ if(typeof window.EDGY_editAvatar!=="function"){
+  msg.textContent="O editor ainda não carregou. Atualiza a página e tenta novamente.";
+  input.value="";return;
+ }
+ let cropped;
+ try{cropped=await window.EDGY_editAvatar(original)}
+ catch(error){msg.textContent="Não foi possível abrir o editor.";input.value="";return}
+ input.value="";
+ if(!cropped){msg.textContent="Edição cancelada. A foto anterior foi mantida.";return}
+ if(!account||account.is_anonymous){msg.textContent="Inicia sessão numa conta para publicar a foto.";return}
+ msg.textContent="A guardar o novo avatar...";
+ const path=account.id+"/"+uuid()+".jpg";
+ try{
+  const upload=await sb.storage.from("edgy-avatars").upload(path,cropped,{contentType:"image/jpeg",upsert:false});
+  if(upload.error)throw upload.error;
+  const saved=await sb.from("profiles").update({avatar_path:path}).eq("id",account.id).select("avatar_path").single();
+  if(saved.error){
+   await sb.storage.from("edgy-avatars").remove([path]);
+   throw saved.error;
+  }
+  const previous=profile?.avatar_path;
+  profile={...profile,avatar_path:path};
+  msg.textContent="Fotografia guardada!";
+  render();
+  if(previous&&previous!==path&&previous.startsWith(account.id+"/")){
+   sb.storage.from("edgy-avatars").remove([previous]).catch(()=>{});
+  }
+ }catch(error){msg.textContent=error.message||"Erro ao guardar a fotografia."}
+});
 const saveBtn=document.querySelector("#saveName");if(saveBtn&&account){const original=saveBtn.onclick;saveBtn.onclick=async()=>{original();const res=await sb.from("profiles").update({display_name:state.name}).eq("id",account.id);if(res.error)console.warn(res.error.message)}}}};
 function manage(){show('<button class="authClose" data-close>✕ Fechar</button><div class="authLogo">EDGY</div><h2>A tua conta</h2><p class="sub">'+(account?.email||"Conta online")+'</p><div class="authActions"><button class="secondary" id="closeAcct">Continuar a jogar</button></div>');modal.querySelector("#closeAcct").onclick=hide}
 async function boot(){
