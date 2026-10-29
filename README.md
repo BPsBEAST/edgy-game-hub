@@ -50,3 +50,12 @@ Desenvolvido para diversão entre amigos.
 6. Recarrega a aplicação. Se a PWA ainda mostrar a versão anterior, fecha e reabre ou limpa a cache desse site.
 
 Até haver configuração, a EDGY continua em modo local. O login, sincronização e upload de fotos requerem Supabase ativo. O servidor não valida resultados de jogos nesta versão, portanto XP e rankings não são resistentes a manipulações. Não usar este esquema para competições com prémios.
+
+## Testar a autenticação
+
+- Abre a EDGY em modo privado/anónimo do navegador, escolhe **Jogar como convidado** e introduz um nickname. Confirma o novo perfil em Authentication → Users no Supabase.
+- Para registar uma conta nova, escolhe **Criar conta**, introduz nickname, email e uma password com pelo menos 8 caracteres, letras e números. Confirma no email e depois faz login.
+- Para converter um convidado, usa **Criar conta / Entrar** no perfil: primeiro confirma o email, depois volta ao mesmo navegador/dispositivo e define a password para preservar o perfil.
+- O envio de emails de confirmação está sujeito aos limites do serviço de email configurado no Supabase.
+
+A aplicação pública é uma versão experimental para amigos; ainda não há multiplayer online nem proteção anti-fraude das pontuações.
