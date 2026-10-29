@@ -59,3 +59,24 @@ Até haver configuração, a EDGY continua em modo local. O login, sincronizaç�
 - O envio de emails de confirmação está sujeito aos limites do serviço de email configurado no Supabase.
 
 A aplicação pública é uma versão experimental para amigos; ainda não há multiplayer online nem proteção anti-fraude das pontuações.
+
+## EDGY v9 — usernames e xadrez online
+
+- Cada perfil tem `display_name` (nome visível, pode repetir-se), `username` (único entre todas as contas, 3 a 20 caracteres, apenas a-z, números e _) e `id` interno UUID.
+- O email é único por conta segundo as regras do Supabase Auth; não colocar consultas de existência de email no cliente.
+- O campo `@username` pode ser alterado na página Perfil. O Supabase impede duplicados, mesmo com maiúsculas/minúsculas.
+- A biblioteca inclui **Xadrez online**: criar sala privada, partilhar código/link, entrar com outra conta ou convidado, jogar por turnos (brancas e pretas) em dispositivos diferentes.
+- Motor de regras `chess.js@1.4.0`, com xeque-mate, afogamento, roque, en passant, promoção e empates.
+- A verificação das jogadas é feita na Supabase Edge Function `chess-move`. O cliente não tem permissão para atualizar diretamente o estado da partida.
+- Quando termina uma partida, o servidor regista duas entradas no histórico (uma por jogador) e atribui XP: vitória 50, empate 20, derrota 10.
+- A sincronização utiliza Realtime Postgres Changes, com consulta periódica de contingência. O código da sala concede acesso somente a dois utilizadores autenticados, incluindo contas anónimas.
+- O código do jogo está em `chess-online.js`; a função de validação está em `supabase/functions/chess-move/index.ts`.
+
+### Teste rápido com duas sessões
+1. Abre a EDGY num dispositivo e inicia sessão.
+2. Abre *Xadrez online* → *Criar sala*, copia o link.
+3. Abre o link noutro telemóvel/navegador com outra conta ou convidado.
+4. Confirma que os nomes aparecem, que as brancas começam e que os dois tabuleiros sincronizam cada movimento.
+5. Termina uma partida, depois consulta o histórico e o XP.
+
+**Nota:** a experiência com dois browsers reais ainda deve ser validada pelo utilizador. O serviço de xadrez precisa de Internet; os minijogos locais continuam a funcionar separadamente.
