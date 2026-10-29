@@ -3,12 +3,12 @@
 const apiConfig=window.EDGY_SUPABASE||{};
 const configured=Boolean(apiConfig.url&&apiConfig.anonKey&&window.supabase);
 const sb=configured?window.supabase.createClient(apiConfig.url,apiConfig.anonKey):null;
-let account=null, profile=null, authBusy=false, guestLocal=JSON.parse(localStorage.getItem("edgy_guest_backup")||"null"), entryMode=localStorage.getItem("edgy_entry_mode")||"";
+let account=null, profile=null, authBusy=false, entryMode=localStorage.getItem("edgy_entry_mode")||"";
 const css=document.createElement("style");
 css.textContent=`
 .authMask[hidden]{display:none!important}.authMask{position:fixed;inset:0;z-index:30;overflow-y:auto;background:#141126ed;backdrop-filter:blur(20px);display:grid;place-items:center;padding:20px}.authBox{width:min(100%,420px);border:1px solid #443253;border-radius:24px;padding:27px;background:#211935;box-shadow:0 25px 85px #0d0619b0}.authLogo{font-size:48px;font-weight:950;letter-spacing:-4px;text-align:center;background:linear-gradient(110deg,#ff075c,#c300a7);background-clip:text;-webkit-background-clip:text;color:transparent}.authBox h2{text-align:center;margin-top:22px}.authBox .sub{text-align:center}.authActions{display:grid;gap:9px;margin:20px 0}.authActions button{width:100%}.authNote{font-size:12px;color:#b2a6c8;line-height:1.6}.authError{font-size:12px;color:#ff9cb7;min-height:20px}.authForm label{display:block;margin:12px 0 6px;font-size:12px;color:#c2b6d6}.authForm input{background:#141126;border:1px solid #574263;border-radius:10px;padding:12px;width:100%;color:white}.authClose{border:0;background:transparent;color:#bfb1cf}.authAvatar{width:70px;height:70px;border-radius:50%;object-fit:cover;border:2px solid #ec277d}.authPhoto{margin:15px 0}.authStatus{font-size:12px;color:#c7b7d2;margin-top:10px}
 `;document.head.appendChild(css);
-const modal=document.createElement("div");modal.className="authMask";modal.id="edgy-auth";modal.hidden=true;document.body.appendChild(modal);
+const modal=document.createElement("div");modal.className="authMask";modal.id="edgy-auth";modal.hidden=true;modal.style.display="none";document.body.appendChild(modal);
 function show(html){modal.hidden=false;modal.style.display="grid";modal.innerHTML='<div class="authBox">'+html+'</div>';const close=modal.querySelector("[data-close]");if(close)close.onclick=hide;}
 function hide(){modal.hidden=true;modal.style.display="none"}
 const note=configured?"":"<p class='authNote'>Contas online ainda não estão ligadas. Podes jogar como convidado. Quando o Supabase estiver configurado, o registo ficará disponível.</p>";
