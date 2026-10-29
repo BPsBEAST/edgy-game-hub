@@ -94,9 +94,26 @@ function finishUpgrade(){
 }
 function uuid(){return crypto.randomUUID()}
 async function uploadHistory(){if(!account)return;const fresh=state.history.filter(x=>!x.remote);for(const h of fresh)h.client_id=h.client_id||uuid();save();const items=fresh.map(x=>({user_id:account.id,client_id:x.client_id,game:x.title,result:x.result,xp:Math.min(100,Math.max(0,Number(x.xp)||0))}));if(!items.length)return;const {error}=await sb.from("match_history").upsert(items,{onConflict:"user_id,client_id",ignoreDuplicates:true});if(error)console.warn("EDGY sync:",error.message);else{for(const h of fresh)h.remote=true;save()}}
-async function loadCloud(nickname){if(!account)return;try{const {data:p}=await sb.from("profiles").select("display_name,xp,avatar_path").eq("id",account.id).maybeSingle();profile=p;if(nickname){await sb.from("profiles").update({display_name:nickname}).eq("id",account.id)}const [pr,hi]=await Promise.all([sb.from("profiles").select("display_name,xp,avatar_path").eq("id",account.id).maybeSingle(),sb.from("match_history").select("client_id,game,result,xp,played_at").eq("user_id",account.id).order("played_at",{ascending:false}).limit(50)]);if(pr.data){profile=pr.data;state.name=profile.display_name;state.xp=profile.xp}if(hi.data)state.history=hi.data.map(x=>({title:x.game,result:x.result,xp:x.xp,date:x.played_at,client_id:x.client_id,remote:true}));save()}catch(err){console.warn("EDGY cloud profile:",err)}}
+async function loadCloud(nickname){if(!account)return;try{const {data:p}=await sb.from("profiles").select("display_name,username,xp,avatar_path").eq("id",account.id).maybeSingle();profile=p;if(nickname){await sb.from("profiles").update({display_name:nickname}).eq("id",account.id)}const [pr,hi]=await Promise.all([sb.from("profiles").select("display_name,username,xp,avatar_path").eq("id",account.id).maybeSingle(),sb.from("match_history").select("client_id,game,result,xp,played_at").eq("user_id",account.id).order("played_at",{ascending:false}).limit(50)]);if(pr.data){profile=pr.data;state.name=profile.display_name;state.xp=profile.xp}if(hi.data)state.history=hi.data.map(x=>({title:x.game,result:x.result,xp:x.xp,date:x.played_at,client_id:x.client_id,remote:true}));save()}catch(err){console.warn("EDGY cloud profile:",err)}}
 const oldComplete=complete;complete=function(title,result,xp){oldComplete(title,result,xp);const h=state.history[0];if(h)h.client_id=uuid();save();if(account){uploadHistory().then(()=>loadCloud()).then(()=>{if(!game)render()}).catch(console.warn)}};
 const oldRender=render;render=function(){oldRender();const button=document.getElementById("avatar");if(button&&sb&&profile?.avatar_path){const url=sb.storage.from("edgy-avatars").getPublicUrl(profile.avatar_path).data.publicUrl;const img=document.createElement("img");img.src=url;img.alt="Foto de perfil";img.style.cssText="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block";button.style.padding="0";button.style.overflow="hidden";button.replaceChildren(img)}if(page==="profile"&&!game){const host=document.querySelector("#screen");if(!host)return;const box=document.createElement("section");box.className="section panel";box.innerHTML='<h3>Identidade EDGY</h3><p class="sub">'+(!configured?"Modo local — liga o Supabase para ativar contas online.":account&&!account.is_anonymous?"Conta online com progresso sincronizado.":account?"Convidado online. Podes transformar este perfil numa conta.":"Convidado local.")+'</p>'+(profile?.avatar_path?'<img class="authAvatar" alt="Foto de perfil" src="'+sb.storage.from("edgy-avatars").getPublicUrl(profile.avatar_path).data.publicUrl+'">':'')+'<div class="actionrow"><button class="secondary" id="edgy-account">'+(account&&!account.is_anonymous?"Gerir conta":"Criar conta / Entrar")+'</button>'+(account?'<button class="secondary" id="edgy-logout">Sair</button>':'')+'</div>'+(account&&!account.is_anonymous?'<div class="authPhoto"><label class="formLabel" for="edgy-photo">A tua fotografia</label><label class="edgyPhotoPicker" for="edgy-photo"><span>📷 &nbsp; Escolher e ajustar fotografia</span><input id="edgy-photo" type="file" accept="image/jpeg,image/png,image/webp"></label><p class="authNote">JPG, PNG ou WebP até 12 MB. Arrasta, faz zoom e confirma antes de publicar.</p><p class="authStatus" id="edgy-photo-msg" role="status"></p></div>':'');host.appendChild(box);
+if(account&&!account.is_anonymous){
+ const idPanel=document.createElement("section");
+ idPanel.className="section panel";
+ idPanel.innerHTML='<h3>Identidade de jogador</h3><p class="sub">O nome visível pode repetir-se. O username é único na EDGY.</p><label class="formLabel" for="edgy-handle">Username único</label><div class="row"><span class="sub">@</span><input id="edgy-handle" class="field" maxlength="20" autocomplete="off" spellcheck="false" placeholder="ex: buedaedgy" style="flex:1;min-width:140px"><button class="secondary" type="button" id="edgy-handle-save">Guardar ID</button></div><p class="sub" id="edgy-handle-message" role="status">3 a 20 caracteres: letras, números ou _</p>';
+ host.appendChild(idPanel);
+ const input=idPanel.querySelector("#edgy-handle"),message=idPanel.querySelector("#edgy-handle-message");
+ input.value=profile?.username||"";
+ idPanel.querySelector("#edgy-handle-save").onclick=async()=>{
+  const username=input.value.trim().toLowerCase();
+  if(!/^[a-z0-9_]{3,20}$/.test(username)){message.textContent="Usa 3–20 caracteres: letras, números ou _.";return}
+  message.textContent="A guardar...";
+  const {data,error}=await sb.from("profiles").update({username}).eq("id",account.id).select("username").single();
+  if(error){message.textContent=error.code==="23505"?"Esse username já está ocupado. Escolhe outro.":"Não foi possível guardar: "+error.message;return}
+  profile={...profile,username:data.username};
+  input.value=data.username;message.textContent="Username guardado: @"+data.username;
+ };
+}
 box.querySelector("#edgy-account").onclick=()=>{if(account&&!account.is_anonymous)manage();else start()};
 box.querySelector("#edgy-logout")?.addEventListener("click",async()=>{await sb.auth.signOut();account=null;profile=null;localStorage.removeItem("edgy_entry_mode");localStorage.removeItem("edgy_owner_id");localStorage.removeItem(upgradeKey);entryMode="";state={name:"Jogador",xp:0,history:[]};save();render();start()});
 box.querySelector("#edgy-photo")?.addEventListener("change",async event=>{
@@ -154,5 +171,6 @@ async function boot(){
   if(!entryMode)start();
  }catch(error){console.warn("EDGY boot:",error);render();if(!entryMode)start()}
 }
+window.EDGY_auth={getClient:()=>sb,getUser:()=>account,getProfile:()=>profile,showEntry:()=>start()};
 boot();
 })();
