@@ -13,8 +13,30 @@ function show(html){modal.hidden=false;modal.style.display="grid";modal.innerHTM
 function hide(){modal.hidden=true;modal.style.display="none"}
 const note=configured?"":"<p class='authNote'>Contas online ainda não estão ligadas. Podes jogar como convidado. Quando o Supabase estiver configurado, o registo ficará disponível.</p>";
 function start(){show('<div class="authLogo">EDGY</div><p class="sub">PLAY YOUR WAY</p><h2>Bem-vindo à EDGY</h2><p class="sub">Sem complicações. Escolhe como queres jogar.</p><div class="authActions"><button class="primary" id="edgy-create">Criar conta</button><button class="secondary" id="edgy-login">Iniciar sessão</button><button class="secondary" id="edgy-guest">Jogar como convidado</button></div>'+note);
-modal.querySelector("#edgy-guest").onclick=async()=>{if(configured){try{const {data,error}=await sb.auth.signInAnonymously({options:{data:{display_name:state.name}}});if(error)throw error;account=data.user;localStorage.setItem("edgy_owner_id",account.id);await uploadHistory();await loadCloud();}catch(e){modal.querySelector(".authNote")?.remove();const n=document.createElement("p");n.className="authError";n.textContent="Não foi possível entrar online: "+e.message+" Podes jogar localmente.";modal.querySelector(".authBox").append(n);}}entryMode="guest";localStorage.setItem("edgy_entry_mode","guest");hide();render()};
+modal.querySelector("#edgy-guest").onclick=guestForm;
 modal.querySelector("#edgy-create").onclick=()=>form("register");modal.querySelector("#edgy-login").onclick=()=>form("login");
+}
+function guestForm(){
+ show('<button class="authClose" data-close>✕ Fechar</button><div class="authLogo">EDGY</div><h2>Jogar como convidado</h2><p class="sub">Só precisas de escolher um nickname.</p><form class="authForm" id="edgy-guest-form"><label>Nickname</label><input name="nickname" maxlength="22" required value="'+esc(state.name)+'" placeholder="Como te vamos chamar?"><div class="authActions"><button class="primary" type="submit">Começar a jogar</button></div><p class="authError" id="edgy-guest-error" role="status"></p></form>');
+ modal.querySelector("#edgy-guest-form").onsubmit=async(event)=>{
+  event.preventDefault();if(authBusy)return;authBusy=true;
+  const name=String(new FormData(event.target).get("nickname")||"").trim().slice(0,22);
+  if(!name){authBusy=false;return}
+  state.name=name;save();
+  try{
+   if(configured){
+    const {data,error}=await sb.auth.signInAnonymously({options:{data:{display_name:name}}});
+    if(error)throw error;
+    account=data.user;
+    localStorage.setItem("edgy_owner_id",account.id);
+    await uploadHistory();await loadCloud();
+   }
+   entryMode="guest";localStorage.setItem("edgy_entry_mode",entryMode);
+   hide();render();
+  }catch(error){
+   modal.querySelector("#edgy-guest-error").textContent="Não foi possível entrar online: "+error.message+" Tenta novamente.";
+  }finally{authBusy=false}
+ };
 }
 const upgradeKey="edgy_upgrade_pending";
 const website="https://bpsbeast.github.io/edgy-game-hub/";
