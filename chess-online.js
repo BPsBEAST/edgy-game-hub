@@ -1,6 +1,6 @@
 (function(){
 "use strict";
-let Chess=null,room=null,players=null,channel=null,poller=null,selected="",promo=null,busy=false,pending="",engineError="";
+let Chess=null,room=null,players=null,channel=null,poller=null,selected="",promo=null,busy=false,pending="",engineError="",autoTried=false;
 const glyph={wk:"♔",wq:"♕",wr:"♖",wb:"♗",wn:"♘",wp:"♙",bk:"♚",bq:"♛",br:"♜",bb:"♝",bn:"♞",bp:"♟︎"};
 const x=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const auth=()=>window.EDGY_auth;
@@ -12,7 +12,7 @@ css.textContent='.chessWrap{max-width:720px;margin:auto}.chessBoard{display:grid
 document.head.appendChild(css);
 function clear(){if(channel){db()?.removeChannel(channel);channel=null}if(poller){clearInterval(poller);poller=null}room=null;players=null;selected="";promo=null}
 function close(){clear();const u=new URL(location.href);u.searchParams.delete("room");history.replaceState(null,"",u.pathname+u.search+u.hash)}
-function open(code){clear();pending=String(code||"").toUpperCase();draw();if(pending&&user())join(pending)}
+function open(code){clear();pending=String(code||"").toUpperCase();autoTried=false;draw()}
 function engine(){if(!Chess)return null;const c=new Chess();if(room?.pgn)c.loadPgn(room.pgn);return c}
 function uri(){const u=new URL(location.href);u.searchParams.set("room",room.code);return u.href}
 function setUri(){history.replaceState(null,"",uri())}
@@ -48,7 +48,7 @@ async function refresh(){
  const prev=room,{data}=await db().from("chess_rooms").select("*").eq("id",prev.id).maybeSingle();
  if(!data)return;
  if(data.ply!==prev.ply||data.status!==prev.status||data.black_id!==prev.black_id){
-  room=data;selected="";promo=null;await fetchPlayers();draw();
+  room=data;selected="";promo=null;await fetchPlayers();draw();if(["white_win","black_win","draw"].includes(data.status))await auth()?.refreshProfile?.();
  }
 }
 function status(){
@@ -73,6 +73,7 @@ function board(){
 }
 function draw(){
  const root=document.getElementById("screen");if(!root||game!=="chess")return;
+ if(!room&&pending&&user()&&!busy&&!autoTried&&/^[A-F0-9]{8}$/.test(pending)){autoTried=true;queueMicrotask(()=>join(pending))}
  if(!Chess){root.innerHTML='<div class="chessWrap"><button class="back" data-back>← Jogos</button><h1>Xadrez online</h1><div class="panel">'+x(engineError||"A carregar as regras...")+'</div></div>';root.querySelector("[data-back]").onclick=()=>nav("games");return}
  if(!user()){root.innerHTML='<div class="chessWrap"><button class="back" data-back>← Jogos</button><h1>Xadrez online</h1><div class="panel"><p>Entra como convidado ou cria uma conta para jogar online.</p><button class="chessBtn" data-auth>Entrar</button></div></div>';root.querySelector("[data-back]").onclick=()=>nav("games");root.querySelector("[data-auth]").onclick=()=>auth()?.showEntry();return}
  if(!room){
