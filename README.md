@@ -39,3 +39,14 @@ O GitHub Pages é público. Não colocar passwords, chaves secretas, tokens de s
 
 ---
 Desenvolvido para diversão entre amigos.
+
+## Ativar contas (Supabase)
+
+1. Cria um projeto Supabase gratuito.
+2. Em **SQL Editor**, executa `supabase/setup.sql` após rever as políticas.
+3. Em **Authentication**, ativa o fornecedor **Email** e **Anonymous Sign-ins**. Decide se queres exigir confirmação de email.
+4. Em **Authentication → URL Configuration**, define a Site URL `https://bpsbeast.github.io/edgy-game-hub/` e inclui-a na lista de URLs de redirecionamento permitidas.
+5. Preenche `config.js` com **Project URL** e a chave **anon/publishable** do projeto. São dados públicos; não colocar a chave `service_role` ou qualquer secret no GitHub.
+6. Recarrega a aplicação. Se a PWA ainda mostrar a versão anterior, fecha e reabre ou limpa a cache desse site.
+
+Até haver configuração, a EDGY continua em modo local. O login, sincronização e upload de fotos requerem Supabase ativo. O servidor não valida resultados de jogos nesta versão, portanto XP e rankings não são resistentes a manipulações. Não usar este esquema para competições com prémios.
