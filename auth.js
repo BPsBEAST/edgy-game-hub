@@ -171,6 +171,6 @@ async function boot(){
   if(!entryMode)start();
  }catch(error){console.warn("EDGY boot:",error);render();if(!entryMode)start()}
 }
-window.EDGY_auth={getClient:()=>sb,getUser:()=>account,getProfile:()=>profile,showEntry:()=>start()};
+window.EDGY_auth={getClient:()=>sb,getUser:()=>account,getProfile:()=>profile,showEntry:()=>start(),refreshProfile:async()=>{if(account){await loadCloud();render()}}};
 boot();
 })();
