@@ -26,8 +26,7 @@ HTML + CSS + JavaScript (sem build), manifest PWA, service worker. GitHub Pages 
 
 ## Estrutura
 - `index.html` — aplicação
-- `styles.css` — tema e responsividade
-- `app.js` — navegação, jogos e progresso local
+- `index.html` inclui CSS e JavaScript para facilitar o alojamento estático e a edição inicial
 - `manifest.webmanifest` — instalação PWA
 - `sw.js` — cache e offline
 - `icon.svg` — ícone da aplicação
