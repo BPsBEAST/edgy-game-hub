@@ -9,7 +9,7 @@ const user=()=>auth()?.getUser();
 const notice=s=>{const el=document.getElementById("chess-info");if(el)el.textContent=s};
 const css=document.createElement("style");
 css.textContent='.chessWrap{max-width:720px;margin:auto}.chessBoard{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));width:100%;max-width:520px;margin:15px auto;border:3px solid #674674;border-radius:9px;overflow:hidden}.chessSq{aspect-ratio:1;min-width:0;padding:0;border:0;display:grid;place-items:center;position:relative;border-radius:0}.chessSq.light{background:#e0d2e8}.chessSq.dark{background:#69537d}.chessSq.active{box-shadow:inset 0 0 0 4px #ff0878}.chessSq.legal:after{content:"";position:absolute;background:#ff168b88;width:23%;height:23%;border-radius:50%;pointer-events:none}.chessGlyph{font-family:"Segoe UI Symbol","DejaVu Sans",serif;font-size:clamp(22px,7vw,47px);line-height:1;pointer-events:none}.chessGlyph.w{color:#fffdf6;text-shadow:1px 2px #241728,-1px -1px #241728}.chessGlyph.b{color:#23142f;text-shadow:1px 1px #e6d9f2}.chessRank{position:absolute;left:3px;top:2px;font-size:9px;pointer-events:none;color:#322044}.chessSq.dark .chessRank{color:#f0deee}.chessPlayers{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin:15px 0}.chessPlayer{background:#27203f;padding:13px;border-radius:12px;border:1px solid #57416b}.chessPlayer strong{display:block}.chessPlayer small{font-size:12px;color:#b6a7c5}.chessBtn{background:linear-gradient(115deg,#ff075c,#c300a7);color:#fff;border:0;border-radius:12px;padding:12px 16px;font-weight:800;min-height:44px}.chessInput{background:#151027;color:#fff;border:1px solid #655078;border-radius:11px;padding:13px;width:100%;font-weight:800;letter-spacing:2px;text-transform:uppercase}.chessRow{display:flex;gap:9px;flex-wrap:wrap;margin:15px 0}.chessRow>*{flex:1}.chessStatus{padding:13px;border-radius:12px;background:#292041;border:1px solid #563e66;color:#dfd2ed;line-height:1.5}.chessMoves{font-size:13px;line-height:1.8;color:#c8b6d9;max-height:120px;overflow:auto}.chessPromotion{display:flex;gap:8px;justify-content:center;padding:12px}.chessPromotion button{font-size:30px;border:1px solid #ab4d8f;border-radius:10px;background:#322246;color:#fff;padding:8px 12px}';
-css.textContent+="\n.chessClockBox{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 13px;background:#2b2141;border:1px solid #504165;border-radius:13px;margin:9px 0;transition:background .2s,border-color .2s}\n.chessClockBox.turn{background:#4b2449;border-color:#ed2b8c}\n.chessClockName{font-size:13px;font-weight:800;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}\n.chessClockHandle{font-size:11px;color:#bfb2d0;margin-top:3px}\n.chessClockTime{font-variant-numeric:tabular-nums;font-feature-settings:\"tnum\";font-size:23px;font-weight:850;background:#171129;border:1px solid #655477;padding:7px 10px;border-radius:10px;min-width:91px;text-align:center;color:#ded2ec}\n.chessClockBox.turn .chessClockTime{background:linear-gradient(115deg,#ff075c,#c300a7);border-color:transparent;color:#fff}\n.chessClockTime.urgent{background:#7b193f!important;animation:edgyTick .8s infinite alternate}\n@keyframes edgyTick{to{box-shadow:0 0 15px #ff15799b}}\n.chessControlSelect{display:flex;gap:8px;flex-wrap:wrap;margin:13px 0}\n.chessControlSelect button{flex:1;border:1px solid #5c4570;border-radius:10px;background:#322447;color:white;padding:12px;font-weight:700}\n.chessControlSelect button.active{background:#65315a;border-color:#ff3c96}\n.chessMovesGrid{max-height:250px;overflow:auto;display:grid;gap:4px;padding:8px}\n.chessMoveRow{display:grid;grid-template-columns:32px 1fr 1fr;align-items:center;gap:5px;padding:2px 5px;border-radius:7px}\n.chessMoveRow:nth-child(even){background:#ffffff08}\n.chessMoveIndex{font-size:12px;color:#9e8dac;text-align:center}\n.chessMoveButton{border:0;background:none;color:#eee5fa;text-align:left;border-radius:7px;padding:8px;font-size:13px;font-weight:700}\n.chessMoveButton.latest{background:#8e2567}\n.chessMoveButton.preview{outline:1px solid #ff5d9d}\n.chessMoveButton:hover{background:#5b335d}\n.chessLast{box-shadow:inset 0 0 0 4px #c83b8b73}\n.chessPieceFly{position:fixed;z-index:99;pointer-events:none;transition:transform .24s cubic-bezier(.18,.75,.25,1);display:grid;place-items:center}\n.chessDecision{margin:12px 0;border:1px solid #a75d8a;background:#472443;border-radius:12px;padding:13px}\n.chessDecision p{margin:0 0 10px;font-size:13px;color:#fbe1ee}\n.chessDecision button{margin:4px;font-size:12px}\n.chessReview{font-size:13px;color:#fba8d1;margin:9px 0;text-align:center}\n.chessMainGrid{display:grid;gap:16px}\n.chessSide{min-width:0}\n@media(min-width:860px){.chessWrap{max-width:1020px}.chessMainGrid{grid-template-columns:minmax(0,1fr) 300px;align-items:start}.chessSide{position:sticky;top:25px}.chessGlyph{font-size:clamp(28px,4vw,52px)}}\n@media(prefers-reduced-motion:reduce){.chessPieceFly,.chessClockTime{transition:none;animation:none!important}}\n";document.head.appendChild(css);
+css.textContent+="\n.chessClockBox{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 13px;background:#2b2141;border:1px solid #504165;border-radius:13px;margin:9px 0;transition:background .2s,border-color .2s}\n.chessClockBox.turn{background:#4b2449;border-color:#ed2b8c}\n.chessClockName{font-size:13px;font-weight:800;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}\n.chessClockHandle{font-size:11px;color:#bfb2d0;margin-top:3px}\n.chessClockTime{font-variant-numeric:tabular-nums;font-feature-settings:\"tnum\";font-size:23px;font-weight:850;background:#171129;border:1px solid #655477;padding:7px 10px;border-radius:10px;min-width:91px;text-align:center;color:#ded2ec}\n.chessClockBox.turn .chessClockTime{background:linear-gradient(115deg,#ff075c,#c300a7);border-color:transparent;color:#fff}\n.chessClockTime.urgent{background:#7b193f!important;animation:edgyTick .8s infinite alternate}\n@keyframes edgyTick{to{box-shadow:0 0 15px #ff15799b}}\n.chessControlSelect{display:flex;gap:8px;flex-wrap:wrap;margin:13px 0}\n.chessControlSelect button{flex:1;border:1px solid #5c4570;border-radius:10px;background:#322447;color:white;padding:12px;font-weight:700}\n.chessControlSelect button.active{background:#65315a;border-color:#ff3c96}\n.chessMovesGrid{max-height:250px;overflow:auto;display:grid;gap:4px;padding:8px}\n.chessMoveRow{display:grid;grid-template-columns:32px 1fr 1fr;align-items:center;gap:5px;padding:2px 5px;border-radius:7px}\n.chessMoveRow:nth-child(even){background:#ffffff08}\n.chessMoveIndex{font-size:12px;color:#9e8dac;text-align:center}\n.chessMoveButton{border:0;background:none;color:#eee5fa;text-align:left;border-radius:7px;padding:8px;font-size:13px;font-weight:700}\n.chessMoveButton.latest{background:#8e2567}\n.chessMoveButton.preview{outline:1px solid #ff5d9d}\n.chessMoveButton:hover{background:#5b335d}\n.chessLast{box-shadow:inset 0 0 0 4px #c83b8b73}\n.chessPieceFly{position:fixed;z-index:99;pointer-events:none;transition:transform .24s cubic-bezier(.18,.75,.25,1);display:grid;place-items:center}\n.chessDecision{margin:12px 0;border:1px solid #a75d8a;background:#472443;border-radius:12px;padding:13px}\n.chessDecision p{margin:0 0 10px;font-size:13px;color:#fbe1ee}\n.chessDecision button{margin:4px;font-size:12px}\n.chessReview{font-size:13px;color:#fba8d1;margin:9px 0;text-align:center}\n.chessMainGrid{display:grid;gap:16px}\n.chessSide{min-width:0}\n@media(min-width:860px){.chessWrap{max-width:1020px}.chessMainGrid{grid-template-columns:minmax(0,1fr) 300px;align-items:start}.chessSide{position:sticky;top:25px}.chessGlyph{font-size:clamp(28px,4vw,52px)}}\n@media(prefers-reduced-motion:reduce){.chessPieceFly,.chessClockTime{transition:none;animation:none!important}}\n";css.textContent+=".chessReviewControls{display:flex;gap:7px;margin:10px 0}.chessReviewControls button{flex:1;padding:11px 5px;border:1px solid #665078;border-radius:9px;background:#362a4c;color:#fff;font-weight:800;font-size:17px}.chessReviewControls button:disabled{opacity:.4}.chessHistoryNote{font-size:12px;text-align:center;color:#dcb7d9;margin:7px 0}";document.head.appendChild(css);
 function clear(){if(clockTimer){clearInterval(clockTimer);clockTimer=null}previewIndex=null;confirmResign=false;if(channel){db()?.removeChannel(channel);channel=null}if(poller){clearInterval(poller);poller=null}room=null;players=null;selected="";promo=null}
 function close(){clear();const u=new URL(location.href);u.searchParams.delete("room");history.replaceState(null,"",u.pathname+u.search+u.hash)}
 
@@ -47,6 +47,10 @@ function resultsText(){
  const reason={timeout:"Tempo esgotado",resignation:"Desistência",agreement:"Acordo entre jogadores",checkmate:"Xeque-mate",rules:"Empate pelas regras"};
  return (room.status==="white_win"?"Vitória das brancas":room.status==="black_win"?"Vitória das pretas":"Empate")+" · "+(reason[room.finish_reason]||"Partida terminada");
 }
+function reviewTo(n){const count=engine()?.history()?.length||0;const pos=Math.max(0,Math.min(count,n));previewIndex=pos===count?null:pos;selected="";draw()}
+function reviewStep(delta){const count=engine()?.history()?.length||0;reviewTo((previewIndex===null?count:previewIndex)+delta)}
+function reviewControls(){const count=engine()?.history()?.length||0,pos=previewIndex===null?count:previewIndex;
+return '<div class="chessReviewControls" role="group" aria-label="Navegar pelas jogadas"><button data-first aria-label="Primeira posição" '+(pos===0?'disabled':'')+'>⏮</button><button data-prev aria-label="Lance anterior" '+(pos===0?'disabled':'')+'>◀</button><button data-next aria-label="Lance seguinte" '+(pos>=count?'disabled':'')+'>▶</button><button data-last aria-label="Último lance" '+(pos>=count?'disabled':'')+'>⏭</button></div><p class="chessHistoryNote">'+(pos===count?'Em direto':'Lance '+pos+' / '+count)+'</p>'}
 function moveList(){
  const moves=engine()?.history()||[];
  let html='<div class="chessMovesGrid">';
@@ -133,7 +137,7 @@ async function refresh(){
  if(!data)return;
  if(data.ply!==prev.ply||data.status!==prev.status||data.black_id!==prev.black_id||data.updated_at!==prev.updated_at||data.draw_offered_by!==prev.draw_offered_by){
   const animate=animatedMove(prev,data),finished=prev.status==="active"&&data.status!=="active";
-  room=data;selected="";promo=null;previewIndex=null;confirmResign=false;
+  room=data;selected="";promo=null;confirmResign=false;
   if(prev.black_id!==data.black_id)await fetchPlayers();
   draw();animate?.();if(finished)await auth()?.refreshProfile?.();
  }
@@ -173,7 +177,7 @@ function draw(){
   root.querySelector("[data-back]").onclick=()=>nav("games");return;
  }
  const black=user()?.id===room.black_id,upper=black?"w":"b",lower=black?"b":"w",control=(room.base_ms/60000)+"+"+(room.increment_ms/1000);
- root.innerHTML='<div class="chessWrap"><button class="back" data-back>← Jogos</button><div class="row space"><h1>♞ Xadrez</h1><span class="pill">'+x(control)+' · '+x(room.code)+'</span></div><div class="chessMainGrid"><div>'+clockRow(upper)+board()+clockRow(lower)+(previewIndex!==null?'<div class="chessReview">A rever lance '+previewIndex+' <button class="chessBtn" data-live>Voltar ao jogo</button></div>':"")+'</div><aside class="chessSide"><div class="chessStatus">'+x(status())+'</div>'+proposal()+'<div class="chessRow"><button class="chessBtn" data-copy>Copiar convite</button><button class="secondary" data-refresh>Atualizar</button></div><p class="result" id="chess-info"></p><section class="section panel" style="padding:10px"><div class="row space"><h3 style="margin:6px">Jogadas</h3><span class="pill">'+(engine()?.history()?.length||0)+'</span></div>'+moveList()+(previewIndex!==null?'<button class="chessBtn" data-live>Voltar à partida</button>':"")+'</section>'+(promo?'<div class="chessDecision"><p>Escolhe a promoção:</p><div class="chessPromotion">'+["q","r","b","n"].map(p=>'<button data-promotion="'+p+'">'+glyph[room.turn+p]+'</button>').join("")+'</div><button class="secondary" data-cancel-promo>Cancelar</button></div>':"")+'</aside></div></div>';
+ root.innerHTML='<div class="chessWrap"><button class="back" data-back>← Jogos</button><div class="row space"><h1>♞ Xadrez</h1><span class="pill">'+x(control)+' · '+x(room.code)+'</span></div><div class="chessMainGrid"><div>'+clockRow(upper)+board()+clockRow(lower)+(previewIndex!==null?'<div class="chessReview">A rever lance '+previewIndex+' <button class="chessBtn" data-live>Voltar ao jogo</button></div>':"")+'</div><aside class="chessSide"><div class="chessStatus">'+x(status())+'</div>'+proposal()+'<div class="chessRow"><button class="chessBtn" data-copy>Copiar convite</button><button class="secondary" data-refresh>Atualizar</button></div><p class="result" id="chess-info"></p><section class="section panel" style="padding:10px"><div class="row space"><h3 style="margin:6px">Jogadas</h3><span class="pill">'+(engine()?.history()?.length||0)+'</span></div>'+moveList()+reviewControls()+(previewIndex!==null?'<button class="chessBtn" data-live>Voltar à partida</button>':"")+'</section>'+(promo?'<div class="chessDecision"><p>Escolhe a promoção:</p><div class="chessPromotion">'+["q","r","b","n"].map(p=>'<button data-promotion="'+p+'">'+glyph[room.turn+p]+'</button>').join("")+'</div><button class="secondary" data-cancel-promo>Cancelar</button></div>':"")+'</aside></div></div>';
  root.querySelector("[data-back]").onclick=()=>nav("games");
  root.querySelector("[data-copy]").onclick=async()=>{try{await navigator.clipboard.writeText(uri());notice("Convite copiado!")}catch{notice("Partilha "+uri())}};
  root.querySelector("[data-refresh]").onclick=async()=>{await timeSync();await refresh();notice("Sincronizado")};
@@ -181,7 +185,11 @@ function draw(){
  root.querySelectorAll("[data-action]").forEach(el=>el.onclick=()=>doAction(el.dataset.action));
  root.querySelector("[data-resign]")?.addEventListener("click",()=>{confirmResign=true;draw()});
  root.querySelector("[data-cancel-resign]")?.addEventListener("click",()=>{confirmResign=false;draw()});
- root.querySelectorAll("[data-move]").forEach(el=>el.onclick=()=>{previewIndex=Number(el.dataset.move);selected="";draw()});
+ root.querySelectorAll("[data-move]").forEach(el=>el.onclick=()=>reviewTo(Number(el.dataset.move)));
+ root.querySelector("[data-first]")?.addEventListener("click",()=>reviewTo(0));
+ root.querySelector("[data-prev]")?.addEventListener("click",()=>reviewStep(-1));
+ root.querySelector("[data-next]")?.addEventListener("click",()=>reviewStep(1));
+ root.querySelector("[data-last]")?.addEventListener("click",()=>reviewTo(engine()?.history()?.length||0));
  root.querySelectorAll("[data-live]").forEach(el=>el.onclick=()=>{previewIndex=null;draw()});
  root.querySelectorAll("[data-promotion]").forEach(el=>el.onclick=()=>{const p=promo;promo=null;send(p.from,p.to,el.dataset.promotion)});
  root.querySelector("[data-cancel-promo]")?.addEventListener("click",()=>{promo=null;draw()});
@@ -200,14 +208,32 @@ function select(sq){
  selected=p?.color===myColor?sq:"";draw();
 }
 async function send(from,to,promotion){
- if(busy||!room)return;busy=true;selected="";draw();notice("A guardar jogada...");
+ if(busy||!room)return;
+ const original=room,c=engine(),color=room.turn;
+ let move;try{move=c.move({from,to,...(promotion?{promotion}:{})})}catch{return}
+ if(!move)return;
+ busy=true;selected="";
+ const elapsed=msLeft(color);
+ room={...original,fen:c.fen(),pgn:c.pgn(),ply:original.ply+1,turn:c.turn(),last_move:from+to+(promotion||""),draw_offered_by:null,
+  white_ms:color==="w"?elapsed+original.increment_ms:original.white_ms,
+  black_ms:color==="b"?elapsed+original.increment_ms:original.black_ms,
+  clock_started_at:new Date(serverNow()).toISOString(),
+  status:c.isCheckmate()?(color==="w"?"white_win":"black_win"):c.isDraw()?"draw":"active"};
+ const animation=animatedMove(original,room);
+ draw();animation?.();notice("A confirmar jogada...");
  try{
-  const {data,error}=await db().functions.invoke("chess-action",{body:{action:"move",code:room.code,from,to,...(promotion?{promotion}:{})}});
-  if(error||data?.ok===false)notice(data?.error||data?.reason||error?.message||"Jogada não guardada");
-  else notice("");
- }catch(e){notice("Erro de ligação ao guardar jogada")}
- finally{busy=false;await refresh()}
+  const {data,error}=await db().functions.invoke("chess-action",{body:{action:"move",code:original.code,from,to,...(promotion?{promotion}:{})}});
+  if(error||data?.ok===false){
+   let reason=data?.error||data?.reason||error?.message||"Jogada não guardada";
+   if(error?.context?.json){try{const details=await error.context.json();reason=details?.error||details?.reason||reason}catch{}}
+   room=original;draw();notice(reason);
+  }else notice("");
+ }catch(e){room=original;draw();notice("Falha de ligação. A sincronizar...")}
+ finally{busy=false;refresh()}
 }
+
+document.addEventListener("keydown",e=>{if(game!=="chess"||!room||e.altKey||e.ctrlKey||e.metaKey||e.target?.closest?.("input,textarea,select"))return;
+ if(e.key==="ArrowLeft"){e.preventDefault();reviewStep(-1)}if(e.key==="ArrowRight"){e.preventDefault();reviewStep(1)}});
 window.EDGY_chess={open,close,render:draw};
 const incoming=new URLSearchParams(location.search).get("room");
 if(incoming&&/^[0-9a-f]{8}$/i.test(incoming)){game="chess";open(incoming)}
