@@ -1,5 +1,17 @@
 import {Chess} from "npm:chess.js@1.4.0";
 import {createClient} from "npm:@supabase/supabase-js@2.57.4";
+// Chess.com-inspired automatic insufficient-material draws.
+function chessComInsufficient(chess:Chess):boolean{
+ const pieces=chess.board().flat().filter((piece)=>piece!==null);
+ const minors={w:0,b:0};
+ for(const piece of pieces){
+  if(piece.type==="p"||piece.type==="r"||piece.type==="q")return false;
+  if(piece.type==="b"||piece.type==="n")minors[piece.color]++;
+ }
+ if(minors.w<=1&&minors.b<=1)return true;
+ return (minors.w===2&&minors.b===0||minors.b===2&&minors.w===0)&&
+  pieces.filter(p=>p.type==="n").length===2;
+}
 const allowedOrigin="https://bpsbeast.github.io";
 const headers={"Content-Type":"application/json","Access-Control-Allow-Origin":allowedOrigin,"Access-Control-Allow-Headers":"authorization, x-client-info, apikey, content-type","Access-Control-Allow-Methods":"POST,OPTIONS"};
 function response(status:number,body:Record<string,unknown>){return new Response(JSON.stringify(body),{status,headers})}
@@ -45,7 +57,7 @@ Deno.serve(async(request:Request)=>{
   if(!move)return response(400,{error:"Jogada ilegal"});
   let status="active";
   if(chess.isCheckmate())status=color==="w"?"white_win":"black_win";
-  else if(chess.isDraw())status="draw";
+  else if(chess.isDraw()||chessComInsufficient(chess))status="draw";
   const {data,error}=await admin.rpc("edgy_chess_commit_timed",{
    p_room_id:room.id,p_actor:uid,p_expected_ply:room.ply,
    p_new_fen:chess.fen(),p_new_pgn:chess.pgn(),p_next_turn:chess.turn(),
