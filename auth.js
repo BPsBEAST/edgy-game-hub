@@ -16,8 +16,59 @@ function start(){show('<div class="authLogo">EDGY</div><p class="sub">PLAY YOUR 
 modal.querySelector("#edgy-guest").onclick=async()=>{if(configured){try{const {data,error}=await sb.auth.signInAnonymously({options:{data:{display_name:state.name}}});if(error)throw error;account=data.user;await loadCloud();}catch(e){modal.querySelector(".authNote")?.remove();const n=document.createElement("p");n.className="authError";n.textContent="Não foi possível entrar online: "+e.message+" Podes jogar localmente.";modal.querySelector(".authBox").append(n);}}entryMode="guest";localStorage.setItem("edgy_entry_mode","guest");hide();render()};
 modal.querySelector("#edgy-create").onclick=()=>form("register");modal.querySelector("#edgy-login").onclick=()=>form("login");
 }
-function form(mode){if(!configured){start();return}const register=mode==="register";show('<button class="authClose" data-close>✕ Fechar</button><div class="authLogo">EDGY</div><h2>'+(register?"Criar conta":"Iniciar sessão")+'</h2><form class="authForm" id="edgy-form">'+(register?'<label>Nickname</label><input name="nickname" maxlength="22" placeholder="O teu nome" required>':'')+'<label>Email</label><input name="email" type="email" autocomplete="email" required><label>Palavra-passe</label><input name="password" type="password" minlength="6" autocomplete="'+(register?"new-password":"current-password")+'" required><div class="authActions"><button type="submit" class="primary">'+(register?"Criar conta":"Entrar")+'</button></div><p class="authError" id="edgy-auth-error"></p></form><p class="authNote">Podes continuar a jogar como convidado. Se já és convidado online, o registo pode preservar o teu progresso.</p>');
-modal.querySelector("#edgy-form").onsubmit=async e=>{e.preventDefault();if(authBusy)return;authBusy=true;const f=new FormData(e.target),email=String(f.get("email")).trim(),password=String(f.get("password")),nickname=String(f.get("nickname")||state.name).trim().slice(0,22)||"Jogador";try{let result;let currentWasAnonymous=false;if(register){const current=await sb.auth.getUser();if(current.data.user?.is_anonymous){currentWasAnonymous=true;result=await sb.auth.updateUser({email,data:{display_name:nickname}});}else result=await sb.auth.signUp({email,password,options:{data:{display_name:nickname}}});}else result=await sb.auth.signInWithPassword({email,password});if(result.error)throw result.error;if(register&&currentWasAnonymous){modal.querySelector("#edgy-auth-error").textContent="Confirma o email que acabámos de enviar. Depois volta à EDGY para definir uma palavra-passe.";return}if(result.data.user&&!result.data.session){modal.querySelector("#edgy-auth-error").textContent="Verifica o email para concluir a ativação. Depois inicia sessão.";return}account=result.data.user||account;entryMode="account";localStorage.setItem("edgy_entry_mode","account");await loadCloud(nickname);hide();render()}catch(err){modal.querySelector("#edgy-auth-error").textContent=err.message||"Falha de autenticação";}finally{authBusy=false}};
+const upgradeKey="edgy_upgrade_pending";
+const website="https://bpsbeast.github.io/edgy-game-hub/";
+function form(mode){
+ if(!configured){start();return}
+ const register=mode==="register";
+ const isUpgrade=register&&Boolean(account?.is_anonymous);
+ const nick=register?'<label>Nickname</label><input name="nickname" maxlength="22" required placeholder="Nome de jogador" value="'+esc(state.name)+'">':'';
+ const passwordField=isUpgrade?'':'<label>Palavra-passe (8+ caracteres, letras e números)</label><input name="password" type="password" minlength="8" pattern="(?=.*[A-Za-z])(?=.*[0-9]).{8,}" autocomplete="'+(register?'new-password':'current-password')+'" required>';
+ show('<button class="authClose" data-close>✕ Fechar</button><div class="authLogo">EDGY</div><h2>'+(register?(isUpgrade?'Guardar progresso':'Criar conta'):'Iniciar sessão')+'</h2><form class="authForm" id="edgy-form">'+nick+'<label>Email</label><input name="email" type="email" autocomplete="email" required>'+passwordField+'<div class="authActions"><button type="submit" class="primary">'+(register?(isUpgrade?'Confirmar email':'Criar conta'):'Entrar')+'</button></div><p class="authError" id="edgy-auth-error" role="status"></p></form><p class="authNote">'+(isUpgrade?'Primeiro confirma o email. Depois poderás definir uma palavra-passe e manter o teu perfil.':'Podes continuar a jogar como convidado.')+'</p>');
+ modal.querySelector("#edgy-form").onsubmit=async(event)=>{
+  event.preventDefault();if(authBusy)return;authBusy=true;
+  const data=new FormData(event.target),email=String(data.get("email")).trim(),password=String(data.get("password")||""),nickname=String(data.get("nickname")||state.name).trim().slice(0,22)||"Jogador";
+  const message=modal.querySelector("#edgy-auth-error");
+  try{
+   let response;
+   if(isUpgrade){response=await sb.auth.updateUser({email,data:{display_name:nickname}},{emailRedirectTo:website})}
+   else if(register){response=await sb.auth.signUp({email,password,options:{emailRedirectTo:website,data:{display_name:nickname}}})}
+   else {response=await sb.auth.signInWithPassword({email,password})}
+   if(response.error)throw response.error;
+   if(isUpgrade){
+    localStorage.setItem(upgradeKey,account.id);
+    message.textContent="Abre o email de confirmação. Depois regressa à EDGY para criar a palavra-passe.";
+    return;
+   }
+   if(register&&!response.data.session){
+    message.textContent="Confirma o email e regressa para iniciar sessão.";
+    return;
+   }
+   account=response.data.user;
+   if(!account)throw Error("Não foi possível recuperar a sessão.");
+   localStorage.setItem("edgy_owner_id",account.id);
+   entryMode="account";localStorage.setItem("edgy_entry_mode",entryMode);
+   await loadCloud(register?nickname:undefined);
+   hide();render();
+  }catch(error){message.textContent=error.message||"Ocorreu um erro."}
+  finally{authBusy=false}
+ };
+}
+function finishUpgrade(){
+ if(!account||account.is_anonymous)return;
+ show('<div class="authLogo">EDGY</div><h2>Concluir a tua conta</h2><p class="sub">Email confirmado! Agora define uma palavra-passe.</p><form class="authForm" id="edgy-finish"><label>Palavra-passe (8+ caracteres, letras e números)</label><input name="password" type="password" minlength="8" pattern="(?=.*[A-Za-z])(?=.*[0-9]).{8,}" autocomplete="new-password" required><div class="authActions"><button class="primary" type="submit">Guardar conta</button></div><p class="authError" id="edgy-auth-error" role="status"></p></form>');
+ modal.querySelector("#edgy-finish").onsubmit=async(event)=>{
+  event.preventDefault();if(authBusy)return;authBusy=true;
+  try{
+   const password=String(new FormData(event.target).get("password"));
+   const {error}=await sb.auth.updateUser({password});
+   if(error)throw error;
+   localStorage.removeItem(upgradeKey);
+   entryMode="account";localStorage.setItem("edgy_entry_mode",entryMode);
+   hide();await loadCloud();render();
+  }catch(error){modal.querySelector("#edgy-auth-error").textContent=error.message||"Erro ao guardar a palavra-passe."}
+  finally{authBusy=false}
+ };
 }
 function uuid(){return crypto.randomUUID()}
 async function uploadHistory(){if(!account)return;const items=state.history.filter(x=>!x.remote).map(x=>({user_id:account.id,client_id:x.client_id||uuid(),game:x.title,result:x.result,xp:Math.min(100,Math.max(0,Number(x.xp)||0))}));if(!items.length)return;const {error}=await sb.from("match_history").upsert(items,{onConflict:"user_id,client_id",ignoreDuplicates:true});if(error)console.warn("EDGY sync:",error.message);}
