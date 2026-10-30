@@ -94,5 +94,21 @@ function renderDetail(){
  host.querySelector("[data-end]").onclick=()=>navigate(moves.length);
  host.querySelectorAll("[data-move]").forEach(b=>b.onclick=()=>navigate(Number(b.dataset.move)));
 }
-window.EDGY_history={mount};
+async function openByCode(rawCode){
+ const code=String(rawCode||"").toUpperCase();
+ if(!/^[0-9A-F]{8}$/.test(code)||!api()||!viewer())return;
+ const {data:r,error}=await api().from("chess_rooms")
+  .select("id,code,white_id,black_id,status,updated_at,base_ms,increment_ms,finish_reason,ply")
+  .eq("code",code).maybeSingle();
+ if(error||!r)return;
+ if(!["white_win","black_win","draw"].includes(r.status))return;
+ const color=r.white_id===viewer().id?"white":r.black_id===viewer().id?"black":null;
+ if(!color)return;
+ const outcome=r.status==="draw"?"draw":r.status===(color==="white"?"white_win":"black_win")?"win":"loss";
+ const g={id:r.id,key:r.id,code:r.code,color,outcome,game:"Xadrez",isChess:true,
+  when:r.updated_at,date:r.updated_at,base_ms:r.base_ms,increment_ms:r.increment_ms,
+  reason:r.finish_reason,xp:0,opponent_name:"Adversário"};
+ await open(g);
+}
+window.EDGY_history={mount,openByCode};
 })();
