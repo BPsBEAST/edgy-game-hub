@@ -27,6 +27,12 @@ async function openById(id){
  const history=Array.isArray(p.recent)?p.recent:[];
  el.innerHTML='<div class="playerHead">'+avatar(p)+'<div><h2>'+esc(p.name)+'</h2><span class="sub" style="color:#ff8cbe">@'+esc(p.username)+'</span></div></div>'+(p.bio?'<p class="playerBio">'+esc(p.bio)+'</p>':'')+'<div class="playerStats"><div class="playerStat"><b>'+Number(p.xp||0)+'</b><span>XP</span></div><div class="playerStat"><b>'+Number(p.level||1)+'</b><span>Nível</span></div><div class="playerStat"><b>'+Number(p.matches||0)+'</b><span>Partidas</span></div></div><h3 style="margin-top:23px">Xadrez</h3><p class="sub">'+Number(p.chess_wins||0)+' vitórias · '+Number(p.chess_draws||0)+' empates · '+Number(p.chess_losses||0)+' derrotas</p><h3>Atividade recente</h3>'+(history.length?'<ul class="playerHistory">'+history.map(h=>'<li><span>'+esc(h.game)+' · '+esc(h.result)+'</span><span>'+new Date(h.date).toLocaleDateString("pt-PT")+'</span></li>').join("")+'</ul>':'<p class="sub">Sem partidas registadas.</p>');
  if(isOther){
+  const challenge=document.createElement("div");
+  challenge.className="edgyPlayerInviteActions";
+  challenge.innerHTML='<button type="button" class="edgySocialPrimary" data-challenge-chess>Convidar para Xadrez</button><button type="button" class="edgySocialAlt" data-challenge-checkers>Convidar para Damas</button>';
+  el.append(challenge);
+  challenge.querySelector("[data-challenge-chess]").onclick=()=>window.EDGY_social?.createAndInvite("chess",p.id);
+  challenge.querySelector("[data-challenge-checkers]").onclick=()=>window.EDGY_social?.createAndInvite("checkers",p.id);
   const h2h=document.createElement("section");h2h.className="playerH2H";
   h2h.innerHTML='<h3>Confrontos contigo</h3><p class="sub">A consultar partidas entre vocês…</p>';
   el.append(h2h);
