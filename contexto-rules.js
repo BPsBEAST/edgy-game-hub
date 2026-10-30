@@ -59,13 +59,17 @@ function rank(secret,guess){
  return ordered.length+1+Math.floor(hash(a,w)*9000);
 }
 function isWord(word){
+ setup();
  const w=norm(word);
  return /^[a-z]{3,20}$/.test(w)&&(groups.has(w)||window.EDGY_wordBank?.isWord?.(w));
 }
 function hint(secret,guesses){
  prepare(secret);
  const used=new Set((guesses||[]).map(g=>norm(g.word||g)));
- return ordered.find(w=>w!==norm(secret)&&!used.has(w))||"";
+ const valid=ordered.filter(w=>w!==norm(secret)&&!used.has(w));
+ const best=(guesses||[]).length?Math.min(...guesses.map(g=>Number(g.rank)||9999)):9999;
+ const goal=best<=8?Math.max(2,best-1):Math.max(8,Math.min(110,Math.floor(best/2)));
+ return valid.find(w=>(ranks.get(w)||99999)>=goal)||valid[0]||"";
 }
 function label(rank){
  if(rank===1)return "Encontraste!";
