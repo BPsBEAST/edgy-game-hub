@@ -180,3 +180,16 @@ A aplicação pública é uma versão experimental para amigos; ainda não há m
 - Dois dispositivos reais, com contas diferentes, para confirmar notificações, replays, estados de rede e UI móvel.
 - Rever a execução de `tests/smoke.test.mjs` nas Actions antes de novos lançamentos.
 - Após verificar estes fluxos, migrar funções privilegiadas antigas de forma testada, sem afetar partidas existentes.
+
+
+## EDGY v32 — experiência mobile, perfis e verificações
+
+- **Perfis públicos:** botão `Rever partida` para cada confronto concluído; replays do Xadrez no Histórico, Damas e Jogo do Galo através da partida original. Animações de abertura e fecho com `prefers-reduced-motion`, foco restaurado ao fechar e sobreposição corrigida acima do painel do Xadrez.
+- **Xadrez mobile:** os controlos de partida e as jogadas/confrontos estão separados em duas áreas de painel utilizáveis e com scroll; o separador de promoção abre automaticamente quando necessário. A folha aparece acima da navegação inferior.
+- **Damas:** botão manual de atualização removido; sincronização por Realtime com polling de contingência.
+- **Jogo do Galo online:** nomes dos participantes obtidos por RPC que verifica se o utilizador pertence à sala, eventos Realtime, validação de turnos no servidor, convites partilhados, XP e histórico guardados exatamente uma vez. Replays duplicados são reconciliados pelo ID da sala.
+- **Layout:** `footer` ancorado à zona inferior quando há pouco conteúdo; quando a página é longa acompanha o final do conteúdo.
+- **Testes:** 15 testes automáticos definidos, verificações estáticas de sintaxe, cache e navegação, e testes transacionais no Supabase (convites, turnos, vitória, desistência, XP e acesso autorizado). Os testes de base de dados foram revertidos sem deixar partidas fictícias.
+- **Auditoria pendente:** o Supabase sinaliza 19 funções públicas `SECURITY DEFINER` antigas acessíveis ao role `authenticated`; devem ser revistas/migradas com segurança antes de abrir a aplicação a um público maior. Os avisos sobre acesso anónimo requerem avaliação tendo em conta o modo convidado; a proteção contra passwords divulgadas não está ativa. Quatro índices ainda não apresentam utilização significativa.
+
+**Adicionar um jogo novo:** definir uma entrada em `edgy-platform.js`, criar tabelas e operações autenticadas e validadas no servidor, associar as operações de sala e convites existentes e criar apenas a interface/regras específicas. Não duplicar a gestão de contas, convites ou o modal de resultado.
