@@ -250,7 +250,7 @@ test("Game library uses a single registry loaded before bootstrap",()=>{
  const app=read("app.js"),defs=read("edgy-platform.js");
  assert.ok(app.includes("Object.values(window.EDGY_platform.games).map("));
  assert.ok(app.includes("defs.length"));
- for(const game of ["chess","checkers","tic","reaction","barricade"]assert.ok(defs.includes(game+":Object.freeze("));
+ for(const game of ["chess","checkers","tic","reaction","barricade"])assert.ok(defs.includes(game+":Object.freeze("));
  assert.ok(app.includes('filter==="Multiplayer"?window.EDGY_platform.games[g.id].online'));
 });
 
@@ -373,11 +373,12 @@ test("All games share one header, lobby cards and match presentation",()=>{
  for(const game of ["chess","checkers","tic","reaction","barricade"]assert.ok(ui.includes(game+':{title:'));
  for(const file of ["chess-online.js","checkers-online.js","tic-online.js","barricade-online.js","app.js"]){
   const src=read(file);
-  assert.ok(src.includes('window.EDGY_gameUI.header('),file);
-  assert.ok(src.includes('window.EDGY_gameUI.match('),file);
+  assert.ok(src.includes('window.EDGY_gameUI.header(')||src.includes('ui().header('),file);
+  assert.ok(src.includes('window.EDGY_gameUI.match(')||src.includes('ui().match('),file);
  }
  for(const file of ["chess-online.js","checkers-online.js","tic-online.js","barricade-online.js"]){
-  assert.ok(read(file).includes('window.EDGY_gameUI.card('),file);
+  const src=read(file);
+  assert.ok(src.includes('window.EDGY_gameUI.card(')||src.includes('ui().card('),file);
  }
  assert.ok(css.includes('#screen .edgyGameHeaderRow'));
  assert.ok(css.includes('#screen .edgyGamePanel'));
@@ -398,7 +399,10 @@ test("Universal renderer escapes user text and keeps consistent structure",()=>{
 });
 test("Xadrez, Damas and Galo use one mobile options/history panel implementation",()=>{
  const ui=read("edgy-game-ui.js"),css=read("edgy-game-layout.css");
- for(const file of ["chess-online.js","checkers-online.js","tic-online.js","barricade-online.js"])assert.ok(read(file).includes('window.EDGY_gameUI.bindMobilePanel('));
+ for(const file of ["chess-online.js","checkers-online.js","tic-online.js","barricade-online.js"]){
+  const src=read(file);
+  assert.ok(src.includes('window.EDGY_gameUI.bindMobilePanel(')||src.includes('ui().bindMobilePanel('),file);
+ }
  assert.ok(read("checkers-online.js").includes('clearMobilePanel("checkers")'));
  assert.ok(read("tic-online.js").includes('clearMobilePanel("tic")'));
  assert.ok(read("checkers-online.js").includes('document.visibilityState!=="hidden"'));
