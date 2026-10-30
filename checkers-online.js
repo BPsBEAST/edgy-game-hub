@@ -128,14 +128,14 @@ function animateMove(previous,current){
  animation.oncancel=finish;
 }
 
-function clear(){closeResult();closeResign();stopPieceFlight();reviewStep=null;if(poll)clearInterval(poll);poll=null;if(channel)db()?.removeChannel(channel);channel=null;room=null;players=null;selected=[]}
+function clear(){window.EDGY_gameUI.clearMobilePanel("checkers");closeResult();closeResign();stopPieceFlight();reviewStep=null;if(poll)clearInterval(poll);poll=null;if(channel)db()?.removeChannel(channel);channel=null;room=null;players=null;selected=[]}
 function close(){clear();const u=new URL(location.href);u.searchParams.delete("checkers");history.replaceState(null,"",u.pathname+u.search+u.hash)}
 function open(code=""){clear();pending=String(code).toUpperCase();joined=false;loadRules();draw()}
 async function create(){if(busy)return;busy=true;const {data,error}=await window.EDGY_platform.rooms.create("checkers");busy=false;if(error){info=error.message;draw();return}await load(data)}
 async function join(code){pending=String(code||"").trim().toUpperCase();if(!/^[A-F0-9]{8}$/.test(pending)){info="Código inválido";draw();return}if(busy)return;busy=true;const {data,error}=await window.EDGY_platform.rooms.join("checkers",pending);busy=false;if(error){info=error.message;draw();return}await load(data)}
 async function load(code){const {data,error}=await window.EDGY_platform.rooms.load("checkers",code);if(error||!data){info=error?.message||"Sala não encontrada";draw();return}room=data;selected=[];reviewStep=null;history.replaceState(null,"",invitation());await loadPlayers();subscribe();draw();showResult()}
 async function loadPlayers(){const {data}=await db().rpc("edgy_checkers_players",{p_code:room.code});players=data}
-function subscribe(){if(channel)db().removeChannel(channel);if(poll)clearInterval(poll);channel=db().channel("checkers-"+room.id).on("postgres_changes",{event:"UPDATE",schema:"public",table:"checkers_rooms",filter:"id=eq."+room.id},()=>refresh()).subscribe();poll=setInterval(()=>{if(room&&game==="checkers")refresh()},3000)}
+function subscribe(){if(channel)db().removeChannel(channel);if(poll)clearInterval(poll);channel=db().channel("checkers-"+room.id).on("postgres_changes",{event:"UPDATE",schema:"public",table:"checkers_rooms",filter:"id=eq."+room.id},()=>refresh()).subscribe();poll=setInterval(()=>{if(room&&game==="checkers"&&document.visibilityState!=="hidden")refresh()},3000)}
 async function refresh(){if(!room||busy)return;const old=room,{data}=await db().from("checkers_rooms").select("*").eq("id",room.id).maybeSingle();if(!data)return;if(data.ply!==old.ply||data.status!==old.status||data.black_id!==old.black_id){room=data;selected=[];if(data.black_id!==old.black_id)await loadPlayers();draw();
  if(reviewStep===null)animateMove(old,data);
  if(old.status==="active"&&data.status!=="active"){
