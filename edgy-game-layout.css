@@ -155,25 +155,26 @@
  #screen .edgyGameBack{transition:none!important}
 }
 
-/* EDGY v36 — targeted polish: the library cards form a visually identical 2×2
-   grid on mobile; other pages retain their v35 proportions. */
-#screen.edgyLibraryPage .games{
+/* EDGY v38 — one reusable tile system for Home and Biblioteca.
+   Both views call cards() and use identical icon, artwork and body geometry. */
+#screen .edgyGameCards{
  grid-auto-rows:1fr;
  align-items:stretch;
 }
-#screen.edgyLibraryPage .game{
+#screen .edgyGameCards .game{
  display:flex;
  flex-direction:column;
  align-self:stretch;
+ width:100%;
+ min-width:0;
  height:100%;
  margin:0!important;
  overflow:hidden;
 }
-#screen.edgyLibraryPage .game .art,
-#screen.edgyLibraryPage .game:nth-child(even) .art{
+#screen .edgyGameCards .game .art{
  display:grid!important;
  place-items:center!important;
- flex:0 0 160px;
+ flex:0 0 160px!important;
  width:100%;
  height:160px!important;
  min-height:160px!important;
@@ -182,15 +183,22 @@
  background:#2a2143!important;
  box-sizing:border-box;
 }
-#screen.edgyLibraryPage .gameBody{
+#screen .edgyGameCards .game:nth-child(even) .art{
+ background:#302346!important;
+}
+#screen .edgyGameCards .gameBody{
  display:flex;
  flex-direction:column;
  justify-content:center;
  flex:1 1 auto;
+ min-width:0;
  min-height:80px;
  margin:0;
+ padding:13px 14px!important;
  box-sizing:border-box;
 }
+#screen .edgyGameCards .gameBody strong{line-height:1.25}
+#screen .edgyGameCards .gameBody span{line-height:1.4}
 #screen .chessLobbyNotice:empty{display:none!important}
 #screen .chessLobbyNotice:not(:empty){
  margin:11px 0 0!important;
@@ -200,56 +208,55 @@
  font-size:12px;
 }
 @media(max-width:799px){
- #screen.edgyLibraryPage .games{gap:11px}
- #screen.edgyLibraryPage .game .art,
- #screen.edgyLibraryPage .game:nth-child(even) .art{
-  flex-basis:100px;
-  height:100px!important;
-  min-height:100px!important;
+ #screen .edgyGameCards{gap:11px}
+ #screen .edgyGameCards .game .art{
+  flex-basis:84px!important;
+  height:84px!important;
+  min-height:84px!important;
  }
- #screen.edgyLibraryPage .gameBody{
+ #screen .edgyGameCards .gameBody{
   min-height:79px!important;
   padding:10px 11px!important;
-  justify-content:center;
  }
- #screen.edgyLibraryPage .gameBody strong{font-size:13px!important;line-height:1.23}
- #screen.edgyLibraryPage .gameBody span{font-size:11px!important;line-height:1.35;margin-top:5px}
- #screen.edgyLibraryPage .game .edgyGameIcon{transform:scale(.87)}
- /* Leave a reserved zone above the five-button bottom navigation. */
+ #screen .edgyGameCards .gameBody strong{
+  font-size:13px!important;
+  line-height:1.23;
+ }
+ #screen .edgyGameCards .gameBody span{
+  font-size:11px!important;
+  line-height:1.35;
+  margin-top:5px;
+ }
+ #screen .edgyGameCards .game .edgyGameIcon{transform:scale(.77)}
+ /* The library footer clears the fixed five-tab mobile navigation. */
  .main:has(> #screen.edgyLibraryPage){
   padding-bottom:calc(82px + env(safe-area-inset-bottom))!important;
  }
  .main:has(> #screen.edgyLibraryPage)>.foot{
   flex:0 0 auto!important;
-  margin-top:auto!important;
-  min-height:28px!important;
-  padding-top:14px!important;
-  padding-bottom:4px!important;
+  margin-top:14px!important;
+  min-height:0!important;
+  padding:7px 0 5px!important;
   color:#a89bb8!important;
+  font-size:10px!important;
+  text-align:center;
  }
-}
-
-/* v37: compact, uniformly sized library cards; footer stays above mobile tabs. */
-@media(max-width:799px){
- #screen.edgyLibraryPage .game .art,
- #screen.edgyLibraryPage .game:nth-child(even) .art{
-  flex:0 0 84px!important;height:84px!important;min-height:84px!important;
- }
- #screen.edgyLibraryPage .gameBody{
-  flex:1 1 auto;min-height:75px!important;padding:9px 10px!important;
- }
- #screen.edgyLibraryPage .game .edgyGameIcon{transform:scale(.77)}
- .main:has(> #screen.edgyLibraryPage)>.foot{
-  margin-top:14px!important;min-height:0!important;
-  padding:7px 0 5px!important;font-size:10px!important;text-align:center;
- }
- /* Only the chess waiting room gets a strict, even panel rhythm. */
+ /* Chess waiting-room spacing is independent from the shared game cards. */
  #screen.edgyLobby .chessWrap.edgyGamePage{
-  display:grid;grid-template-columns:minmax(0,1fr);gap:12px;align-content:start;
+  display:grid;
+  grid-template-columns:minmax(0,1fr);
+  gap:12px;
+  align-content:start;
  }
  #screen.edgyLobby .chessWrap>.edgyGameHeader,
- #screen.edgyLobby .chessWrap>.edgyGamePanel{margin:0!important;min-width:0}
+ #screen.edgyLobby .chessWrap>.edgyGamePanel{
+  margin:0!important;
+  min-width:0;
+ }
  #screen.edgyLobby .chessWrap .chessLobbyNotice:empty{
-  display:none!important;margin:0!important;padding:0!important;min-height:0!important;
+  display:none!important;
+  margin:0!important;
+  padding:0!important;
+  min-height:0!important;
  }
 }
