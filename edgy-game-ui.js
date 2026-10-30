@@ -6,6 +6,7 @@ const details=Object.freeze({
  checkers:{title:"Damas",icon:"◎",intro:"8×8 · Captura obrigatória · Dama voadora"},
  barricade:{title:"Barricade",icon:"▦",intro:"9×9 · Corrida estratégica · 10 barreiras"},
  tic:{title:"Jogo do Galo",icon:"⊗",intro:"3×3 · 2 jogadores · Online ou local"},
+ wordle:{title:"Palavra Oculta",icon:"▦",intro:"Cinco letras · Seis tentativas · Rondas ilimitadas"},
  reaction:{title:"Reflexos",icon:"◴",intro:"Arcade · 1 jogador · 3 rondas"}
 });
 function escape(value){return String(value??"").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]))}
