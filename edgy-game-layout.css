@@ -261,9 +261,9 @@
  }
 }
 
-/* EDGY v41 — one centered dialog for every game.
-   Chess, Damas and Jogo do Galo share the same position, width and scrolling.
-   The bottom navigation remains outside the overlay and the backdrop covers it. */
+/* EDGY v42 — only Chess uses the centered dialog.
+   Damas and Jogo do Galo keep the proven full-width mobile drawer rules above.
+   The backdrop remains shared between all multiplayer games. */
 #screen .chessSide .chessOptionPanel,
 #screen .chessSide .chessHistoryPanel{min-width:0}
 #screen .chessSide .chessHistoryPanel>.section.panel{margin:0 0 10px!important}
@@ -277,7 +277,6 @@
  #screen .chessSide .chessHistoryPanel{flex:0 0 auto!important}
 }
 @media(max-width:799px){
- #screen .edgyMatchSide.edgyMatchDrawer,
  .main.chess-viewport #screen .chessSide.edgyMatchDrawer{
   position:fixed!important;
   top:calc((100dvh - 76px - env(safe-area-inset-bottom))/2)!important;
