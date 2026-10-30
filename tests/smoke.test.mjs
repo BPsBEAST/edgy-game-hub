@@ -23,7 +23,7 @@ test("Every local asset referenced by the bootstrap exists",()=>{
  const names=[...assets.matchAll(/"([^"]+)"/g)].map(m=>m[1]);
  for(const name of names)assert.ok(fs.existsSync(path.join(dir,name.split("?")[0])),name);
  assert.ok(names.includes("./edgy-platform.js?v=32"),"shared platform cached");
- assert.ok(names.includes("./app.js?v=41"),"bootstrap cached");
+ assert.ok(names.includes("./app.js?v=42"),"bootstrap cached");
  assert.ok(names.includes("./base.css?v=29"),"base stylesheet cached");
  assert.ok(names.includes("./edgy-theme.css?v=34"),"design cached");
  assert.ok(names.includes("./tic-online.js?v=40"),"online tic cached");
@@ -180,8 +180,9 @@ test("Chess refreshes automatically and hides the redundant refresh button",()=>
  const chess=read("chess-online.js"),css=read("edgy-game-layout.css");
  assert.ok(!chess.includes('data-refresh'),"there must be no manual refresh action");
  assert.ok(chess.includes('poller=setInterval('),"background synchronization remains active");
- assert.ok(css.includes('#screen .edgyMatchSide.edgyMatchDrawer,'));
  assert.ok(css.includes('.main.chess-viewport #screen .chessSide.edgyMatchDrawer{'));
+ assert.ok(!css.includes('#screen .edgyMatchSide.edgyMatchDrawer,'),
+  "Centered styling must not affect Damas or Galo");
  assert.ok(css.includes('left:50%!important;right:auto!important;bottom:auto!important'));
 });
 test("Stable footer, profile replay links and chess mobile actions",()=>{
@@ -202,7 +203,7 @@ test("Stable footer, profile replay links and chess mobile actions",()=>{
 test("Game library uses a single registry loaded before bootstrap",()=>{
  const scripts=[...html.matchAll(/<script[^>]*src="([^"]+)"/g)].map(m=>m[1]);
  const platform=scripts.indexOf("./edgy-platform.js?v=32");
- const bootstrap=scripts.indexOf("./app.js?v=41");
+ const bootstrap=scripts.indexOf("./app.js?v=42");
  assert.ok(platform>=0&&bootstrap>=0&&platform<bootstrap);
  const app=read("app.js"),defs=read("edgy-platform.js");
  assert.ok(app.includes("Object.values(window.EDGY_platform.games).map("));
@@ -211,6 +212,19 @@ test("Game library uses a single registry loaded before bootstrap",()=>{
  assert.ok(app.includes('filter==="Multiplayer"?window.EDGY_platform.games[g.id].online'));
 });
 
+test("Damas keeps its full-width bottom drawer and Chess stays centered",()=>{
+ const css=read("edgy-game-layout.css"),checkers=read("checkers-online.js");
+ const base=css.indexOf('#screen[data-game-panel-open="options"] .edgyMatchSide.edgyMatchDrawer');
+ const chess=css.indexOf('/* EDGY v42 — only Chess uses the centered dialog.');
+ assert.ok(base>=0&&chess>base);
+ const wide=css.slice(Math.max(0,base-125),chess);
+ assert.ok(wide.includes('left:8px;right:8px;top:auto;bottom:calc(76px + env(safe-area-inset-bottom))'));
+ assert.ok(wide.includes('width:auto!important;max-width:none!important'));
+ assert.ok(!css.includes('#screen .edgyMatchSide.edgyMatchDrawer,'),
+  "Do not apply the Chess-specific center transform to Damas.");
+ assert.ok(css.includes('.main.chess-viewport #screen .chessSide.edgyMatchDrawer{'));
+ assert.ok(checkers.includes('sideSelector:".ckSide"'));
+});
 test("Chess uses the same mobile options/history drawer as Damas, including promotion",()=>{
  const chess=read("chess-online.js"),ui=read("edgy-game-ui.js"),css=read("edgy-game-layout.css");
  assert.ok(chess.includes('window.EDGY_gameUI.bindMobilePanel(root,{'));
@@ -313,7 +327,7 @@ test("Chess shares the match shell, drawer binder and move controls",()=>{
 test("All games share one header, lobby cards and match presentation",()=>{
  const html=read("index.html"),ui=read("edgy-game-ui.js"),css=read("edgy-game-layout.css");
  assert.ok(html.includes('edgy-game-ui.js?v=39'));
- assert.ok(html.includes('edgy-game-layout.css?v=41'));
+ assert.ok(html.includes('edgy-game-layout.css?v=42'));
  for(const game of ["chess","checkers","tic","reaction"])assert.ok(ui.includes(game+':{title:'));
  for(const file of ["chess-online.js","checkers-online.js","tic-online.js","app.js"]){
   const src=read(file);
@@ -362,8 +376,8 @@ test("Home and Biblioteca render exactly the same reusable game cards",()=>{
  assert.ok(css.includes('flex-basis:84px!important'),"mobile artwork uses exactly the same geometry");
  assert.ok(css.includes('grid-auto-rows:1fr'),"all cards in the grid stretch equally");
  assert.ok(css.includes('.main:has(> #screen.edgyLibraryPage)>.foot'),"library footer clears the navigation");
- assert.ok(html.includes('edgy-game-layout.css?v=41'));
- assert.ok(html.includes('app.js?v=41'));
+ assert.ok(html.includes('edgy-game-layout.css?v=42'));
+ assert.ok(html.includes('app.js?v=42'));
 });
 test("EDGY v36: chess title is short and empty join notice does not reserve space",()=>{
  const chess=read("chess-online.js"),ui=read("edgy-game-ui.js"),css=read("edgy-game-layout.css");
