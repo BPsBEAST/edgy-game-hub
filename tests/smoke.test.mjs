@@ -22,8 +22,8 @@ test("Every local asset referenced by the bootstrap exists",()=>{
  assert.ok(assets);
  const names=[...assets.matchAll(/"([^"]+)"/g)].map(m=>m[1]);
  for(const name of names)assert.ok(fs.existsSync(path.join(dir,name.split("?")[0])),name);
- assert.ok(names.includes("./edgy-platform.js?v=48"),"shared platform cached");
- assert.ok(names.includes("./app.js?v=49"),"bootstrap cached");
+ assert.ok(names.includes("./edgy-platform.js?v=50"),"shared platform cached");
+ assert.ok(names.includes("./app.js?v=50"),"bootstrap cached");
  assert.ok(names.includes("./base.css?v=29"),"base stylesheet cached");
  assert.ok(names.includes("./edgy-theme.css?v=34"),"design cached");
  assert.ok(names.includes("./tic-online.js?v=40"),"online tic cached");
@@ -47,9 +47,9 @@ test("Palavra Oculta includes a large offline Portuguese dictionary and 917 rota
  const scripts=[...html.matchAll(/<script[^>]+src="([^"]+)"/g)].map(x=>x[1]);
  const data=scripts.indexOf("./wordle-data.js?v=48");
  const rules=scripts.indexOf("./wordle-rules.js?v=48");
- const engine=scripts.indexOf("./wordle-game.js?v=49");
+ const engine=scripts.indexOf("./wordle-game.js?v=50");
  assert.ok(data>=0&&rules>data&&engine>rules,"data and rules load before game controller");
- for(const asset of ["wordle-data.js?v=48","wordle-rules.js?v=48","wordle-game.js?v=49","wordle.css?v=48"]){
+ for(const asset of ["wordle-data.js?v=48","wordle-rules.js?v=48","wordle-game.js?v=50","wordle.css?v=50"]){
   assert.ok(html.includes(asset));
   assert.ok(sw.includes(asset));
  }
@@ -108,14 +108,18 @@ test("Palavra Oculta resumes an unfinished puzzle and credits local XP exactly o
  assert.ok(root.innerHTML.includes('class="wdBoard"'));
  assert.ok(root.innerHTML.includes('class="wdKeyboard"'));
  const answer=stored().round.answer;
- for(const letter of answer.slice(0,3))controller.press(letter);
+ // A desktop physical keystroke must enter the same shared game state.
+ let prevented=false;
+ listeners.keydown({key:answer[0].toLowerCase(),target:{closest(){return null}},preventDefault(){prevented=true}});
+ assert.equal(prevented,true,"physical keyboard must be handled without a virtual key");
+ for(const letter of answer.slice(1,3))controller.press(letter);
  assert.equal(stored().round.draft,answer.slice(0,3));
  controller.close();controller.open();
  assert.equal(stored().round.draft,answer.slice(0,3),"typed letters survive a navigation");
  for(const letter of answer.slice(3))controller.press(letter);
  controller.press("ENTER");
  assert.equal(records.length,1);
- assert.equal(records[0][0],"Palavra Oculta");
+ assert.equal(records[0][0],"Wordle");
  assert.equal(stored().round.finished,true);
  assert.ok(root.innerHTML.includes("data-wd-new"));
  controller.press("ENTER");
@@ -130,7 +134,7 @@ test("Palavra Oculta keeps the shared EDGY layout, local XP and accessible mobil
  assert.ok(app.includes('window.EDGY_wordle?.open()'));
  assert.ok(app.includes('if(game==="wordle")return window.EDGY_wordle?.render()'));
  assert.ok(app.includes('["Todos","Multiplayer","Estratégia","Arcade","Palavras"]'));
- assert.ok(ui.includes('wordle:{title:"Palavra Oculta"'));
+ assert.ok(ui.includes('wordle:{title:"Wordle"'));
  assert.ok(game.includes('window.EDGY_gameUI.match({game:"wordle"'));
  assert.ok(game.includes('window.EDGY_gameUI.header("wordle"'));
  assert.ok(game.includes('window.EDGY_recordLocalMatch?.('));
@@ -142,6 +146,32 @@ test("Palavra Oculta keeps the shared EDGY layout, local XP and accessible mobil
  assert.ok(skin.includes('@media(max-width:799px)'));
  assert.ok(skin.includes('@media(prefers-reduced-motion:reduce)'));
  assert.ok(skin.includes('overflow-y:auto!important'));
+});
+test("Wordle title and accessible keyboard layout differ correctly between desktop and phone",()=>{
+ const platform=read("edgy-platform.js"),ui=read("edgy-game-ui.js");
+ const game=read("wordle-game.js"),css=read("wordle.css"),app=read("app.js");
+ const client={window:{},document:{addEventListener(){}}};
+ vm.runInNewContext(ui,client);
+ assert.equal(client.window.EDGY_gameUI.details.wordle.title,"Wordle");
+ const context={window:{},document:{body:{append(){}}}};
+ vm.runInNewContext(platform,context);
+ assert.equal(context.window.EDGY_platform.games.wordle.title,"Wordle");
+ assert.equal(context.window.EDGY_platform.games.wordle.display,"Wordle");
+ assert.ok(game.includes('window.EDGY_recordLocalMatch?.("Wordle"'));
+ assert.ok(game.includes('EDGY · Wordle #'));
+ assert.ok(game.includes('aria-label="Jogo Wordle"'));
+ assert.ok(game.includes('class="wdDesktopHint"'));
+ // Desktop layout: virtual keys are not displayed.
+ const desktop=css.slice(0,css.indexOf('@media(max-width:799px)'));
+ assert.match(desktop,/#screen \.wdKeyboard\{display:none;/);
+ assert.match(desktop,/#screen \.wdDesktopHint\{display:block;/);
+ // Mobile layout: the game reuses the very same keyboard, no second copy.
+ const mobile=css.slice(css.indexOf('@media(max-width:799px)'),css.indexOf('@media(max-width:370px)'));
+ assert.match(mobile,/#screen \.wdKeyboard\{display:grid;/);
+ assert.match(mobile,/#screen \.wdDesktopHint\{display:none/);
+ assert.equal((game.match(/function keyboardHtml\(/g)||[]).length,1);
+ // Previously completed games keep their saved stats and display the new label.
+ assert.ok(app.includes('h?.title==="Palavra Oculta"?{...h,title:"Wordle"}:h'));
 });
 test("Navigation keeps Histórico only inside Perfil",()=>{
  const sidebar=html.split('<aside class="sidebar">')[1].split("</aside>")[0];
@@ -359,8 +389,8 @@ test("Stable footer, profile replay links and chess mobile actions",()=>{
 
 test("Game library uses a single registry loaded before bootstrap",()=>{
  const scripts=[...html.matchAll(/<script[^>]*src="([^"]+)"/g)].map(m=>m[1]);
- const platform=scripts.indexOf("./edgy-platform.js?v=48");
- const bootstrap=scripts.indexOf("./app.js?v=49");
+ const platform=scripts.indexOf("./edgy-platform.js?v=50");
+ const bootstrap=scripts.indexOf("./app.js?v=50");
  assert.ok(platform>=0&&bootstrap>=0&&platform<bootstrap);
  const app=read("app.js"),defs=read("edgy-platform.js");
  assert.ok(app.includes("Object.values(window.EDGY_platform.games).map("));
@@ -483,7 +513,7 @@ test("Chess shares the match shell, drawer binder and move controls",()=>{
 });
 test("All games share one header, lobby cards and match presentation",()=>{
  const html=read("index.html"),ui=read("edgy-game-ui.js"),css=read("edgy-game-layout.css");
- assert.ok(html.includes('edgy-game-ui.js?v=48'));
+ assert.ok(html.includes('edgy-game-ui.js?v=50'));
  assert.ok(html.includes('edgy-game-layout.css?v=47'));
  for(const game of ["chess","checkers","tic","reaction","barricade","wordle"])assert.ok(ui.includes(game+':{title:'));
  for(const file of ["chess-online.js","checkers-online.js","tic-online.js","barricade-online.js","app.js"]){
@@ -599,7 +629,7 @@ test("Home and Biblioteca render exactly the same reusable game cards",()=>{
  assert.ok(css.includes('grid-auto-rows:1fr'),"all cards in the grid stretch equally");
  assert.ok(css.includes('.main.edgyLibraryViewport>.foot'),"library footer follows the cards in the main scroller");
  assert.ok(html.includes('edgy-game-layout.css?v=47'));
- assert.ok(html.includes('app.js?v=49'));
+ assert.ok(html.includes('app.js?v=50'));
 });
 test("EDGY v36: chess title is short and empty join notice does not reserve space",()=>{
  const chess=read("chess-online.js"),ui=read("edgy-game-ui.js"),css=read("edgy-game-layout.css");
