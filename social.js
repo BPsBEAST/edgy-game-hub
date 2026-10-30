@@ -79,9 +79,39 @@ function openInvite(game,code){
  roomGame=game;roomCode=String(code).toUpperCase();
  openModal("Convidar jogador",gameName(game)+" · Sala "+roomCode,"picker");picker("");
 }
+
+/* Only games with a working online invite backend appear here.
+   New multiplayer games can be added to this registry without changing public profiles. */
+const CHALLENGE_GAMES=Object.freeze([
+ {id:"chess",name:"Xadrez",description:"Estratégia · 2 jogadores · 10+0",icon:"♞"},
+ {id:"checkers",name:"Damas",description:"Estratégia · 2 jogadores · 8×8",icon:"◎"}
+]);
+function openChallenge(playerId,playerName="jogador"){
+ if(!me()||me().is_anonymous){openModal("Desafiar jogador","Entra numa conta para desafiar jogadores.","info");msg("Os convites internos requerem uma conta registada.");return}
+ if(!playerId||playerId===me().id)return;
+ openModal("Escolher jogo","Desafia "+playerName+" para uma partida privada.","challenge");
+ const body=$("#edgy-social-body");
+ body.innerHTML='<label class="edgyChallengeLabel" for="edgy-challenge-search">Jogo</label>'
+  +'<input id="edgy-challenge-search" class="edgySocialInput" type="search" placeholder="Pesquisar jogo…" autocomplete="off" aria-label="Pesquisar jogo">'
+  +'<div class="edgyChallengeList" id="edgy-challenge-list"></div>';
+ const search=body.querySelector("#edgy-challenge-search"),list=body.querySelector("#edgy-challenge-list");
+ function paint(){
+  const q=search.value.trim().toLocaleLowerCase("pt-PT");
+  const games=CHALLENGE_GAMES.filter(g=>!q||(g.name+" "+g.description).toLocaleLowerCase("pt-PT").includes(q));
+  list.innerHTML=games.length?games.map(g=>'<button type="button" class="edgyChallengeGame" data-challenge-game="'+g.id+'">'
+   +'<span class="edgyChallengeGlyph" aria-hidden="true">'+esc(g.icon)+'</span>'
+   +'<span class="edgyChallengeText"><strong>'+esc(g.name)+'</strong><small>'+esc(g.description)+'</small></span>'
+   +'<span class="edgyChallengeArrow" aria-hidden="true">→</span></button>').join("")
+   :'<p class="sub">Nenhum jogo compatível.</p>';
+  list.querySelectorAll("[data-challenge-game]").forEach(b=>b.onclick=()=>createAndInvite(b.dataset.challengeGame,playerId));
+ }
+ search.addEventListener("input",paint);
+ paint();
+}
+
 async function createAndInvite(game,playerId){
  if(!me()||me().is_anonymous){openModal("Desafiar jogador","Precisas de uma conta para desafiar jogadores.","info");return}
- if(!["chess","checkers"].includes(game)||!playerId)return;
+ if(!CHALLENGE_GAMES.some(g=>g.id===game)||!playerId)return;
  openModal("A criar desafio",gameName(game),"preparing");msg("A criar a sala…");
  try{
   const fn=game==="chess"?"edgy_create_chess_room_timed":"edgy_checkers_create";
@@ -89,7 +119,7 @@ async function createAndInvite(game,playerId){
   if(roomError)throw roomError;
   const {error}=await db().rpc("edgy_invite_send",{p_game:game,p_code:code,p_recipient:playerId});
   if(error){msg("Sala "+code+" criada, mas o convite falhou: "+error.message);return}
-  close();window.EDGY_openRoom?.(game,code);
+  close();window.EDGY_players?.closeProfile?.();window.EDGY_openRoom?.(game,code);
  }catch(e){msg(e.message||"Não foi possível criar o desafio")}
 }
 function roomCard(r){
@@ -123,7 +153,7 @@ function refreshRoomsOnPage(){
   if(document.getElementById(id))renderRooms(id,game);
  }
 }
-window.EDGY_social={openInvite,createAndInvite,refreshInvites,openInbox,renderRooms,refreshRoomsOnPage};
+window.EDGY_social={openInvite,openChallenge,createAndInvite,refreshInvites,openInbox,renderRooms,refreshRoomsOnPage};
 bell();setTimeout(refreshInvites,1700);setTimeout(refreshRoomsOnPage,300);
 setInterval(()=>{if(me()?.id!==currentUser){inbox=[];currentUser="";bell()}refreshInvites()},15000);
 })();
