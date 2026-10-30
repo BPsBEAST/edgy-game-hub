@@ -58,5 +58,17 @@ function bindMobilePanel(root,{game,sideSelector,optionSelector,historySelector,
  close.addEventListener("click",()=>set(null));backdrop.addEventListener("click",()=>set(null));
  if(sections.has(game))set(sections.get(game));
 }
-window.EDGY_gameUI=Object.freeze({details,header,card,match,bindMobilePanel});
+/* The same drawer API is used by chess, checkers and tic-tac-toe.
+   Opening a tab programmatically is useful for promotion and result actions. */
+function openMobilePanel(root,section){
+ if(section!=="options"&&section!=="history")return;
+ root?.querySelector('.edgyMatchMobileTabs [data-game-panel-button="'+section+'"]')?.click();
+}
+function clearMobilePanel(game){sections.delete(game)}
+document.addEventListener("keydown",event=>{
+ if(event.key!=="Escape")return;
+ const root=document.querySelector('#screen[data-game-panel-open="options"],#screen[data-game-panel-open="history"]');
+ if(root){event.preventDefault();root.querySelector(".edgyMatchDrawerClose")?.click()}
+});
+window.EDGY_gameUI=Object.freeze({details,header,card,match,bindMobilePanel,openMobilePanel,clearMobilePanel});
 })();
