@@ -103,7 +103,14 @@ function openChallenge(playerId,playerName="jogador"){
    +'<span class="edgyChallengeText"><strong>'+esc(g.name)+'</strong><small>'+esc(g.description)+'</small></span>'
    +'<span class="edgyChallengeArrow" aria-hidden="true">→</span></button>').join("")
    :'<p class="sub">Nenhum jogo compatível.</p>';
-  list.querySelectorAll("[data-challenge-game]").forEach(b=>b.onclick=()=>createAndInvite(b.dataset.challengeGame,playerId));
+  list.querySelectorAll("[data-challenge-game]").forEach(b=>b.onclick=()=>{
+   if(working||list.classList.contains("is-choosing"))return;
+   list.classList.add("is-choosing");
+   b.classList.add("is-picked");
+   b.setAttribute("aria-pressed","true");
+   const picked=b.dataset.challengeGame;
+   setTimeout(()=>{if(modalMode==="challenge")createAndInvite(picked,playerId)},190);
+  });
  }
  search.addEventListener("input",paint);
  paint();
@@ -111,8 +118,11 @@ function openChallenge(playerId,playerName="jogador"){
 
 async function createAndInvite(game,playerId){
  if(!me()||me().is_anonymous){openModal("Desafiar jogador","Precisas de uma conta para desafiar jogadores.","info");return}
- if(!CHALLENGE_GAMES.some(g=>g.id===game)||!playerId)return;
- openModal("A criar desafio",gameName(game),"preparing");msg("A criar a sala…");
+ if(!CHALLENGE_GAMES.some(g=>g.id===game)||!playerId||working)return;
+ working=true;
+ openModal("A criar desafio",gameName(game),"preparing");
+ $("#edgy-social-body").innerHTML='<div class="edgyChallengeLoading" role="status"><span class="edgyChallengeSpinner" aria-hidden="true"></span><span>A preparar a tua sala privada…</span></div>';
+ msg("A criar a sala…");
  try{
   const fn=game==="chess"?"edgy_create_chess_room_timed":"edgy_checkers_create";
   const {data:code,error:roomError}=await db().rpc(fn,game==="chess"?{p_base:600,p_increment:0}:undefined);
@@ -121,6 +131,7 @@ async function createAndInvite(game,playerId){
   if(error){msg("Sala "+code+" criada, mas o convite falhou: "+error.message);return}
   close();window.EDGY_players?.closeProfile?.();window.EDGY_openRoom?.(game,code);
  }catch(e){msg(e.message||"Não foi possível criar o desafio")}
+ finally{working=false}
 }
 function roomCard(r){
  const waiting=r.status==="waiting",owner=r.white_id===me()?.id;
