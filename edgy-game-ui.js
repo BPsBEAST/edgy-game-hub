@@ -6,6 +6,7 @@ const details=Object.freeze({
  checkers:{title:"Damas",icon:"◎",intro:"8×8 · Captura obrigatória · Dama voadora"},
  barricade:{title:"Barricade",icon:"▦",intro:"9×9 · Corrida estratégica · 10 barreiras"},
  tic:{title:"Jogo do Galo",icon:"⊗",intro:"3×3 · 2 jogadores · Online ou local"},
+ contexto:{title:"Contexto",icon:"◎",intro:"Palavras · Significado · Tentativas ilimitadas"},
  wordle:{title:"Wordle",icon:"▦",intro:"Cinco letras · Seis tentativas · Rondas ilimitadas"},
  reaction:{title:"Reflexos",icon:"◴",intro:"Arcade · 1 jogador · 3 rondas"}
 });
