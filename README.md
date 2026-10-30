@@ -80,3 +80,15 @@ A aplicação pública é uma versão experimental para amigos; ainda não há m
 5. Termina uma partida, depois consulta o histórico e o XP.
 
 **Nota:** a experiência com dois browsers reais ainda deve ser validada pelo utilizador. O serviço de xadrez precisa de Internet; os minijogos locais continuam a funcionar separadamente.
+
+## EDGY v17 — Damas online + material no xadrez
+
+- A biblioteca inclui agora **Damas online** com tabuleiro 8×8 roxo/lavanda e peças rosa/plum; convites por código e URL `?checkers=XXXXXXXX`.
+- Variante escolhida: **damas brasileiras 8×8**, com 12 peças por lado; peça normal move-se uma casa na diagonal para a frente e captura nas quatro diagonais.
+- Captura obrigatória, sequência com o **maior número de capturas**, múltiplas capturas, dama voadora e promoção quando a peça termina um movimento na última fila.
+- A validação autoritativa das jogadas acontece em `supabase/functions/checkers-action/index.ts`, utilizando o mesmo motor de regras que a interface (`checkers-rules.js`). Os jogadores não têm permissão de atualizar diretamente `checkers_rooms`.
+- O resultado das damas é guardado no histórico e atribui XP pelo servidor: vitória 40, empate 15, derrota 5.
+- O xadrez apresenta peças capturadas junto de cada jogador e respetiva vantagem de material (peão 1, cavalo 3, bispo 3, torre 5, rainha 9).
+- O PWA atualiza para `edgy-v17` e inclui os assets das damas.
+
+**Testes executados:** motor de regras (abertura, capturas obrigatórias, maior número de peças, captura para trás, dama voadora, promoção), SQL (criar/entrar na sala, tabuleiro inicial, resultado/XP, rollback), permissões (o cliente não pode escrever no tabuleiro) e sintaxe JavaScript. **A sincronização em dois dispositivos reais ainda precisa de validação manual.**
