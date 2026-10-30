@@ -346,3 +346,144 @@
  .edgyProfileChallenge,.edgyChallengeGame,.playerClose,.nav button.navHome .navHomeGlyph{transition:none!important}
  .edgyProfileChallenge:hover,.nav button.navHome:hover .navHomeGlyph{transform:none!important}
 }
+
+
+/* EDGY v26 — consistent compact header statistics and expandable rivalries */
+.playerHead{
+ display:flex!important;align-items:center!important;flex-wrap:wrap!important;
+ column-gap:12px!important;row-gap:12px!important;
+ margin:0 43px 16px 0!important;
+}
+.playerHead .playerIcon{width:55px!important;height:55px!important;flex:0 0 55px!important}
+.playerHead .playerIdentity{flex:1 1 95px;min-width:88px}
+.playerHead .playerIdentity h2{font-size:20px!important;line-height:1.1!important;overflow-wrap:anywhere}
+.playerMiniStats{
+ display:flex;align-items:stretch;justify-content:flex-end;gap:4px;
+ flex:0 1 auto;min-width:0;
+}
+.playerMiniStat{
+ display:flex;flex-direction:column;align-items:center;justify-content:center;
+ min-width:49px;min-height:43px;padding:6px 7px;
+ border:1px solid #4e385c;border-radius:3px!important;background:#2c213e;
+ text-align:center;line-height:1.15;
+}
+.playerMiniStat strong{font-size:15px;color:#fcf4ff;font-weight:850;font-variant-numeric:tabular-nums}
+.playerMiniStat small{margin-top:4px;color:#b5a6c5;font-size:9px;letter-spacing:.1px}
+.playerMiniStat:first-child{border-top:2px solid #cd398a}
+.playerDialog .playerBio{margin:0 0 20px!important}
+/* The direct-record area occupies only one row until deliberately opened */
+.playerH2H{margin-top:22px!important;padding-top:15px!important}
+.playerH2HDetails{
+ border:1px solid #594262;background:#2a203b;border-radius:3px!important;
+ overflow:hidden;
+}
+.playerH2HDetails summary{
+ display:flex;align-items:center;gap:10px;list-style:none;
+ min-height:63px;padding:12px 13px;cursor:pointer;
+ background:#2a203b;
+ transition:background-color .2s ease;
+}
+.playerH2HDetails summary::-webkit-details-marker{display:none}
+.playerH2HDetails summary:hover{background:#372744}
+.playerH2HDetails summary:focus-visible{outline:2px solid #ec549d;outline-offset:-3px}
+.playerH2HSummaryInfo{flex:1;min-width:0}
+.playerH2HSummaryInfo strong{font-size:13px;display:block;color:#f9effe}
+.playerH2HSummaryInfo small{font-size:10px;display:block;color:#aea0bf;margin-top:5px}
+.playerH2HScore{
+ display:flex;align-items:baseline;gap:4px;white-space:nowrap;
+ color:#d5c7e3;font-size:10px;letter-spacing:.1px;
+}
+.playerH2HScore b{font-size:14px;color:#fff;font-weight:850;font-variant-numeric:tabular-nums}
+.playerH2HScore span{color:#b4a3bf}
+.playerH2HScore i{color:#745a83;font-style:normal;margin:0 1px}
+.playerH2HChevron{
+ display:inline-block;flex:0 0 auto;font-size:20px;color:#ec7bad;
+ transform:rotate(0deg);
+ transition:transform .22s cubic-bezier(.2,.8,.2,1)
+}
+.playerH2HDetails[open] .playerH2HChevron{transform:rotate(180deg)}
+.playerH2HContent{
+ border-top:1px solid #594263;padding:12px 13px 6px;
+ animation:edgyRivalReveal .25s ease-out both;
+}
+.playerH2HHint{font-size:11px;color:#b9acc6;margin:0 0 10px}
+.playerH2HContent .playerHistory{margin-bottom:7px!important}
+.playerH2HLoading,.playerH2HUnavailable{font-size:12px;color:#b9a8c9;padding:12px}
+@keyframes edgyRivalReveal{from{opacity:0;transform:translateY(-7px)}to{opacity:1;transform:translateY(0)}}
+
+/* Keep the same Level → XP → Matches sequence in Home and both profile views. */
+.edgyProfilePage .ownProfileIdentity{
+ display:flex;align-items:center;flex-wrap:wrap;
+ gap:12px;margin-bottom:18px!important;
+}
+.ownProfileIdentity>.avatar{width:56px!important;height:56px!important;flex:0 0 56px}
+.ownProfileName{flex:1 1 90px;min-width:80px}
+.ownProfileName h3{font-size:17px;margin:0 0 5px}
+.ownProfileName .sub{font-size:11px}
+.ownProfileStats{margin-left:auto}
+.edgyProfilePage .ownProfileStats .playerMiniStat{min-width:54px}
+.edgyProfilePage .xpTrack{margin-top:10px}
+
+/* Challenge picker: quicker, tactile motion, without large neon effects. */
+.edgySocialOverlay:not([hidden]){animation:edgyOverlayIntro .18s ease both}
+.edgySocialOverlay:not([hidden]) .edgySocialDialog{animation:edgySocialIntro .28s cubic-bezier(.18,1,.3,1) both}
+.edgyChallengeGame{
+ position:relative;overflow:hidden;
+ transition:background .18s,border-color .18s,transform .22s cubic-bezier(.17,.85,.25,1),box-shadow .2s!important;
+ animation:edgyGameCascade .32s cubic-bezier(.18,1,.3,1) both;
+}
+.edgyChallengeGame:nth-child(1){animation-delay:0ms}
+.edgyChallengeGame:nth-child(2){animation-delay:45ms}
+.edgyChallengeGame:nth-child(3){animation-delay:90ms}
+.edgyChallengeGame:nth-child(4){animation-delay:135ms}
+.edgyChallengeGame:nth-child(5){animation-delay:180ms}
+.edgyChallengeGame:hover,
+.edgyChallengeGame:focus-visible{background:#402c4c!important;box-shadow:inset 3px 0 #ef4b9d}
+.edgyChallengeGame:hover .edgyChallengeGlyph{
+ background:#5a325c;border-color:#c668a0;transform:scale(1.06) rotate(-4deg)
+}
+.edgyChallengeGame:hover .edgyChallengeArrow{transform:translateX(5px);color:#ffaad0}
+.edgyChallengeGlyph{transition:background .2s,border-color .2s,transform .3s cubic-bezier(.16,1,.3,1)}
+.edgyChallengeArrow{transition:transform .22s,color .22s}
+.edgyChallengeGame:active{transform:scale(.985)}
+.edgyChallengeList.is-choosing .edgyChallengeGame:not(.is-picked){opacity:.35;pointer-events:none;transition:opacity .15s}
+.edgyChallengeGame.is-picked{
+ background:#59304f!important;box-shadow:inset 3px 0 #ff66af;
+ animation:edgyPickPulse .2s ease both;
+}
+.edgyChallengeGame.is-picked .edgyChallengeArrow{transform:translateX(6px);color:#ffd1e5}
+.edgyChallengeLoading{
+ display:flex;align-items:center;justify-content:center;gap:14px;
+ min-height:92px;padding:22px 14px;
+ font-size:12px;color:#dfcce8;background:#2a203c;border:1px solid #503b5b;
+ animation:edgyRivalReveal .22s ease both
+}
+.edgyChallengeSpinner{
+ width:24px;height:24px;flex-shrink:0;
+ border:2px solid #6e5072;border-top-color:#fa75b7;border-radius:50%;
+ animation:edgyChallengeSpin .7s linear infinite;
+}
+@keyframes edgyOverlayIntro{from{opacity:0}to{opacity:1}}
+@keyframes edgySocialIntro{from{opacity:0;transform:translateY(13px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes edgyGameCascade{from{opacity:0;transform:translateX(-9px)}to{opacity:1;transform:translateX(0)}}
+@keyframes edgyPickPulse{0%{transform:scale(.985)}55%{transform:scale(1.01)}100%{transform:scale(1)}}
+@keyframes edgyChallengeSpin{to{transform:rotate(360deg)}}
+@media(max-width:530px){
+ .playerHead{margin-right:37px!important;column-gap:9px!important;row-gap:10px!important}
+ .playerHead .playerIcon{width:49px!important;height:49px!important;flex-basis:49px!important}
+ .playerHead .playerIdentity{flex:1 1 88px}
+ .playerHead .playerIdentity h2{font-size:19px!important}
+ .playerMiniStats{flex:1 0 100%;justify-content:stretch}
+ .playerMiniStat{flex:1;min-width:0;min-height:40px;flex-direction:row;gap:5px}
+ .playerMiniStat strong{font-size:14px}
+ .playerMiniStat small{margin:0;font-size:10px}
+ .ownProfileIdentity .ownProfileStats{flex:1 0 100%;width:100%}
+ .edgyProfilePage .ownProfileIdentity{row-gap:11px}
+ .playerH2HDetails summary{padding:12px 10px}
+ .playerH2HScore{gap:3px}
+}
+@media(prefers-reduced-motion:reduce){
+ .playerH2HChevron,.playerH2HDetails summary,.edgyChallengeGame,.edgyChallengeGlyph,.edgyChallengeArrow{transition:none!important}
+ .playerH2HContent,.edgySocialOverlay:not([hidden]),.edgySocialOverlay:not([hidden]) .edgySocialDialog,
+ .edgyChallengeGame,.edgyChallengeGame.is-picked,.edgyChallengeLoading,.edgyChallengeSpinner{animation:none!important}
+}
