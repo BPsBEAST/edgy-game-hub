@@ -43,9 +43,23 @@ async function sync(){
  const n=++requestCount;if(!api()||!viewer())return;
  const info=document.getElementById("edgy-history-status");if(info)info.textContent="A sincronizar partidas…";
  try{
-  const {data,error}=await api().rpc("edgy_my_chess_history",{p_limit:60});if(error)throw error;
-  if(n!==requestCount)return;cloud=Array.isArray(data)?data:[];
-  if(info)info.textContent="Partidas de xadrez sincronizadas entre dispositivos.";
+  const [chess,tic]=await Promise.all([
+   api().rpc("edgy_my_chess_history",{p_limit:60}),
+   api().from("tic_rooms").select("id,code,white_id,black_id,board,moves,status,updated_at,ply,finish_reason")
+    .in("status",["white_win","black_win","draw"]).order("updated_at",{ascending:false}).limit(60)
+  ]);
+  if(chess.error)throw chess.error;
+  if(n!==requestCount)return;
+  cloud=Array.isArray(chess.data)?chess.data:[];
+  const uid=viewer().id;
+  ticCloud=(tic.error?[]:tic.data||[]).map(r=>{
+   const color=r.white_id===uid?"X":"O",outcome=r.status==="draw"?"draw":
+    r.status===(color==="X"?"white_win":"black_win")?"win":"loss";
+   return {id:r.id,key:"tic-"+r.id,game:"Jogo do Galo",isTic:true,when:r.updated_at,
+    date:r.updated_at,color,outcome,status:r.status,board:r.board,moves:r.moves,
+    code:r.code,xp:0,reason:r.finish_reason,result:labels[outcome]};
+  });
+  if(info)info.textContent=tic.error?"Histórico de Xadrez sincronizado; Jogo do Galo temporariamente indisponível.":"Histórico online sincronizado entre dispositivos.";
  }catch(e){if(info)info.textContent="Histórico online indisponível. A mostrar os resultados guardados localmente."}
  drawStats();draw();
 }
@@ -63,6 +77,27 @@ function basic(g){
  mask.hidden=false;const host=mask.querySelector("#edgy-replay-content");
  host.innerHTML='<div class="edReplayHead"><h2>'+esc(g.game||"Jogo")+'</h2><button type="button" class="edReplayClose" data-close>Fechar</button></div><p class="edReplayInfo">'+date(g.when)+' · '+esc(g.result||"Partida terminada")+' · +'+Number(g.xp||0)+' XP</p><p class="edReplayInfo">Este jogo não tem um replay guardado.</p>';
  host.querySelector("[data-close]").onclick=close;
+}
+let ticStep=0;
+function openTic(g){selected=g;ticStep=Array.isArray(g.moves)?g.moves.length:0;mask.hidden=false;renderTicReplay()}
+function renderTicReplay(){
+ if(!selected?.isTic||mask.hidden)return;
+ const g=selected,arr=Array(9).fill("-"),moves=Array.isArray(g.moves)?g.moves:[];
+ for(const m of moves.slice(0,ticStep))if(Number.isInteger(m.cell)&&m.cell>=0&&m.cell<9)arr[m.cell]=m.mark;
+ const host=mask.querySelector("#edgy-replay-content");
+ host.innerHTML='<div class="edReplayHead"><div><span class="eyebrow">Replay online</span><h2>Jogo do Galo · '+esc(labels[g.outcome])+'</h2>'
+ +'<p class="edReplayInfo">'+date(g.when)+' · Jogaste com '+esc(g.color)+'</p></div><button type="button" class="edReplayClose" data-close>✕ Fechar</button></div>'
+ +'<div class="edgyTicHistoryBoard">'+arr.map(v=>'<span class="'+(v!=="-"?"marked":"")+'">'+(v==="-"?"":esc(v))+'</span>').join("")+'</div>'
+ +'<div class="edReplayControls"><button type="button" data-tic-step="0" aria-label="Início">⏮</button><button type="button" data-tic-step="back" aria-label="Anterior">◀</button><button type="button" data-tic-step="next" aria-label="Próximo">▶</button><button type="button" data-tic-step="end" aria-label="Fim">⏭</button></div>'
+ +'<p class="edReplayInfo" style="text-align:center">Jogada '+ticStep+' de '+moves.length+'</p>'
+ +'<div class="edgyTicReplayMoves">'+moves.map((m,i)=>'<button type="button" data-tic-jump="'+(i+1)+'" class="'+(i+1===ticStep?"active":"")+'">'+(i+1)+'. '+esc(m.mark)+' → '+(m.cell+1)+'</button>').join("")+'</div>';
+ host.querySelector("[data-close]").onclick=close;
+ host.querySelectorAll("[data-tic-step]").forEach(b=>b.onclick=()=>{
+  const x=b.dataset.ticStep;
+  ticStep=x==="0"?0:x==="end"?moves.length:x==="back"?Math.max(0,ticStep-1):Math.min(moves.length,ticStep+1);
+  renderTicReplay();
+ });
+ host.querySelectorAll("[data-tic-jump]").forEach(b=>b.onclick=()=>{ticStep=Number(b.dataset.ticJump);renderTicReplay()});
 }
 async function open(g){
  if(g.isTic){openTic(g);return}if(!g.isChess){basic(g);return}
