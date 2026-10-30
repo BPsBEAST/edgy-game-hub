@@ -784,3 +784,36 @@
 .edgyTicReplayMoves{display:flex;flex-wrap:wrap;gap:5px;max-height:140px;overflow-y:auto;padding:10px 0}
 .edgyTicReplayMoves button{border:1px solid #59436e;border-radius:3px;background:#382848;color:#eee0f4;padding:7px 10px;font-size:11px}
 .edgyTicReplayMoves button.active{background:#794061;border-color:#f471ad}
+
+
+/* Shared confirmation dialog for online games */
+.edgyConfirmOverlay{
+ position:fixed;inset:0;z-index:210;display:grid;place-items:center;
+ padding:18px;background:#0c071bda;backdrop-filter:blur(10px);
+ animation:edgyProfileBackdrop .2s ease both
+}
+.edgyConfirmDialog{
+ width:min(100%,400px);background:#261b3b;border:1px solid #77517c;
+ border-top:3px solid #ef3e96;border-radius:5px;padding:25px 23px;
+ box-shadow:0 24px 85px #0904169a;
+ animation:edgyProfileArrival .25s cubic-bezier(.2,.85,.25,1) both
+}
+.edgyConfirmMark{
+ display:grid;place-items:center;width:39px;height:39px;margin-bottom:18px;
+ background:#503050;color:#ffabd0;font-weight:900;font-size:20px;border-radius:4px
+}
+.edgyConfirmDialog h2{font-size:21px;margin:0 0 10px;letter-spacing:-.5px}
+.edgyConfirmDialog p{color:#c6b6d2;font-size:13px;line-height:1.6;margin-bottom:23px}
+.edgyConfirmActions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.edgyConfirmActions button{
+ min-height:44px;border-radius:4px;padding:10px 8px;cursor:pointer;
+ font-size:12px;font-weight:850;border:1px solid #694d78;
+ color:#eee0f4;background:#3a2b4c;
+ transition:background .18s,transform .16s
+}
+.edgyConfirmActions button[data-approve]{background:linear-gradient(110deg,#e61378,#a20e8a);border-color:#d02a8c;color:#fff}
+.edgyConfirmActions button:hover{filter:brightness(1.09)}
+.edgyConfirmActions button:active{transform:scale(.98)}
+.edgyConfirmActions button:focus-visible{outline:2px solid #ff82bc;outline-offset:2px}
+@media(max-width:380px){.edgyConfirmActions{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){.edgyConfirmOverlay,.edgyConfirmDialog{animation:none!important}.edgyConfirmActions button{transition:none!important}}
