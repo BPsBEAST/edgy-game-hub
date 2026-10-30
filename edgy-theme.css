@@ -175,3 +175,174 @@
  .topActions .edgyBell,.edgyHistoryShortcut .secondary{transition:none!important}
  .nav button.active:not(.navHome)::before,.topActions .edgyBell.hasInvites .edgyBellCount{animation:none!important}
 }
+
+
+/* EDGY v25 — consistent community/profile presentation and scalable challenges */
+.playerDialog{
+ width:min(100%,530px)!important;
+ padding:0!important;
+ border-radius:5px!important;
+ border:1px solid #594268!important;
+ border-top:3px solid #e72b88!important;
+ background:#201930!important;
+ box-shadow:0 26px 75px #090416b5!important;
+ overflow-y:auto;
+ scrollbar-width:thin;
+ scrollbar-color:#65506f transparent;
+}
+.playerDialog #edgy-player-info{padding:24px 24px 27px}
+.playerClose{
+ position:sticky;top:12px;right:12px;z-index:3;float:right;
+ display:grid;place-items:center;width:36px;height:36px;padding:0!important;
+ border:1px solid #5a4465!important;border-radius:4px!important;
+ background:#372943!important;color:#e8d8f0!important;
+ font-size:21px!important;line-height:1;
+ margin:12px 12px -48px 0;
+ transition:background-color .18s,border-color .18s,transform .18s;
+}
+.playerClose:hover{background:#503350!important;border-color:#db5b9f!important}
+.playerClose:active{transform:scale(.94)}
+.playerHead{margin:0 46px 20px 0!important;gap:14px!important;min-width:0}
+.playerHead .playerIcon{width:62px;height:62px;border:2px solid #b65b94;box-shadow:0 0 0 3px #413047}
+.playerIdentity{min-width:0}
+.playerHead .playerIdentity h2{font-size:23px;letter-spacing:-.8px;line-height:1.12;margin:4px 0 5px;overflow-wrap:anywhere}
+.playerEyebrow{font-size:10px;letter-spacing:1.6px;font-weight:850;color:#f27eb1}
+.playerHandle{font-size:12px;color:#e39dc4;word-break:break-all}
+.playerBio{
+ background:#2a213d!important;border-left:2px solid #bd418b;
+ border-radius:2px!important;margin:5px 0 18px!important;
+ padding:12px 14px!important;font-size:13px!important;line-height:1.55!important
+}
+.playerStats{gap:7px!important}
+.playerStat{
+ border-radius:3px!important;
+ background:#2d2340!important;
+ border:1px solid #392d4c;
+ padding:13px 5px!important;
+}
+.playerStat b{font-size:20px!important;line-height:1.1;letter-spacing:-.5px}
+.playerStat span{font-size:11px!important;color:#aba0bc!important}
+.playerSectionTitle{
+ font-size:14px!important;font-weight:850;letter-spacing:-.2px;
+ margin:21px 0 12px!important;
+ display:flex;align-items:center;gap:9px;
+}
+.playerSectionTitle::before{content:"";display:inline-block;width:3px;height:17px;background:#df308a}
+.playerChessRecord{font-size:12px!important;margin-bottom:15px;color:#bdaec9}
+.playerHistory{margin:0 0 10px!important}
+.playerHistory li{
+ padding:11px 1px!important;align-items:center;
+ background:transparent;font-size:12px!important;
+ border-bottom:1px solid #42354d!important;
+}
+.playerHistory li:first-child{border-top:1px solid #42354d}
+.playerHistory li span:last-child{color:#9f90b3;white-space:nowrap;font-size:11px}
+.playerH2H{margin-top:23px!important;border-top:1px solid #493651!important;padding-top:17px!important}
+.playerH2H h3{margin-top:0!important}
+.edgyPlayerInviteActions{margin:20px 0 8px!important}
+.edgyProfileChallenge{
+ display:flex;align-items:center;gap:13px;text-align:left;width:100%;
+ background:#342342;border:1px solid #9a487b;border-left:3px solid #f04398;
+ color:#fff;border-radius:3px;padding:13px 14px;
+ cursor:pointer;
+ transition:background .2s,border-color .2s,transform .2s;
+}
+.edgyProfileChallenge:hover{background:#4a2b4e;border-color:#e44d9b;transform:translateY(-2px)}
+.edgyProfileChallenge:active{transform:scale(.99)}
+.edgyProfileChallengeIcon{
+ flex:0 0 38px;display:grid;place-items:center;width:38px;height:38px;
+ background:#493352;border:1px solid #73506b;border-radius:3px;color:#ffc5e1
+}
+.edgyProfileChallenge>span:nth-child(2){min-width:0;flex:1}
+.edgyProfileChallenge strong,.edgyProfileChallenge small{display:block}
+.edgyProfileChallenge strong{font-size:13px;margin-bottom:5px}
+.edgyProfileChallenge small{font-size:11px;color:#c3b1cd}
+.edgyProfileChallengeArrow{font-size:21px;color:#efa0c7;flex-shrink:0}
+.edgyChallengeLabel{display:block;font-size:11px;font-weight:800;color:#e6c8df;margin:0 0 6px}
+.edgyChallengeList{display:grid;gap:1px;max-height:min(48dvh,405px);overflow-y:auto;background:#473850;border:1px solid #55405e;scrollbar-width:thin}
+.edgyChallengeGame{
+ display:flex;align-items:center;gap:13px;text-align:left;width:100%;
+ padding:13px;background:#2a203d;border:0;color:#fff;min-height:62px;
+ cursor:pointer;transition:background .17s,color .17s
+}
+.edgyChallengeGame:hover,.edgyChallengeGame:focus-visible{background:#3d2a4c}
+.edgyChallengeGlyph{
+ display:grid;place-items:center;width:41px;height:41px;flex:0 0 41px;
+ color:#fff;font-size:30px;font-family:"Segoe UI Symbol",serif;
+ background:#382b4a;border:1px solid #62506d;border-radius:3px
+}
+.edgyChallengeText{flex:1;min-width:0}
+.edgyChallengeText strong{display:block;font-size:13px;margin-bottom:5px}
+.edgyChallengeText small{display:block;font-size:11px;color:#baabc8}
+.edgyChallengeArrow{font-size:19px;color:#e990bd}
+
+/* Own profile uses the same flat design language as public player cards. */
+.edgyProfilePage>h1{margin-bottom:7px}
+.edgyProfilePage>.sub{margin-bottom:22px;font-size:13px}
+.edgyProfilePage>.panel{
+ border:1px solid #493650!important;
+ border-top:2px solid #614363;
+ background:#221a35!important;
+ border-radius:3px!important;padding:20px!important;
+}
+.edgyProfilePage>.panel>.row:first-child{gap:14px;margin-bottom:18px}
+.edgyProfilePage>.panel>.row:first-child .avatar{width:56px;height:56px;flex-shrink:0}
+.edgyProfilePage .field,.edgyProfilePage textarea,
+.edgyProfilePage .edgyPhotoPicker{
+ border-radius:3px!important;background:#171126!important;border-color:#594164!important;
+}
+.edgyProfilePage .xpTrack{border-radius:3px!important;overflow:hidden}
+.edgyProfilePage .xpFill{border-radius:0!important}
+.edgyProfilePage .actionrow button,.edgyProfilePage button.secondary,
+.edgyProfilePage button.primary{border-radius:3px!important}
+.edgyProfilePage .edgyHistoryShortcut{
+ border-left:3px solid #e63890!important;
+ border-top:1px solid #493650!important;
+}
+.edgyProfilePage .stat{background:#2e2240;border:1px solid #48374f;border-radius:3px!important}
+.edgyProfilePage .edgyBioField{border-top:1px solid #42344e;margin-top:17px;padding-top:13px}
+
+/* Center home icon: remove the blank square and use a visible white outline inside a round control. */
+@media(max-width:799px){
+ .nav button.navHome{gap:4px}
+ .nav button.navHome .navHomeGlyph{
+  display:grid!important;place-items:center;flex:0 0 48px;
+  width:48px;height:48px;max-width:48px;
+  border-radius:50%!important;
+  border:2px solid #fa7dbd;
+  background:linear-gradient(135deg,#f10c7b,#b50992);
+  box-shadow:0 5px 16px #cb007970,0 0 0 3px #372141;
+  transition:transform .2s cubic-bezier(.17,.8,.3,1),box-shadow .22s ease,filter .22s ease;
+ }
+ .nav button.navHome .navHomeGlyph svg{
+  display:block!important;position:static!important;
+  width:23px!important;height:23px!important;min-width:23px;
+  fill:none!important;stroke:#ffffff!important;stroke-width:2.2!important;
+  padding:0!important;margin:0!important;overflow:visible;opacity:1!important;
+  filter:none!important;transform:none!important;border:0!important;
+  background:none!important;box-shadow:none!important;
+ }
+ .nav button.navHome:hover .navHomeGlyph{
+  transform:translateY(-3px);
+  filter:brightness(1.1);
+  box-shadow:0 8px 18px #d007857c,0 0 0 4px #523056;
+ }
+ .nav button.navHome:active .navHomeGlyph{transform:scale(.93)}
+ .nav button.navHome.active .navHomeGlyph{box-shadow:0 5px 18px #ed0b9995,0 0 0 4px #63406e}
+}
+@media(max-width:370px){
+ .nav button.navHome .navHomeGlyph{width:43px;height:43px;flex-basis:43px}
+ .nav button.navHome .navHomeGlyph svg{width:21px!important;height:21px!important;min-width:21px}
+}
+@media(max-width:530px){
+ .playerDialog{width:min(100%,490px)!important}
+ .playerDialog #edgy-player-info{padding:19px 16px 22px!important}
+ .playerHead .playerIcon{width:54px;height:54px}
+ .playerHead .playerIdentity h2{font-size:21px}
+ .playerHistory li{gap:5px}
+ .edgyProfilePage>.panel{padding:16px!important}
+}
+@media(prefers-reduced-motion:reduce){
+ .edgyProfileChallenge,.edgyChallengeGame,.playerClose,.nav button.navHome .navHomeGlyph{transition:none!important}
+ .edgyProfileChallenge:hover,.nav button.navHome:hover .navHomeGlyph{transform:none!important}
+}
