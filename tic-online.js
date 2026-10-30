@@ -142,22 +142,26 @@ function player(mark){
 function render(){
  const root=document.getElementById("screen");if(!root||game!=="tic")return;
  root.classList.toggle("edgyLobby",!room);
- const top='<div class="edgyTicTitle"><button type="button" class="back" data-back>← Jogos</button><h1>Jogo do Galo</h1></div>';
+ const top='<div class="edgyTicTitle"><button type="button" class="back" data-back>← Jogos</button><h1><span class="edgyTicGlyph" aria-hidden="true">⊗</span> Jogo do Galo</h1></div>';
  if(!api()||!me()){
   root.innerHTML=top+'<section class="panel"><p>Inicia sessão, mesmo como convidado, para jogar online.</p><button class="primary" data-auth>Entrar</button></section>';
   root.querySelector("[data-auth]").onclick=()=>window.EDGY_auth?.showEntry();root.querySelector("[data-back]").onclick=()=>nav("games");return;
  }
  if(!room){
-  root.innerHTML='<div class="edgyTicWrap">'+top+'<p class="sub">Joga online com outra pessoa, em dois dispositivos, ou escolhe o modo local.</p>'
-   +'<div class="panel edgyTicLobby"><h3>Nova partida online</h3><p class="sub">Cria uma sala privada e convida um amigo.</p><button class="primary" data-create '+(busy?"disabled":"")+'>Criar sala privada</button></div>'
-   +'<div class="panel edgyTicLobby"><h3>Entrar numa sala</h3><input class="field edgyTicCode" id="tic-code" maxlength="8" placeholder="CÓDIGO" autocomplete="off" aria-label="Código da sala" value="'+esc(pending)+'"><button class="secondary" data-join '+(busy?"disabled":"")+'>Entrar na partida</button></div>'
-   +'<div class="panel edgyTicLobby"><h3>Jogar neste dispositivo</h3><p class="sub">Contra o computador ou com duas pessoas no mesmo ecrã.</p><button class="secondary" data-local>Modo local</button></div>'
+  root.innerHTML='<div class="edgyTicWrap">'+top
+   +'<p class="sub edgyTicSummary">3×3 · 2 jogadores · Online ou local</p>'
+   +'<section class="panel edgyTicLobby"><h3>Criar partida online</h3><p>Cria uma sala privada para jogares com um amigo.</p><button class="primary" data-create '+(busy?"disabled":"")+'>Criar sala</button></section>'
+   +'<section class="panel edgyTicLobby"><h3>Entrar numa sala</h3><input class="field edgyTicCode" id="tic-code" maxlength="8" placeholder="CÓDIGO" autocomplete="off" aria-label="Código da sala" value="'+esc(pending)+'"><button class="secondary" data-join '+(busy?"disabled":"")+'>Entrar</button></section>'
+   +'<section class="panel edgyTicLobby"><h3>As tuas salas</h3><div id="edgy-tic-rooms"></div></section>'
+   +'<section class="panel edgyTicLobby edgyTicLocal"><div><h3>Modo local</h3><p>Contra o computador ou com duas pessoas no mesmo ecrã.</p></div><button class="secondary" data-local>Jogar neste dispositivo</button></section>'
    +(notice?'<p class="edgyTicNotice" role="status">'+esc(notice)+'</p>':'')+'</div>';
   root.querySelector("[data-create]").onclick=create;
   root.querySelector("[data-join]").onclick=()=>join(root.querySelector("#tic-code").value);
   root.querySelector("#tic-code").onkeydown=e=>{if(e.key==="Enter")join(e.target.value)};
   root.querySelector("[data-local]").onclick=()=>window.EDGY_ticLocal?.();
-  root.querySelector("[data-back]").onclick=()=>nav("games");return;
+  root.querySelector("[data-back]").onclick=()=>nav("games");
+  window.EDGY_social?.renderRooms?.("edgy-tic-rooms","tic");
+  return;
  }
  const currentBoard=boardAt(review),canMove=room.status==="active"&&room.turn===seat()&&!busy&&review===null;
  const cells=[...currentBoard].map((v,i)=>{
