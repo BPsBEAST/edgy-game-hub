@@ -23,7 +23,7 @@ test("Every local asset referenced by the bootstrap exists",()=>{
  const names=[...assets.matchAll(/"([^"]+)"/g)].map(m=>m[1]);
  for(const name of names)assert.ok(fs.existsSync(path.join(dir,name.split("?")[0])),name);
  assert.ok(names.includes("./edgy-platform.js?v=50"),"shared platform cached");
- assert.ok(names.includes("./app.js?v=52"),"bootstrap cached");
+ assert.ok(names.includes("./app.js?v=53"),"bootstrap cached");
  assert.ok(names.includes("./base.css?v=29"),"base stylesheet cached");
  assert.ok(names.includes("./edgy-theme.css?v=34"),"design cached");
  assert.ok(names.includes("./tic-online.js?v=40"),"online tic cached");
@@ -47,9 +47,9 @@ test("Palavra Oculta includes a large offline Portuguese dictionary and 917 rota
  const scripts=[...html.matchAll(/<script[^>]+src="([^"]+)"/g)].map(x=>x[1]);
  const data=scripts.indexOf("./wordle-data.js?v=48");
  const rules=scripts.indexOf("./wordle-rules.js?v=48");
- const engine=scripts.indexOf("./wordle-game.js?v=52");
+ const engine=scripts.indexOf("./wordle-game.js?v=53");
  assert.ok(data>=0&&rules>data&&engine>rules,"data and rules load before game controller");
- for(const asset of ["wordle-data.js?v=48","wordle-rules.js?v=48","wordle-game.js?v=52","wordle.css?v=52"]){
+ for(const asset of ["wordle-data.js?v=48","wordle-rules.js?v=48","wordle-game.js?v=53","wordle.css?v=53"]){
   assert.ok(html.includes(asset));
   assert.ok(sw.includes(asset));
  }
@@ -294,6 +294,81 @@ test("Wordle tile colours are revealed sequentially on flips, reduced-motion res
  assert.ok(js.includes('const reveal=attempt&&revealRow===i;'));
  assert.ok(js.includes('tile.animate([{transform:"scale(.88)"'),"new letters pop into their cells");
 });
+test("Home picks exactly two unique recent games and offers curated suggestions on empty history",()=>{
+ const app=read("app.js"),begin=app.indexOf("const gameFromHistory="),end=app.indexOf("window.EDGY_openRoom=",begin);
+ assert.ok(begin>0&&end>begin);
+ const script=app.slice(begin,end);
+ const storage=new Map(),sandbox={
+  window:{EDGY_auth:{getUser:()=>({id:"person-A"})}},
+  localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v)},
+  state:{history:[]},
+  defs:["chess","checkers","barricade","wordle","tic","reaction"].map(id=>({id,name:id})),
+ };
+ vm.runInNewContext(script+"\nglobalThis.homeGamesTest=homeGames;globalThis.rememberGameTest=rememberGame;",sandbox);
+ const starting=sandbox.homeGamesTest();
+ assert.equal(starting.items.length,2);
+ assert.deepEqual(Array.from(starting.items,x=>x.id),["wordle","chess"]);
+ assert.equal(starting.hasRecent,false);
+ sandbox.rememberGameTest("barricade");sandbox.rememberGameTest("checkers");
+ let rec=sandbox.homeGamesTest();
+ assert.deepEqual(Array.from(rec.items,x=>x.id),["checkers","barricade"]);
+ assert.equal(rec.hasRecent,true);
+ sandbox.state.history=[
+  {title:"Xadrez",date:"2026-10-24T19:00:00Z"},
+  {title:"Wordle",date:"2026-10-30T19:00:00Z"},
+  {title:"Wordle",date:"2026-10-29T19:00:00Z"}
+ ];
+ rec=sandbox.homeGamesTest();
+ assert.deepEqual(Array.from(rec.items,x=>x.id),["wordle","chess"]);
+ assert.equal(new Set(rec.items.map(x=>x.id)).size,2);
+ sandbox.window.EDGY_auth.getUser=()=>({id:"person-B"});
+ assert.equal(sandbox.homeGamesTest().hasRecent,true,"played history still applies to this local fixture");
+ assert.equal(sandbox.localStorage.getItem("edgy_recent_games_v1_person-B"),null,"recent opens must be account-isolated");
+ assert.ok(app.includes('id="moreGames"'));
+ assert.ok(app.includes('$("#moreGames").onclick=()=>nav("games")'));
+ assert.ok(!app.includes("'+cards(defs)"));
+});
+test("Level-up notifications persist per account, share invitation bell and celebrate only new levels",()=>{
+ const src=read("social.js"),styles=read("edgy-levels.css"),auth=read("auth.js"),app=read("app.js");
+ assert.ok(src.includes('function notifyLevelUp(from,to)'));
+ assert.ok(src.includes('function observeLevel(xp)'));
+ assert.ok(src.includes('className="edgyLevelMask"'));
+ assert.ok(src.includes('inbox.length+unread'));
+ assert.ok(src.includes('const levelMarkup=levels.map('));
+ assert.ok(src.includes('markLevelsRead()'));
+ assert.ok(auth.includes('window.EDGY_social?.observeLevel?.(state.xp)'));
+ assert.ok(auth.includes('window.EDGY_recordLocalMatch=(title,result,xp)=>complete(title,result,xp)'));
+ assert.ok(app.includes('if(level()>previous)window.EDGY_social?.notifyLevelUp?.(previous,level())'));
+ assert.ok(styles.includes('.edgyLevelDialog{'));
+ assert.ok(styles.includes('@media(prefers-reduced-motion:reduce)'));
+ const start=src.indexOf("function notifyLevelUp("),end=src.indexOf("function bell(){",start);
+ assert.ok(start>0&&end>start);
+ const state={highest:null,items:[]},popups=[];
+ const sandbox={levelStore:()=>({...state,items:[...state.items]}),
+   saveLevels:updated=>{state.highest=updated.highest;state.items=updated.items},
+   bell(){},levelPopup:n=>popups.push(n)};
+ vm.runInNewContext(src.slice(start,end)+"\nglobalThis.testObserve=observeLevel;globalThis.testNotify=notifyLevelUp;",sandbox);
+ sandbox.testObserve(250);
+ assert.equal(state.highest,3,"initial profile loads do not generate fake achievements");
+ assert.equal(popups.length,0);
+ sandbox.testObserve(410);
+ assert.deepEqual(Array.from(state.items,x=>x.level),[4]);
+ assert.deepEqual(popups,[4]);
+ sandbox.testNotify(3,4);
+ assert.equal(state.items.length,1,"same achievement never duplicates");
+ sandbox.testNotify(4,6);
+ assert.deepEqual(Array.from(state.items,x=>x.level),[6,5,4]);
+ assert.deepEqual(popups,[4,6]);
+ for(const name of ["edgy-levels.css?v=53","social.js?v=53","auth.js?v=53"]){
+  assert.ok(html.includes(name));assert.ok(read("sw.js").includes(name));
+ }
+});
+test("Wordle no longer shows unnecessary word-count footer",()=>{
+ const game=read("wordle-game.js"),css=read("wordle.css");
+ assert.ok(!game.includes('class="wdBottomHint"'));
+ assert.ok(!css.includes(".wdBottomHint"));
+ assert.ok(!css.includes(".wdHintDot"));
+});
 test("Navigation keeps Histórico only inside Perfil",()=>{
  const sidebar=html.split('<aside class="sidebar">')[1].split("</aside>")[0];
  const mobile=html.split('<nav class="nav"')[1].split("</nav>")[0];
@@ -511,11 +586,11 @@ test("Stable footer, profile replay links and chess mobile actions",()=>{
 test("Game library uses a single registry loaded before bootstrap",()=>{
  const scripts=[...html.matchAll(/<script[^>]*src="([^"]+)"/g)].map(m=>m[1]);
  const platform=scripts.indexOf("./edgy-platform.js?v=50");
- const bootstrap=scripts.indexOf("./app.js?v=52");
+ const bootstrap=scripts.indexOf("./app.js?v=53");
  assert.ok(platform>=0&&bootstrap>=0&&platform<bootstrap);
  const app=read("app.js"),defs=read("edgy-platform.js");
  assert.ok(app.includes("Object.values(window.EDGY_platform.games).map("));
- assert.ok(app.includes("defs.length"));
+ assert.ok(app.includes("homeGames()"),"Home uses the two-game selector");
  for(const game of ["chess","checkers","tic","reaction","barricade","wordle"])assert.ok(defs.includes(game+":Object.freeze("));
  assert.ok(app.includes('filter==="Multiplayer"?window.EDGY_platform.games[g.id].online'));
 });
@@ -741,7 +816,7 @@ test("Community shows highest-level players first, XP breaks ties, and shows rel
 test("Home and Biblioteca render exactly the same reusable game cards",()=>{
  const css=read("edgy-game-layout.css"),app=read("app.js"),html=read("index.html");
  assert.ok(app.includes('function cards(items){return \'<div class="games edgyGameCards">\''));
- assert.ok(app.includes("'+cards(defs)"),"Home uses the common card renderer");
+ assert.ok(app.includes("'+cards(featured.items)"),"Home uses the common card renderer for two games");
  assert.ok(app.includes("'+cards(shown)"),"Biblioteca uses the common card renderer");
  assert.ok(css.includes('#screen .edgyGameCards .game{'),"cards share one flex layout");
  assert.ok(css.includes('#screen .edgyGameCards .game .art{'),"artwork has a fixed area");
@@ -750,7 +825,7 @@ test("Home and Biblioteca render exactly the same reusable game cards",()=>{
  assert.ok(css.includes('grid-auto-rows:1fr'),"all cards in the grid stretch equally");
  assert.ok(css.includes('.main.edgyLibraryViewport>.foot'),"library footer follows the cards in the main scroller");
  assert.ok(html.includes('edgy-game-layout.css?v=47'));
- assert.ok(html.includes('app.js?v=52'));
+ assert.ok(html.includes('app.js?v=53'));
 });
 test("EDGY v36: chess title is short and empty join notice does not reserve space",()=>{
  const chess=read("chess-online.js"),ui=read("edgy-game-ui.js"),css=read("edgy-game-layout.css");
