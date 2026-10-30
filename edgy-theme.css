@@ -652,3 +652,119 @@
  .edgyOutcomeActions button,.edgyOutcomeDismiss{transition:none!important}
  .nav button.navHome:hover .navHomeGlyph{transform:rotate(45deg)!important}
 }
+
+
+/* EDGY v30 — stable footer, public profile transitions, replay links, game controls */
+.main{display:flex!important;flex-direction:column!important;min-height:0}
+.main>.top{flex:0 0 auto}
+.main>#screen{flex:0 0 auto;width:100%}
+.main>.foot{
+ flex:0 0 auto;
+ margin: auto 0 0!important;
+ padding:24px 0 5px!important;
+ text-align:center!important;
+ font-size:11px!important;color:#8c809e!important;
+ width:100%;min-height:44px;
+}
+#screen .edgyTicWrap{width:min(100%,940px);margin:0 auto}
+.edgyTicTitle{display:flex;align-items:center;gap:14px;margin-bottom:13px}
+.edgyTicTitle h1{font-size:27px;margin:0}
+.edgyTicTitle .back{padding:10px 13px!important;border:1px solid #625072!important;border-radius:4px!important}
+.edgyTicLobby{margin:12px 0;padding:20px}
+.edgyTicLobby h3{margin:0 0 8px}
+.edgyTicLobby p{font-size:13px}
+.edgyTicCode{display:block;width:100%;max-width:420px;height:47px;margin:10px 0;background:#161024;color:#fff;letter-spacing:2px;text-transform:uppercase;border:1px solid #604c71;border-radius:4px;padding:12px}
+.edgyTicGame{display:grid;grid-template-columns:minmax(0,1fr) minmax(210px,275px);gap:16px;align-items:start}
+.edgyTicLeft{min-width:0;width:100%;max-width:550px;margin:auto}
+.edgyTicPlayer{display:flex;gap:10px;align-items:center;padding:10px 13px;min-height:52px;background:#2c213e;border:1px solid #53405f;border-radius:4px}
+.edgyTicPlayer.active{border-color:#d84997;background:#3c2545}
+.edgyTicPlayerMark{display:grid;place-items:center;color:#ffcae7;font-size:23px;font-weight:900;width:30px;line-height:1}
+.edgyTicPlayer strong,.edgyTicPlayer small{display:block}
+.edgyTicPlayer strong{font-size:13px}.edgyTicPlayer small{font-size:10px;color:#b8a7c4;margin-top:3px}
+.edgyTicBoard{width:min(100%,min(56dvh,510px));aspect-ratio:1/1;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);gap:4px;margin:10px auto;background:#4b3760;padding:5px;border:1px solid #705381;border-radius:4px;touch-action:manipulation}
+.edgyTicCell{display:grid;place-items:center;font-weight:850;font-size:clamp(38px,10vw,92px);color:#f4e7fb;background:#352747;border:0;border-radius:3px;transition:background .17s,transform .18s}
+.edgyTicCell:nth-child(2n){background:#3c2b50}
+.edgyTicCell:not(:disabled):hover{background:#5c3266;transform:scale(.98)}
+.edgyTicCell.o{color:#ff73b9}.edgyTicCell.x{color:#fff}
+.edgyTicCell:disabled{cursor:default;opacity:1}
+.edgyTicCell.marked span{animation:edgyTicMark .21s cubic-bezier(.22,1.3,.25,1) both}
+@keyframes edgyTicMark{from{opacity:.2;transform:scale(.55)}to{opacity:1;transform:scale(1)}}
+.edgyTicSide{min-width:0;display:grid;align-content:start;gap:10px}
+.edgyTicSide .panel{padding:16px!important}
+.edgyTicSide .panel h3{margin:10px 0;font-size:15px}
+.edgyTicActions{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.edgyTicActions button{font-size:12px;padding:10px 5px}
+.edgyTicReview{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}
+.edgyTicReview button{background:#382847;border:1px solid #6c5178;color:#fff;min-height:39px;border-radius:3px}
+.edgyTicReview button:hover{background:#54315b}
+.edgyTicMoves{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:3px;max-height:170px;overflow-y:auto;font-size:12px;color:#c5b2d1}
+.edgyTicMoves li{padding:5px 6px;border-bottom:1px solid #554066}
+.edgyTicNotice{font-size:12px;color:#f39cca;margin:12px 0}
+@media(max-width:799px){
+ .main>.foot{padding-bottom:calc(14px + env(safe-area-inset-bottom))!important}
+ .edgyTicGame{grid-template-columns:1fr;gap:12px}
+ .edgyTicBoard{width:min(100%,min(54dvh,480px))}
+ .edgyTicSide{grid-template-columns:1fr}
+}
+/* Modal open/close with a short, accessible stagger, without shifting the game viewport */
+.playerOverlay:not([hidden]){animation:edgyProfileBackdrop .22s ease-out both}
+.playerOverlay:not([hidden]) .playerDialog{animation:edgyProfileArrival .32s cubic-bezier(.16,1,.3,1) both;transform-origin:50% 38%}
+.playerOverlay:not([hidden]) .playerHead{animation:edgyProfileDetail .3s .045s ease-out both}
+.playerOverlay:not([hidden]) .playerMiniStats{animation:edgyProfileDetail .3s .085s ease-out both}
+.playerOverlay:not([hidden]) .playerH2H{animation:edgyProfileDetail .28s .11s ease-out both}
+@keyframes edgyProfileBackdrop{from{opacity:0}to{opacity:1}}
+@keyframes edgyProfileArrival{from{opacity:0;transform:translateY(14px) scale(.975)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes edgyProfileDetail{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+.playerReplayLink{
+ display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;
+ padding:9px 7px;border:0;border-radius:3px;background:transparent;
+ color:#f5d9ea;text-align:left;font-size:11px;cursor:pointer;
+}
+.playerReplayLink:hover{background:#412b4b;color:#fff}
+.playerReplayLink span:last-child{text-align:right;color:#ef93bf;font-size:10px;white-space:nowrap}
+.playerH2HContent .playerHistory li{padding:2px 0!important}
+@media(max-width:530px){
+ .playerOverlay{padding:10px!important}
+ .playerDialog{max-height:calc(100dvh - 20px)!important}
+ .playerReplayLink{flex-wrap:wrap;row-gap:4px}
+}
+/* Chess mobile: accessible, scrollable actions sheet and predictable board controls */
+@media(max-width:799px){
+ .main.chess-viewport #screen .chessMobileTools{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px!important;margin:10px 0 12px!important}
+ .main.chess-viewport #screen .chessMobileTools button{min-width:0!important;min-height:44px!important;background:#362746!important;border:1px solid #78517b!important;border-radius:4px!important;font-size:12px!important;white-space:normal!important}
+ .main.chess-viewport #screen .chessMobileTools button:focus-visible{outline:2px solid #ff70b7;outline-offset:2px}
+ .main.chess-viewport #screen .chessMobileTools button:active{transform:scale(.98)}
+ .main.chess-viewport #screen .chessSide{
+  display:flex!important;flex-direction:column!important;gap:12px!important;
+  position:fixed!important;z-index:120!important;
+  inset:auto 0 0!important;width:100%!important;
+  max-width:100vw!important;
+  height:min(84dvh,730px)!important;max-height:min(84dvh,730px)!important;
+  overflow-y:auto!important;overscroll-behavior:contain!important;
+  -webkit-overflow-scrolling:touch;
+  padding:17px 15px calc(22px + env(safe-area-inset-bottom))!important;
+  background:#231a39!important;border-top:2px solid #d34e99!important;
+  border-radius:14px 14px 0 0!important;
+  transform:translateY(105%);visibility:hidden;
+  transition:transform .26s cubic-bezier(.2,.8,.2,1),visibility .26s!important;
+ }
+ .main.chess-viewport #screen.chess-drawer-open .chessSide{transform:translateY(0)!important;visibility:visible}
+ .main.chess-viewport #screen .chessMobileScrim{z-index:119!important}
+ .main.chess-viewport #screen .chessSide .chessRow{flex-wrap:wrap!important;gap:7px!important}
+ .main.chess-viewport #screen .chessSide .chessRow button,
+ .main.chess-viewport #screen .chessSide button[data-action],
+ .main.chess-viewport #screen .chessSide button[data-resign]{
+  min-height:43px!important;white-space:normal!important;
+ }
+ .main.chess-viewport #screen .chessSide .section.panel{flex:0 0 auto;overflow:visible!important}
+ .main.chess-viewport #screen .chessSide .chessMovesGrid{max-height:none!important;overflow:visible!important}
+ .main.chess-viewport #screen .chessDrawerClose{position:sticky;top:0;z-index:4;margin-left:auto;min-height:41px}
+ .main.chess-viewport #screen .chessReviewControls button{min-height:43px!important}
+}
+@media(prefers-reduced-motion:reduce){
+ .playerOverlay:not([hidden]),.playerOverlay:not([hidden]) .playerDialog,
+ .playerOverlay:not([hidden]) .playerHead,
+ .playerOverlay:not([hidden]) .playerMiniStats,
+ .playerOverlay:not([hidden]) .playerH2H,.edgyTicCell.marked span{animation:none!important}
+ .main.chess-viewport #screen .chessSide{transition:none!important}
+}
