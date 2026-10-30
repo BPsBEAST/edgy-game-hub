@@ -8,7 +8,8 @@ import {fileURLToPath} from "node:url";
 const dir=path.resolve(path.dirname(fileURLToPath(import.meta.url)),"..");
 const read=file=>fs.readFileSync(path.join(dir,file),"utf8");
 const html=read("index.html");
-const gameFiles=["edgy-platform.js","players.js","social.js","history.js","chess-online.js","checkers-online.js","auth.js","sw.js"];
+const app=read("app.js");
+const gameFiles=["app.js","edgy-platform.js","players.js","social.js","history.js","chess-online.js","checkers-online.js","auth.js","sw.js"];
 test("All app scripts and inline bootstrap parse successfully",()=>{
  for(const file of gameFiles)assert.doesNotThrow(()=>new vm.Script(read(file),{filename:file}),file);
  const scripts=[...html.matchAll(/<script([^>]*)>([\s\S]*?)<\/script>/g)];
@@ -21,21 +22,23 @@ test("Every local asset referenced by the bootstrap exists",()=>{
  assert.ok(assets);
  const names=[...assets.matchAll(/"([^"]+)"/g)].map(m=>m[1]);
  for(const name of names)assert.ok(fs.existsSync(path.join(dir,name.split("?")[0])),name);
- assert.ok(names.includes("./edgy-platform.js?v=28"),"shared platform cached");
- assert.ok(names.includes("./edgy-theme.css?v=28"),"design cached");
+ assert.ok(names.includes("./edgy-platform.js?v=29"),"shared platform cached");
+ assert.ok(names.includes("./app.js?v=29"),"bootstrap cached");
+ assert.ok(names.includes("./base.css?v=29"),"base stylesheet cached");
+ assert.ok(names.includes("./edgy-theme.css?v=29"),"design cached");
 });
 test("Navigation keeps Histórico only inside Perfil",()=>{
  const sidebar=html.split('<aside class="sidebar">')[1].split("</aside>")[0];
  const mobile=html.split('<nav class="nav"')[1].split("</nav>")[0];
  assert.ok(!sidebar.includes('data-page="history"'));
  assert.ok(!mobile.includes('data-page="history"'));
- assert.ok(html.includes('id="profileHistory"'));
+ assert.ok(app.includes('id="profileHistory"'));
  assert.deepEqual([...mobile.matchAll(/data-page="([^"]+)"/g)].map(m=>m[1]),["games","players","home","rooms","profile"]);
  assert.ok(mobile.includes('class="navHomeGlyph"'));
 });
 test("Retired Memory and Quiz are no longer part of loaded bootstrap",()=>{
- assert.ok(!html.includes('id:"memory"')&&!html.includes('id:"quiz"'));
- assert.ok(!html.includes('function drawMemory()')&&!html.includes('function drawQuiz()'));
+ assert.ok(!app.includes('id:"memory"')&&!app.includes('id:"quiz"'));
+ assert.ok(!app.includes('function drawMemory()')&&!app.includes('function drawQuiz()'));
 });
 function platformFixture(){
  const calls=[],api={rpc(name,args){calls.push({name,args});return Promise.resolve({data:"OK",error:null})},from(table){calls.push({table});return {select(){return this},eq(){return this},maybeSingle(){return Promise.resolve({data:{id:1},error:null})}}}};
