@@ -9,7 +9,7 @@ const dir=path.resolve(path.dirname(fileURLToPath(import.meta.url)),"..");
 const read=file=>fs.readFileSync(path.join(dir,file),"utf8");
 const html=read("index.html");
 const app=read("app.js");
-const gameFiles=["app.js","edgy-platform.js","players.js","social.js","history.js","chess-online.js","checkers-online.js","auth.js","sw.js"];
+const gameFiles=["app.js","edgy-platform.js","players.js","social.js","history.js","chess-online.js","checkers-online.js","tic-online.js","auth.js","sw.js"];
 test("All app scripts and inline bootstrap parse successfully",()=>{
  for(const file of gameFiles)assert.doesNotThrow(()=>new vm.Script(read(file),{filename:file}),file);
  const scripts=[...html.matchAll(/<script([^>]*)>([\s\S]*?)<\/script>/g)];
@@ -22,10 +22,10 @@ test("Every local asset referenced by the bootstrap exists",()=>{
  assert.ok(assets);
  const names=[...assets.matchAll(/"([^"]+)"/g)].map(m=>m[1]);
  for(const name of names)assert.ok(fs.existsSync(path.join(dir,name.split("?")[0])),name);
- assert.ok(names.includes("./edgy-platform.js?v=29"),"shared platform cached");
- assert.ok(names.includes("./app.js?v=29"),"bootstrap cached");
+ assert.ok(names.includes("./edgy-platform.js?v=30"),"shared platform cached");
+ assert.ok(names.includes("./app.js?v=30"),"bootstrap cached");
  assert.ok(names.includes("./base.css?v=29"),"base stylesheet cached");
- assert.ok(names.includes("./edgy-theme.css?v=29"),"design cached");
+ assert.ok(names.includes("./edgy-theme.css?v=30"),"design cached");
 });
 test("Navigation keeps Histórico only inside Perfil",()=>{
  const sidebar=html.split('<aside class="sidebar">')[1].split("</aside>")[0];
@@ -55,13 +55,16 @@ test("Single registry serves all online games and rejects invalid codes",async()
  assert.throws(()=>platform.rooms.create("reaction"),/não suporta/);
  await platform.rooms.create("chess",{base:600,increment:0});
  await platform.rooms.create("checkers");
+ await platform.rooms.create("tic");
  await platform.rooms.join("chess","aB41cD23");
  await platform.rooms.join("checkers","aB41cD23");
+ await platform.rooms.join("tic","aB41cD23");
  await platform.rooms.cancel("chess","aB41cD23");
  await platform.rooms.invite("checkers","aB41cD23","some-user-id");
+ await platform.rooms.invite("tic","aB41cD23","some-user-id");
  await platform.rooms.respond("some-invite",true);
  await platform.rooms.list(200);
- assert.deepEqual(calls.map(c=>c.name),["edgy_create_chess_room_timed","edgy_checkers_create","edgy_join_chess_room","edgy_checkers_join","edgy_cancel_waiting_chess_room","edgy_invite_send","edgy_invite_respond","edgy_my_rooms"]);
+ assert.deepEqual(calls.map(c=>c.name),["edgy_create_chess_room_timed","edgy_checkers_create","edgy_tic_create","edgy_join_chess_room","edgy_checkers_join","edgy_tic_join","edgy_cancel_waiting_chess_room","edgy_invite_send","edgy_invite_send","edgy_invite_respond","edgy_my_rooms"]);
  assert.deepEqual(JSON.parse(JSON.stringify(calls[0].args)),{p_base:600,p_increment:0});
  assert.deepEqual(JSON.parse(JSON.stringify(calls.at(-1).args)),{p_limit:100});
 });
@@ -127,4 +130,32 @@ test("Chess engine and Damas rules load only when the game is opened",()=>{
  assert.match(checkers,/function loadRules\(\)/);
  assert.match(chess,/autoTried=false;loadEngine\(\);draw\(\)/);
  assert.match(checkers,/joined=false;loadRules\(\);draw\(\)/);
+});
+
+test("Tic joins existing UI multiplayer and shared challenge registry",()=>{
+ const platform=read("edgy-platform.js");
+ const app=read("app.js"),social=read("social.js"),players=read("players.js");
+ const online=read("tic-online.js"),history=read("history.js");
+ assert.ok(platform.includes('tic:Object.freeze({id:"tic"')&&platform.includes('online:true,create:"edgy_tic_create"'));
+ assert.ok(app.includes('window.EDGY_ticOnline?.open('));
+ assert.ok(app.includes('window.EDGY_ticLocal='));
+ assert.ok(social.includes('Object.values(window.EDGY_platform.games).filter(g=>g.online)'));
+ assert.ok(players.includes("edgy_head_to_head_all"));
+ assert.ok(history.includes("renderTicReplay()"));
+ assert.ok(online.includes('p_expected_ply:room.ply'));
+ assert.ok(online.includes('window.EDGY_ticOnline={open,close,render,refresh}'));
+ assert.ok(online.includes("data-resign")&&online.includes("data-invite"));
+});
+test("Stable footer, profile replay links and chess mobile actions",()=>{
+ const html=read("index.html"),css=read("edgy-theme.css");
+ const chess=read("chess-online.js"),damas=read("checkers-online.js"),players=read("players.js");
+ assert.ok(html.includes('<footer class="foot">EDGY · Feito para jogar, onde quiseres.</footer>'));
+ assert.ok(css.includes(".main>.foot{")&&css.includes("margin: auto 0 0!important"));
+ assert.ok(css.includes(".playerOverlay:not([hidden]) .playerDialog"));
+ assert.ok(css.includes("playerReplayLink")&&players.includes("data-replay="));
+ assert.ok(chess.includes('data-chess-panel="actions"'));
+ assert.ok(chess.includes('data-chess-panel="history"'));
+ assert.ok(css.includes("main.chess-viewport #screen .chessSide"));
+ assert.ok(!damas.includes("data-refresh"));
+ assert.ok(!damas.includes(">Atualizar</button>"));
 });
