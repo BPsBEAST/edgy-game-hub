@@ -15,7 +15,7 @@ modal.onclick=e=>{if(e.target===modal)close()};
 document.addEventListener("keydown",e=>{if(!modal.hidden&&e.key==="Escape")close()});
 function openModal(title,subtitle,mode){modalMode=mode;modal.hidden=false;$("#edgy-social-title").textContent=title;$("#edgy-social-subtitle").textContent=subtitle;$("#edgy-social-body").innerHTML="";msg("");modal.querySelector("[data-close]").focus()}
 function bell(){
- const host=document.querySelector(".top");if(!host)return;
+ const host=document.querySelector(".topActions")||document.querySelector(".top");if(!host)return;
  let b=host.querySelector(".edgyBell");
  if(!b){
   b=document.createElement("button");b.type="button";b.className="edgyBell";
@@ -23,7 +23,7 @@ function bell(){
   host.insertBefore(b,host.querySelector("#avatar"));b.onclick=openInbox;
  }
  b.setAttribute("aria-label",inbox.length?inbox.length+" convites pendentes":"Convites");
- const badge=b.querySelector(".edgyBellCount");badge.hidden=!inbox.length;badge.textContent=inbox.length;
+ const badge=b.querySelector(".edgyBellCount");badge.hidden=!inbox.length;badge.textContent=inbox.length;b.classList.toggle("hasInvites",inbox.length>0);
 }
 async function refreshInvites(){
  if(!me()||!db()){inbox=[];bell();return}
@@ -104,8 +104,8 @@ async function renderRooms(id,game=null){
  try{
   const {data,error}=await db().rpc("edgy_my_rooms",{p_limit:80});if(error)throw error;
   if(!host.isConnected)return;
-  const rooms=(Array.isArray(data)?data:[]).filter(r=>!game||r.game===game);
-  host.innerHTML=rooms.length?'<div class="edgyRooms">'+rooms.map(roomCard).join("")+'</div>':'<p class="edgyRoomsEmpty">Ainda não tens salas. Cria uma partida ou aceita um convite.</p>';
+  const rooms=(Array.isArray(data)?data:[]).filter(r=>(r.status==="waiting"||r.status==="active")&&(!game||r.game===game));
+  host.innerHTML=rooms.length?'<div class="edgyRooms">'+rooms.map(roomCard).join("")+'</div>':'<p class="edgyRoomsEmpty">Não tens salas abertas. As partidas terminadas podem ser revistas no Histórico, dentro do Perfil.</p>';
   host.querySelectorAll("[data-open]").forEach(b=>b.onclick=()=>{const [g,c]=b.dataset.open.split("|");window.EDGY_openRoom?.(g,c)});
   host.querySelectorAll("[data-invite]").forEach(b=>b.onclick=()=>{const [g,c]=b.dataset.invite.split("|");openInvite(g,c)});
   host.querySelectorAll("[data-cancel]").forEach(b=>b.onclick=async()=>{
