@@ -9,7 +9,7 @@ const dir=path.resolve(path.dirname(fileURLToPath(import.meta.url)),"..");
 const read=file=>fs.readFileSync(path.join(dir,file),"utf8");
 const html=read("index.html");
 const app=read("app.js");
-const gameFiles=["app.js","edgy-platform.js","edgy-game-ui.js","players.js","social.js","history.js","chess-online.js","checkers-replay.js","checkers-online.js","tic-online.js","barricade-online.js","wordle-data.js","wordle-rules.js","wordle-game.js","auth.js","sw.js"];
+const gameFiles=["app.js","edgy-platform.js","edgy-game-ui.js","players.js","social.js","history.js","chess-online.js","checkers-replay.js","checkers-online.js","tic-online.js","barricade-online.js","wordle-data.js","wordle-rules.js","edgy-seen-words.js","wordle-game.js","contexto-data.js","contexto-rules.js","contexto-game.js","auth.js","sw.js"];
 test("All app scripts and inline bootstrap parse successfully",()=>{
  for(const file of gameFiles)assert.doesNotThrow(()=>new vm.Script(read(file),{filename:file}),file);
  const scripts=[...html.matchAll(/<script([^>]*)>([\s\S]*?)<\/script>/g)];
@@ -22,8 +22,8 @@ test("Every local asset referenced by the bootstrap exists",()=>{
  assert.ok(assets);
  const names=[...assets.matchAll(/"([^"]+)"/g)].map(m=>m[1]);
  for(const name of names)assert.ok(fs.existsSync(path.join(dir,name.split("?")[0])),name);
- assert.ok(names.includes("./edgy-platform.js?v=50"),"shared platform cached");
- assert.ok(names.includes("./app.js?v=53"),"bootstrap cached");
+ assert.ok(names.includes("./edgy-platform.js?v=54"),"shared platform cached");
+ assert.ok(names.includes("./app.js?v=54"),"bootstrap cached");
  assert.ok(names.includes("./base.css?v=29"),"base stylesheet cached");
  assert.ok(names.includes("./edgy-theme.css?v=34"),"design cached");
  assert.ok(names.includes("./tic-online.js?v=40"),"online tic cached");
@@ -47,9 +47,10 @@ test("Palavra Oculta includes a large offline Portuguese dictionary and 917 rota
  const scripts=[...html.matchAll(/<script[^>]+src="([^"]+)"/g)].map(x=>x[1]);
  const data=scripts.indexOf("./wordle-data.js?v=48");
  const rules=scripts.indexOf("./wordle-rules.js?v=48");
- const engine=scripts.indexOf("./wordle-game.js?v=53");
- assert.ok(data>=0&&rules>data&&engine>rules,"data and rules load before game controller");
- for(const asset of ["wordle-data.js?v=48","wordle-rules.js?v=48","wordle-game.js?v=53","wordle.css?v=53"]){
+ const ledger=scripts.indexOf("./edgy-seen-words.js?v=54");
+ const engine=scripts.indexOf("./wordle-game.js?v=54");
+ assert.ok(data>=0&&rules>data&&ledger>rules&&engine>ledger,"data and rules load before game controller");
+ for(const asset of ["wordle-data.js?v=48","wordle-rules.js?v=48","wordle-game.js?v=54","wordle.css?v=53"]){
   assert.ok(html.includes(asset));
   assert.ok(sw.includes(asset));
  }
@@ -77,7 +78,7 @@ test("Palavra Oculta duplicate letters, feedback priority and non-repeating shuf
  const newBag=rules.choose([],917,previous,()=>0);
  assert.notEqual(newBag.index,previous,"no immediate repeat at the cycle boundary");
 });
-test("Palavra Oculta resumes an unfinished puzzle and credits local XP exactly once",()=>{
+test("Palavra Oculta resumes an unfinished puzzle and credits local XP exactly once",async()=>{
  const storage=new Map(),records=[],listeners={},root={
   classList:{remove(){},toggle(){}},innerHTML:"",
   querySelector(){return null},querySelectorAll(){return []}
@@ -104,7 +105,7 @@ test("Palavra Oculta resumes an unfinished puzzle and credits local XP exactly o
  };
  vm.runInNewContext(read("wordle-data.js")+"\n"+read("wordle-rules.js")+"\n"+read("wordle-game.js"),sandbox);
  const controller=fakeWindow.EDGY_wordle,stored=()=>JSON.parse(storage.get("edgy_wordle_v1"));
- controller.open();
+ await controller.open();
  assert.ok(root.innerHTML.includes('class="wdBoard"'));
  assert.ok(root.innerHTML.includes('class="wdNativeForm"'));
  const answer=stored().round.answer;
@@ -114,7 +115,7 @@ test("Palavra Oculta resumes an unfinished puzzle and credits local XP exactly o
  assert.equal(prevented,true,"physical keyboard must be handled without a virtual key");
  for(const letter of answer.slice(1,3))controller.press(letter);
  assert.equal(stored().round.draft,answer.slice(0,3));
- controller.close();controller.open();
+ controller.close();await controller.open();
  assert.equal(stored().round.draft,answer.slice(0,3),"typed letters survive a navigation");
  for(const letter of answer.slice(3))controller.press(letter);
  controller.press("ENTER");
@@ -123,7 +124,7 @@ test("Palavra Oculta resumes an unfinished puzzle and credits local XP exactly o
  assert.equal(stored().round.finished,true);
  assert.ok(root.innerHTML.includes("data-wd-new"));
  controller.press("ENTER");
- controller.close();controller.open();
+ controller.close();await controller.open();
  assert.equal(records.length,1,"completed puzzle must never award XP twice");
  assert.ok(read("wordle-game.js").includes("Native buttons must still activate"));
 });
@@ -138,7 +139,7 @@ test("Wordle keeps the shared EDGY layout, local XP and accessible native mobile
  assert.ok(game.includes('window.EDGY_gameUI.match({game:"wordle"'));
  assert.ok(game.includes('window.EDGY_gameUI.header("wordle"'));
  assert.ok(game.includes('window.EDGY_recordLocalMatch?.('));
- assert.ok(game.includes('localStorage.setItem(STORAGE,JSON.stringify(saved))'));
+ assert.ok(game.includes('localStorage.setItem(storageKey(),JSON.stringify(saved))'));
  assert.ok(game.includes('data-wd-native'));
  assert.ok(game.includes('data-wd-form'));
  assert.ok(game.includes('data-wd-new'));
@@ -182,7 +183,7 @@ test("Wordle title and accessible keyboard layout differ correctly between deskt
  // Previously completed games keep their saved stats and display the new label.
  assert.ok(app.includes('h?.title==="Palavra Oculta"?{...h,title:"Wordle"}:h'));
 });
-test("Wordle native typing does not rebuild the screen, keeps focus and submits exactly once",()=>{
+test("Wordle native typing does not rebuild the screen, keeps focus and submits exactly once",async()=>{
  const state=new Map(),records=[],handlers={};
  let redraws=0,current={input:null,form:null,row:null,status:null};
  function makeNode(){
@@ -238,7 +239,7 @@ test("Wordle native typing does not rebuild the screen, keeps focus and submits 
   localStorage:{getItem:k=>state.get(k)||null,setItem:(k,v)=>state.set(k,v)},
   navigator:{},game:"wordle",nav(){},console};
  vm.runInNewContext(read("wordle-data.js")+"\n"+read("wordle-rules.js")+"\n"+read("wordle-game.js"),sandbox);
- win.EDGY_wordle.open();
+ await win.EDGY_wordle.open();
  let input=current.input;
  assert.ok(input&&current.form&&current.row);
  assert.ok(root.innerHTML.includes('inputmode="text"'));
@@ -302,12 +303,12 @@ test("Home picks exactly two unique recent games and offers curated suggestions 
   window:{EDGY_auth:{getUser:()=>({id:"person-A"})}},
   localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v)},
   state:{history:[]},
-  defs:["chess","checkers","barricade","wordle","tic","reaction"].map(id=>({id,name:id})),
+  defs:["chess","checkers","barricade","wordle","contexto","tic","reaction"].map(id=>({id,name:id})),
  };
  vm.runInNewContext(script+"\nglobalThis.homeGamesTest=homeGames;globalThis.rememberGameTest=rememberGame;",sandbox);
  const starting=sandbox.homeGamesTest();
  assert.equal(starting.items.length,2);
- assert.deepEqual(Array.from(starting.items,x=>x.id),["wordle","chess"]);
+ assert.deepEqual(Array.from(starting.items,x=>x.id),["contexto","wordle"]);
  assert.equal(starting.hasRecent,false);
  sandbox.rememberGameTest("barricade");sandbox.rememberGameTest("checkers");
  let rec=sandbox.homeGamesTest();
@@ -327,6 +328,7 @@ test("Home picks exactly two unique recent games and offers curated suggestions 
  assert.ok(app.includes('id="moreGames"'));
  assert.ok(app.includes('$("#moreGames").onclick=()=>nav("games")'));
  assert.ok(!app.includes("'+cards(defs)"));
+ assert.ok(!app.includes("Os teus jogos recentes."),"the Home subtitle is gone");
 });
 test("Level-up notifications persist per account, share invitation bell and celebrate only new levels",()=>{
  const src=read("social.js"),styles=read("edgy-levels.css"),auth=read("auth.js"),app=read("app.js");
@@ -369,6 +371,65 @@ test("Wordle no longer shows unnecessary word-count footer",()=>{
  assert.ok(!css.includes(".wdBottomHint"));
  assert.ok(!css.includes(".wdHintDot"));
 });
+test("Contexto has broad Portuguese answers and topical ranks based on meaning, not spelling",()=>{
+ const context={window:{EDGY_wordBank:{isWord:w=>w.length===5,answers:[]}}};
+ vm.runInNewContext(read("contexto-data.js")+"\n"+read("contexto-rules.js"),context);
+ const data=context.window.EDGY_contextoData,rules=context.window.EDGY_contextoRules;
+ assert.ok(data.answers.length>=600,"hundreds of theme answers available");
+ assert.ok(data.groups.length>=50,"many independent Portuguese themes");
+ assert.equal(new Set(Array.from(data.answers)).size,data.answers.length);
+ assert.equal(rules.rank("oceano","oceano"),1);
+ assert.ok(rules.rank("oceano","mar")<rules.rank("oceano","escola"),"mar is closer to oceano than escola");
+ assert.ok(rules.rank("futebol","bola")<rules.rank("futebol","banana"),"football and ball are related");
+ assert.equal(rules.isWord("mar"),true);
+ assert.equal(rules.isWord("casa"),true);
+ assert.equal(rules.isWord("zzzz"),false);
+ assert.ok(rules.hint("oceano",[]));
+});
+test("Shared ledger never repeats answers across Contexto and Wordle, including an exhausted pool",async()=>{
+ const storage=new Map(),fake={
+  window:{},
+  localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v)},
+  console
+ };
+ vm.runInNewContext(read("edgy-seen-words.js"),fake);
+ const history=fake.window.EDGY_seenWords;
+ assert.equal(await history.claim("Praia","contexto"),true);
+ assert.equal(await history.claim("PRAIA","wordle"),false);
+ const selected=await history.choose(["praia","costa","onda"],"contexto");
+ assert.ok(["costa","onda"].includes(selected));
+ assert.equal(history.has(selected),true);
+ assert.equal(await history.choose(["praia",selected],"wordle"),null,"do not recycle answers after pool exhaustion");
+ assert.ok(history.count()>=2);
+ const fresh={window:{},localStorage:fake.localStorage,console};
+ vm.runInNewContext(read("edgy-seen-words.js"),fresh);
+ assert.equal(fresh.window.EDGY_seenWords.has("praia"),true,"history survives reload");
+});
+test("Wordle and Contexto share RLS cloud history and never silently recycle answers",()=>{
+ const app=read("app.js"),platform=read("edgy-platform.js"),wordle=read("wordle-game.js");
+ const contexto=read("contexto-game.js"),ledger=read("edgy-seen-words.js"),skin=read("contexto.css");
+ assert.ok(platform.includes('contexto:Object.freeze({id:"contexto"'));
+ assert.ok(app.includes('window.EDGY_contexto?.open()'));
+ assert.ok(app.includes('window.EDGY_contexto?.close()'));
+ assert.ok(app.includes('if(game==="contexto")return window.EDGY_contexto?.render()'));
+ assert.ok(wordle.includes('wordHistory().choose(bank.answers,"wordle")'));
+ assert.ok(contexto.includes('seen().choose(data().answers,"contexto")'));
+ assert.ok(wordle.includes('r.exhausted'));
+ assert.ok(ledger.includes('from("edgy_seen_words")'));
+ assert.ok(ledger.includes('ignoreDuplicates:true'));
+ assert.ok(ledger.includes('if(error.code==="23505")'));
+ assert.ok(contexto.includes('window.EDGY_recordLocalMatch?.("Contexto"'));
+ assert.ok(contexto.includes('window.EDGY_gameUI.match({game:"contexto"'));
+ assert.ok(contexto.includes('data-cx-hint'));
+ assert.ok(skin.includes('@media(max-width:799px)'));
+ assert.ok(skin.includes('prefers-reduced-motion:reduce'));
+ const scripts=[...html.matchAll(/<script[^>]+src="([^"]+)"/g)].map(m=>m[1]);
+ for(const p of ["edgy-seen-words.js","contexto-data.js","contexto-rules.js","contexto-game.js"]){
+  assert.ok(scripts.includes("./"+p+"?v=54"));assert.ok(read("sw.js").includes(p+"?v=54"));
+ }
+ assert.ok(scripts.indexOf("./edgy-seen-words.js?v=54")<scripts.indexOf("./wordle-game.js?v=54"));
+ assert.ok(scripts.indexOf("./contexto-data.js?v=54")<scripts.indexOf("./contexto-game.js?v=54"));
+});
 test("Navigation keeps Histórico only inside Perfil",()=>{
  const sidebar=html.split('<aside class="sidebar">')[1].split("</aside>")[0];
  const mobile=html.split('<nav class="nav"')[1].split("</nav>")[0];
@@ -391,7 +452,7 @@ function platformFixture(){
 }
 test("Single registry serves all online games and rejects invalid codes",async()=>{
  const {platform,calls}=platformFixture();
- assert.deepEqual(Object.keys(platform.games).sort(),["barricade","checkers","chess","reaction","tic","wordle"]);
+ assert.deepEqual(Object.keys(platform.games).sort(),["barricade","checkers","chess","contexto","reaction","tic","wordle"]);
  assert.equal(platform.code(" aB41cD23 "),"AB41CD23");
  assert.throws(()=>platform.code("oops"),/8 caracteres/);
  assert.throws(()=>platform.rooms.create("reaction"),/não suporta/);
@@ -585,13 +646,13 @@ test("Stable footer, profile replay links and chess mobile actions",()=>{
 
 test("Game library uses a single registry loaded before bootstrap",()=>{
  const scripts=[...html.matchAll(/<script[^>]*src="([^"]+)"/g)].map(m=>m[1]);
- const platform=scripts.indexOf("./edgy-platform.js?v=50");
- const bootstrap=scripts.indexOf("./app.js?v=53");
+ const platform=scripts.indexOf("./edgy-platform.js?v=54");
+ const bootstrap=scripts.indexOf("./app.js?v=54");
  assert.ok(platform>=0&&bootstrap>=0&&platform<bootstrap);
  const app=read("app.js"),defs=read("edgy-platform.js");
  assert.ok(app.includes("Object.values(window.EDGY_platform.games).map("));
  assert.ok(app.includes("homeGames()"),"Home uses the two-game selector");
- for(const game of ["chess","checkers","tic","reaction","barricade","wordle"])assert.ok(defs.includes(game+":Object.freeze("));
+ for(const game of ["chess","checkers","tic","reaction","barricade","wordle","contexto"])assert.ok(defs.includes(game+":Object.freeze("));
  assert.ok(app.includes('filter==="Multiplayer"?window.EDGY_platform.games[g.id].online'));
 });
 
@@ -709,9 +770,9 @@ test("Chess shares the match shell, drawer binder and move controls",()=>{
 });
 test("All games share one header, lobby cards and match presentation",()=>{
  const html=read("index.html"),ui=read("edgy-game-ui.js"),css=read("edgy-game-layout.css");
- assert.ok(html.includes('edgy-game-ui.js?v=50'));
+ assert.ok(html.includes('edgy-game-ui.js?v=54'));
  assert.ok(html.includes('edgy-game-layout.css?v=47'));
- for(const game of ["chess","checkers","tic","reaction","barricade","wordle"])assert.ok(ui.includes(game+':{title:'));
+ for(const game of ["chess","checkers","tic","reaction","barricade","wordle","contexto"])assert.ok(ui.includes(game+':{title:'));
  for(const file of ["chess-online.js","checkers-online.js","tic-online.js","barricade-online.js","app.js"]){
   const src=read(file);
   assert.ok(src.includes('window.EDGY_gameUI.header(')||src.includes('ui().header('),file);
@@ -825,7 +886,7 @@ test("Home and Biblioteca render exactly the same reusable game cards",()=>{
  assert.ok(css.includes('grid-auto-rows:1fr'),"all cards in the grid stretch equally");
  assert.ok(css.includes('.main.edgyLibraryViewport>.foot'),"library footer follows the cards in the main scroller");
  assert.ok(html.includes('edgy-game-layout.css?v=47'));
- assert.ok(html.includes('app.js?v=53'));
+ assert.ok(html.includes('app.js?v=54'));
 });
 test("EDGY v36: chess title is short and empty join notice does not reserve space",()=>{
  const chess=read("chess-online.js"),ui=read("edgy-game-ui.js"),css=read("edgy-game-layout.css");
