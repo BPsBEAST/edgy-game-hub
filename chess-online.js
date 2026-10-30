@@ -252,8 +252,7 @@ function draw(){
  if(!room){
   root.innerHTML='<div class="chessWrap edgyGamePage">'+window.EDGY_gameUI.header("chess",{intro:"Relógio por jogador · Partidas online · Histórico e revisão"})
    +window.EDGY_gameUI.card("Criar partida online",'<div class="chessControlSelect"><button data-time="180,2">3+2</button><button data-time="300,0">5+0</button><button data-time="600,0" class="active">10+0</button><button data-time="900,10">15+10</button></div><button class="chessBtn" data-create>Criar sala</button>',{description:"Escolhe o ritmo e cria uma sala privada."})
-   +window.EDGY_gameUI.card("Entrar numa sala",'<input id="chessCode" class="chessInput" maxlength="8" placeholder="CÓDIGO" value="'+x(pending)+'"><button class="secondary" data-join>Entrar</button>')
-   +'<p class="result" id="chess-info"></p>'
+   +window.EDGY_gameUI.card("Entrar numa sala",'<input id="chessCode" class="chessInput" maxlength="8" placeholder="CÓDIGO" value="'+x(pending)+'"><button class="secondary" data-join>Entrar</button><p class="result chessLobbyNotice" id="chess-info" role="status" aria-live="polite"></p>')
    +window.EDGY_gameUI.card("As tuas salas",'<div id="edgy-chess-rooms"></div>',{description:"Retoma uma partida aberta ou consulta os jogadores."})+'</div>';
   let base=600,inc=0;
   root.querySelectorAll("[data-time]").forEach(b=>b.onclick=()=>{root.querySelectorAll("[data-time]").forEach(n=>n.classList.toggle("active",n===b));[base,inc]=b.dataset.time.split(",").map(Number)});
