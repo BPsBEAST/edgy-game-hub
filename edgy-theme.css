@@ -1012,3 +1012,11 @@
 @media(prefers-reduced-motion:reduce){
  .edgyDamasReplayMoves button{transition:none!important}
 }
+
+
+/* Keep fixed mobile chess actions anchored to the viewport, not transformed by page entrance. */
+@media(max-width:799px){
+ .main.chess-viewport #screen.edgyPageIn{
+  animation:none!important;transform:none!important;filter:none!important
+ }
+}
