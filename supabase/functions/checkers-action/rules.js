@@ -1,4 +1,4 @@
-/* EDGY Damas - 8x8 flying kings and mandatory maximum capture */
+/* EDGY Damas - 8x8 flying kings and mandatory capture; the player chooses any complete capture sequence */
 const dirs=[[1,1],[1,-1],[-1,1],[-1,-1]],ok=(r,c)=>r>=0&&r<8&&c>=0&&c<8,idx=(r,c)=>r*8+c;
 const side=p=>p?.toLowerCase()==="w"?"w":p?.toLowerCase()==="b"?"b":null;
 const own=(p,t)=>side(p)===t,foe=(p,t)=>side(p)&&side(p)!==t;
@@ -43,7 +43,7 @@ export function legalMoves(state){
  if(!state||state.status!=="active"||!Array.isArray(state.board)||state.board.length!==64)return [];
  const board=state.board,turn=state.turn,all=[];
  for(let p=0;p<64;p++)if(own(board[p],turn))all.push(...sequences(board,p,turn,[p],[]));
- if(all.length){const max=Math.max(...all.map(o=>o.captures.length));return all.filter(o=>o.captures.length===max)}
+ if(all.length)return all; // Capture is mandatory, but no particular piece or path is forced.
  for(let p=0;p<64;p++){
   const piece=board[p];if(!own(piece,turn))continue;
   const r=Math.floor(p/8),c=p%8,king=piece===piece.toUpperCase();
