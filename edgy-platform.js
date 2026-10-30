@@ -28,6 +28,7 @@ const rooms={
  cancel(id,roomCode){const game=online(id);return call(game.cancel,{p_code:code(roomCode)})},
  load(id,roomCode){const game=online(id);return db().from(game.table).select("*").eq("code",code(roomCode)).maybeSingle()},
  list(limit=80){return call("edgy_my_rooms",{p_limit:Math.max(1,Math.min(100,Number(limit)||80))})},
+ players(id,roomCode){online(id);const fn={chess:"edgy_chess_players",checkers:"edgy_checkers_players",tic:"edgy_tic_players"}[id];if(!fn)throw new Error("Jogadores indisponíveis");return call(fn,{p_code:code(roomCode)})},
  invite(id,roomCode,recipient){online(id);return call("edgy_invite_send",{p_game:id,p_code:code(roomCode),p_recipient:recipient})},
  respond(inviteId,accept){return call("edgy_invite_respond",{p_invite_id:inviteId,p_accept:Boolean(accept)})}
 };
