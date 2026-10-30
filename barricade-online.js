@@ -142,7 +142,7 @@ function wallSlots(){
  for(let sr=0;sr<8;sr++)for(let sc=0;sc<8;sc++){
   const r=flip?7-sr:sr,c=flip?7-sc:sc,w={r,c,o:orientation};
   if(!rules.canPlaceWall(room,w))continue;
-  html+='<button type="button" class="brSlot brSlot-'+orientation+'" style="grid-row:'+(2*sr+(orientation==="h"?2:1))+(orientation==="h"?"":"/span 3")+';grid-column:'+(2*sc+(orientation==="h"?1:2))+(orientation==="h"?"/span 3":"")+'" data-br-wall="'+r+','+c+','+orientation+'" aria-label="Colocar barreira '+(orientation==="h"?"horizontal":"vertical")+' na linha '+(r+1)+' e coluna '+(c+1)+'"></button>';
+  html+='<button type="button" class="brSlot brSlot-'+orientation+'" style="grid-row:'+(2*sr+2)+';grid-column:'+(2*sc+2)+'" data-br-wall="'+r+','+c+','+orientation+'" aria-label="Colocar barreira '+(orientation==="h"?"horizontal":"vertical")+' na linha '+(r+1)+' e coluna '+(c+1)+'"></button>';
  }
  return html;
 }
