@@ -23,7 +23,7 @@ test("Every local asset referenced by the bootstrap exists",()=>{
  const names=[...assets.matchAll(/"([^"]+)"/g)].map(m=>m[1]);
  for(const name of names)assert.ok(fs.existsSync(path.join(dir,name.split("?")[0])),name);
  assert.ok(names.includes("./edgy-platform.js?v=32"),"shared platform cached");
- assert.ok(names.includes("./app.js?v=39"),"bootstrap cached");
+ assert.ok(names.includes("./app.js?v=41"),"bootstrap cached");
  assert.ok(names.includes("./base.css?v=29"),"base stylesheet cached");
  assert.ok(names.includes("./edgy-theme.css?v=34"),"design cached");
  assert.ok(names.includes("./tic-online.js?v=40"),"online tic cached");
@@ -166,6 +166,24 @@ test("Tic joins existing UI multiplayer and shared challenge registry",()=>{
  assert.ok(online.includes('window.EDGY_ticOnline={open,close,render,refresh}'));
  assert.ok(online.includes("data-resign")&&online.includes("data-invite"));
 });
+test("Live invitation channel refreshes recipient inbox without reloading",()=>{
+ const social=read("social.js");
+ assert.ok(social.includes('function syncInviteChannel()'));
+ assert.ok(social.includes('table:"edgy_game_invites",filter:"recipient_id=eq."+uid'));
+ assert.ok(social.includes('.on("postgres_changes"'));
+ assert.ok(social.includes('if(status==="SUBSCRIBED")refreshInvites()'));
+ assert.ok(social.includes('document.addEventListener("visibilitychange"'));
+ assert.ok(social.includes('},6000)'));
+ assert.ok(social.includes('if(modalMode==="inbox")inboxDraw()'));
+});
+test("Chess refreshes automatically and hides the redundant refresh button",()=>{
+ const chess=read("chess-online.js"),css=read("edgy-game-layout.css");
+ assert.ok(!chess.includes('data-refresh'),"there must be no manual refresh action");
+ assert.ok(chess.includes('poller=setInterval('),"background synchronization remains active");
+ assert.ok(css.includes('#screen .edgyMatchSide.edgyMatchDrawer,'));
+ assert.ok(css.includes('.main.chess-viewport #screen .chessSide.edgyMatchDrawer{'));
+ assert.ok(css.includes('left:50%!important;right:auto!important;bottom:auto!important'));
+});
 test("Stable footer, profile replay links and chess mobile actions",()=>{
  const html=read("index.html"),css=read("edgy-theme.css");
  const chess=read("chess-online.js"),damas=read("checkers-online.js"),players=read("players.js");
@@ -184,7 +202,7 @@ test("Stable footer, profile replay links and chess mobile actions",()=>{
 test("Game library uses a single registry loaded before bootstrap",()=>{
  const scripts=[...html.matchAll(/<script[^>]*src="([^"]+)"/g)].map(m=>m[1]);
  const platform=scripts.indexOf("./edgy-platform.js?v=32");
- const bootstrap=scripts.indexOf("./app.js?v=39");
+ const bootstrap=scripts.indexOf("./app.js?v=41");
  assert.ok(platform>=0&&bootstrap>=0&&platform<bootstrap);
  const app=read("app.js"),defs=read("edgy-platform.js");
  assert.ok(app.includes("Object.values(window.EDGY_platform.games).map("));
@@ -204,7 +222,9 @@ test("Chess uses the same mobile options/history drawer as Damas, including prom
  assert.ok(ui.includes('function openMobilePanel('));
  assert.ok(ui.includes('function clearMobilePanel('));
  assert.ok(css.includes('.main.chess-viewport #screen .chessSide.edgyMatchDrawer{'));
- assert.ok(css.includes('height:auto!important;max-height:min(74dvh,625px)!important'));
+ assert.ok(css.includes('top:calc((100dvh - 76px - env(safe-area-inset-bottom))/2)!important'));
+ assert.ok(css.includes('transform:translate(-50%,-50%)!important'));
+ assert.ok(css.includes('max-height:min(72dvh,calc(100dvh - 112px - env(safe-area-inset-bottom)))!important'));
 });
 test("Profile match replays stay accessible across chess and other online games",()=>{
  const players=read("players.js"),css=read("edgy-theme.css");
@@ -293,7 +313,7 @@ test("Chess shares the match shell, drawer binder and move controls",()=>{
 test("All games share one header, lobby cards and match presentation",()=>{
  const html=read("index.html"),ui=read("edgy-game-ui.js"),css=read("edgy-game-layout.css");
  assert.ok(html.includes('edgy-game-ui.js?v=39'));
- assert.ok(html.includes('edgy-game-layout.css?v=39'));
+ assert.ok(html.includes('edgy-game-layout.css?v=41'));
  for(const game of ["chess","checkers","tic","reaction"])assert.ok(ui.includes(game+':{title:'));
  for(const file of ["chess-online.js","checkers-online.js","tic-online.js","app.js"]){
   const src=read(file);
@@ -342,8 +362,8 @@ test("Home and Biblioteca render exactly the same reusable game cards",()=>{
  assert.ok(css.includes('flex-basis:84px!important'),"mobile artwork uses exactly the same geometry");
  assert.ok(css.includes('grid-auto-rows:1fr'),"all cards in the grid stretch equally");
  assert.ok(css.includes('.main:has(> #screen.edgyLibraryPage)>.foot'),"library footer clears the navigation");
- assert.ok(html.includes('edgy-game-layout.css?v=39'));
- assert.ok(html.includes('app.js?v=39'));
+ assert.ok(html.includes('edgy-game-layout.css?v=41'));
+ assert.ok(html.includes('app.js?v=41'));
 });
 test("EDGY v36: chess title is short and empty join notice does not reserve space",()=>{
  const chess=read("chess-online.js"),ui=read("edgy-game-ui.js"),css=read("edgy-game-layout.css");
