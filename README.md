@@ -111,3 +111,12 @@ A aplicação pública é uma versão experimental para amigos; ainda não há m
 - Os perfis públicos podem iniciar um convite direto a uma nova sala de Xadrez (10+0) ou Damas; convites tradicionais por URL continuam disponíveis.
 - Migração `edgy_private_game_invitations_and_combined_room_directory`: tabela `public.edgy_game_invites` com RLS de participantes; sem INSERT/UPDATE direto para o cliente. As operações privilegiadas usam RPCs com `auth.uid()`, confirmação de propriedade da sala e destinatário autorizado.
 - Testes SQL transacionais (rollback): criação de sala, envio, receção, aceitação, entrada como segundo jogador, nomes na lista e bloqueio de convites para sala ocupada, em ambos os jogos. Testes de sintaxe JavaScript e consistência dos assets da PWA efetuados. **O visual mobile e a receção de convites em dispositivos reais precisam de teste manual.**
+
+## EDGY v24 — navegação mobile e salas abertas
+
+- No telemóvel, cinco separadores: **Jogos · Jogadores · Início · Salas · Perfil**. Início em destaque no centro; Histórico acessível a partir do Perfil. No desktop, Histórico permanece na barra lateral.
+- O sino de convites passou para junto da fotografia no cabeçalho, com indicador de convites pendentes.
+- Botões mobile com feedback de toque, animação de seleção, indicador da página ativa e respeito pela opção do sistema de movimento reduzido.
+- A página Salas e o resumo do Início mostram apenas salas à espera ou em curso. O Início apresenta até 3 salas, com ligação Ver todas.
+- A função SQL edgy_my_rooms(integer) foi atualizada para filtrar partidas terminadas. Estas continuam disponíveis no histórico de partidas.
+- Testes: sintaxe JavaScript, sequência dos botões mobile, versão dos assets da PWA e transações SQL revertidas com partidas concluídas e salas de espera.
