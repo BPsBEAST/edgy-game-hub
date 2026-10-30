@@ -22,11 +22,11 @@ test("Every local asset referenced by the bootstrap exists",()=>{
  assert.ok(assets);
  const names=[...assets.matchAll(/"([^"]+)"/g)].map(m=>m[1]);
  for(const name of names)assert.ok(fs.existsSync(path.join(dir,name.split("?")[0])),name);
- assert.ok(names.includes("./edgy-platform.js?v=31"),"shared platform cached");
- assert.ok(names.includes("./app.js?v=31"),"bootstrap cached");
+ assert.ok(names.includes("./edgy-platform.js?v=32"),"shared platform cached");
+ assert.ok(names.includes("./app.js?v=32"),"bootstrap cached");
  assert.ok(names.includes("./base.css?v=29"),"base stylesheet cached");
- assert.ok(names.includes("./edgy-theme.css?v=31"),"design cached");
- assert.ok(names.includes("./tic-online.js?v=31"),"online tic cached");
+ assert.ok(names.includes("./edgy-theme.css?v=32"),"design cached");
+ assert.ok(names.includes("./tic-online.js?v=32"),"online tic cached");
 });
 test("Navigation keeps Histórico only inside Perfil",()=>{
  const sidebar=html.split('<aside class="sidebar">')[1].split("</aside>")[0];
@@ -163,12 +163,43 @@ test("Stable footer, profile replay links and chess mobile actions",()=>{
 
 test("Game library uses a single registry loaded before bootstrap",()=>{
  const scripts=[...html.matchAll(/<script[^>]*src="([^"]+)"/g)].map(m=>m[1]);
- const platform=scripts.indexOf("./edgy-platform.js?v=31");
- const bootstrap=scripts.indexOf("./app.js?v=31");
+ const platform=scripts.indexOf("./edgy-platform.js?v=32");
+ const bootstrap=scripts.indexOf("./app.js?v=32");
  assert.ok(platform>=0&&bootstrap>=0&&platform<bootstrap);
  const app=read("app.js"),defs=read("edgy-platform.js");
  assert.ok(app.includes("Object.values(window.EDGY_platform.games).map("));
  assert.ok(app.includes("defs.length"));
  for(const game of ["chess","checkers","tic","reaction"])assert.ok(defs.includes(game+":Object.freeze("));
  assert.ok(app.includes('filter==="Multiplayer"?window.EDGY_platform.games[g.id].online'));
+});
+
+test("Chess mobile sections are independently usable and promotion opens actions",()=>{
+ const chess=read("chess-online.js"),css=read("edgy-theme.css");
+ assert.ok(chess.includes('sheet.dataset.activeSheet=drawerSection'));
+ assert.ok(chess.includes('data.sheetView="actions"')||chess.includes('dataset.sheetView="actions"'));
+ assert.ok(chess.includes('dataset.sheetView="history"'));
+ assert.ok(chess.includes('button.dataset.sheetTab=tab'));
+ assert.ok(chess.includes('promo={from:selected,to:sq};drawerSection="actions";drawerOpen=true;draw()'));
+ assert.ok(css.includes('.chessSide[data-active-sheet="history"]'));
+ assert.ok(css.includes('.chessSide[data-active-sheet="actions"]'));
+ assert.ok(css.includes("bottom:calc(64px + env(safe-area-inset-bottom))"));
+});
+test("Profile match replays stay accessible across chess and other online games",()=>{
+ const players=read("players.js"),css=read("edgy-theme.css");
+ assert.ok(players.includes('edgy_head_to_head_all'));
+ assert.ok(players.includes('data-replay='));
+ assert.ok(players.includes("Rever partida ↗"));
+ assert.ok(players.includes('window.EDGY_history?.openByCode(code)'));
+ assert.ok(players.includes('window.EDGY_openRoom?.(kind,code)'));
+ assert.ok(css.includes('.playerOverlay{z-index:175!important}'));
+ assert.ok(css.includes('.edReplayMask{z-index:180!important}'));
+ assert.ok(players.includes('isClosing')&&css.includes('@keyframes edgyProfileArrivalOut'));
+});
+test("Tic players use member-only lookup and online history avoids duplicate results",()=>{
+ const app=read("tic-online.js"),platform=read("edgy-platform.js"),history=read("history.js");
+ assert.ok(platform.includes('players(id,roomCode)'));
+ assert.ok(app.includes('rooms.players("tic",room.code)'));
+ assert.ok(history.includes('ticCloud.some(c=>c.id===h.client_id)'));
+ assert.ok(history.includes('outcome==="win"?50:outcome==="draw"?20:10'));
+ assert.ok(app.includes('refreshProfile?.()'));
 });
