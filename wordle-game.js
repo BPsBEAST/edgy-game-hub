@@ -240,7 +240,6 @@ function render(){
   +'<div class="wdBoard" role="grid" aria-label="Grelha de seis tentativas para palavras de cinco letras">'+Array.from({length:6},(_,i)=>rowHtml(i)).join("")+'</div>'
   +'<p class="wdMessage'+(message?" wdMessageVisible":"")+'" role="status" aria-live="polite">'+(message?esc(message):"")+'</p>'
   +resultsHtml()+'<p class="wdDesktopHint">Escreve com o teclado do computador. Usa Enter para confirmar e Backspace para apagar.</p>'+nativeTypingHtml()
-  +'<div class="wdBottomHint"><span class="wdHintDot"></span>'+words().answerCount+' palavras para descobrir · '+words().guessCount.toLocaleString("pt-PT")+' palavras aceites</div>'
   +'</section>';
  root.innerHTML='<div class="edgyGamePage wdPage">'
   +window.EDGY_gameUI.header("wordle",{intro:"Palavras · 1 jogador · Rondas ilimitadas"})
