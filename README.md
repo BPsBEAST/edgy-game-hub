@@ -2,9 +2,9 @@
 
 Uma plataforma PWA **mobile-first** para minijogos entre amigos. Interface minimalista, roxo profundo e gradiente magenta.
 
-## Estado atual — EDGY v29
+## Estado atual — EDGY v31
 
-- Quatro jogos ativos: **Xadrez online, Damas online, Jogo do Galo e Reflexos**.
+- Quatro jogos ativos: **Xadrez online, Damas online, Jogo do Galo online (com modo local) e Reflexos**.
 - Contas, perfis, fotografias, XP, histórico e replays; a área Histórico fica dentro do Perfil.
 - Salas privadas, listagem de partidas abertas e convites internos com notificações na aplicação.
 - Um **registo comum de jogos e operações multiplayer** em `edgy-platform.js`, que unifica criação/entrada/cancelamento de salas e resultados. O motor e a validação de cada jogo permanecem separados.
@@ -155,3 +155,28 @@ A aplicação pública é uma versão experimental para amigos; ainda não há m
 - **Manutenção e desempenho:** `index.html` passou a ser uma página de entrada com poucos KB, o CSS e JavaScript foram separados, a folha de estilos é carregada no `head`, código de Memória/Quiz foi removido, consultas obsoletas a salas foram eliminadas e os motores são carregados sob demanda.
 - **Validação:** testes estáticos de sintaxe, referências de ficheiros, navegação, estilos, regras das Damas, operações de sala e componentes de resultado; fluxos SQL de criar → convidar → aceitar → entrar nos dois jogos validados em transação com `ROLLBACK`. Foi adicionada integração contínua no GitHub Actions.
 - **Limites dos testes:** não existe nesta revisão um teste automatizado de interação visual em dois telemóveis reais nem confirmação aqui do estado de execução do GitHub Actions. A publicação no GitHub Pages e a atualização offline devem ser validadas em dispositivo.
+
+## EDGY v31 — revisão multiplayer e interface
+
+**Funcionalidades entregues**
+- Jogo do Galo online com salas privadas, entrada por código, convites internos, turno controlado pelo servidor, deteção de vitória/empate, desistência, histórico de movimentos e replays de partidas terminadas.
+- Jogo do Galo local preservado (contra CPU e duas pessoas no mesmo dispositivo).
+- Histórico de confrontos entre jogadores agora inclui Xadrez, Damas e Jogo do Galo, com partidas selecionáveis. Replays de Xadrez abrem no Histórico; Damas e Jogo do Galo reabrem a partida com movimentos anteriores.
+- Perfil público com animação de entrada em desktop/mobile e proteção contra respostas assíncronas desatualizadas.
+- Xadrez mobile: painel de opções e jogadas com acesso melhorado, scroll interno e botões maiores.
+- Damas: remoção do botão manual Atualizar; sincronização automática mantida.
+- Rodapé fixado ao fundo visual em ecrãs curtos; em ecrãs longos aparece depois do conteúdo, sem se sobrepor aos tabuleiros.
+- Metadados dos jogos passam a ter uma única fonte em `edgy-platform.js`. A Biblioteca, filtros, salas e desafios consultam o registo partilhado.
+- Novo componente `confirmAction` para avisos consistentes entre jogos. O Jogo do Galo já o usa.
+
+**Segurança e dados**
+- Migrações: `supabase/tic_multiplayer.sql`, `tic_shared_invites.sql`, `head_to_head_all_games.sql` e `performance_indexes.sql`.
+- O Jogo do Galo tem RLS com leitura apenas pelos participantes e funções privilegiadas no esquema `private`; as RPC públicas são `security invoker`.
+- Testes transacionais com ROLLBACK: convite, aceitação, turnos, rejeição de jogadas inválidas, terceiro não autorizado, vitória, empate, desistência, confronto direto e permissões da role `authenticated`.
+- O Supabase continua a sinalizar funções `SECURITY DEFINER` antigas em `public` (Xadrez/Damas/convites). Devem ser revistas e migradas de forma incremental antes de uma abertura em grande escala.
+- A atribuição de XP nos jogos online ainda não está totalmente consolidada no servidor. Não implementar créditos de XP controlados só pelo cliente.
+
+**Verificação adicional recomendada**
+- Dois dispositivos reais, com contas diferentes, para confirmar notificações, replays, estados de rede e UI móvel.
+- Rever a execução de `tests/smoke.test.mjs` nas Actions antes de novos lançamentos.
+- Após verificar estes fluxos, migrar funções privilegiadas antigas de forma testada, sem afetar partidas existentes.
