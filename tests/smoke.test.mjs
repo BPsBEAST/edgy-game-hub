@@ -370,7 +370,7 @@ test("All games share one header, lobby cards and match presentation",()=>{
  const html=read("index.html"),ui=read("edgy-game-ui.js"),css=read("edgy-game-layout.css");
  assert.ok(html.includes('edgy-game-ui.js?v=43'));
  assert.ok(html.includes('edgy-game-layout.css?v=42'));
- for(const game of ["chess","checkers","tic","reaction","barricade"]assert.ok(ui.includes(game+':{title:'));
+ for(const game of ["chess","checkers","tic","reaction","barricade"])assert.ok(ui.includes(game+':{title:'));
  for(const file of ["chess-online.js","checkers-online.js","tic-online.js","barricade-online.js","app.js"]){
   const src=read(file);
   assert.ok(src.includes('window.EDGY_gameUI.header(')||src.includes('ui().header('),file);
