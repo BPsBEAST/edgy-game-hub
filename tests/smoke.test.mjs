@@ -116,6 +116,24 @@ test("Damas retain forward-only capture, flying kings, initial board",()=>{
  assert.ok(caps(state([[44,"W"],[26,"b"]])));
  assert.ok(rules.legalMoves(state([[42,"w"],[33,"b"],[17,"b"]])).some(m=>m.captures?.length===2));
 });
+test("Damas allow a choice of capture while requiring the entire sequence on client and server",()=>{
+ const client=read("checkers-rules.js"),server=read("supabase/functions/checkers-action/rules.js");
+ assert.equal(client,server,"the online validator must enforce the same capture rules");
+ const context={};vm.runInNewContext(client.replace(/\\bexport\\s+/g,"")+";globalThis.rules={legalMoves,applyMove};",context);
+ const board=Array(64).fill(null);
+ for(const [i,p] of [[42,"w"],[46,"w"],[33,"b"],[17,"b"],[37,"b"]])board[i]=p;
+ const state={board,turn:"w",ply:0,status:"active",history:[],last:[],quiet:0};
+ const captures=context.rules.legalMoves(state);
+ assert.ok(captures.some(m=>m.path[0]===42&&m.captures.length===2));
+ assert.ok(captures.some(m=>m.path[0]===46&&m.captures.length===1));
+ assert.ok(captures.every(m=>m.captures.length>0),"quiet moves remain forbidden");
+ const shorter=captures.find(m=>m.path[0]===46&&m.captures.length===1);
+ const next=context.rules.applyMove(state,shorter.path);
+ assert.equal(next.board[37],null);
+ assert.equal(next.board[shorter.path.at(-1)],"w");
+ assert.throws(()=>context.rules.applyMove(state,[42,24]),/captura incompleta/);
+});
+
 test("Unified visual rules include accessible motion reduction",()=>{
  const css=read("edgy-theme.css");
  for(const token of ["--edgy-surface","--edgy-stroke","--edgy-accent",".edgyOutcomeDialog",".edgyOutcomeOverlay",".edgyLobby",".nav button.navHome .navHomeGlyph","prefers-reduced-motion:reduce"])assert.ok(css.includes(token),token);
@@ -303,9 +321,9 @@ test("EDGY v36: all library tiles have equal geometry and a readable footer",()=
  assert.ok(css.includes('#screen.edgyLibraryPage .games{'));
  assert.ok(css.includes('grid-auto-rows:1fr'));
  assert.ok(css.includes('#screen.edgyLibraryPage .game .art,'));
- assert.ok(css.includes('flex-basis:100px'));
+ assert.ok(css.includes('flex:0 0 84px!important'));
  assert.ok(css.includes('.main:has(> #screen.edgyLibraryPage)>.foot'));
- assert.ok(html.includes('edgy-game-layout.css?v=36'));
+ assert.ok(html.includes('edgy-game-layout.css?v=37'));
 });
 test("EDGY v36: chess title is short and empty join notice does not reserve space",()=>{
  const chess=read("chess-online.js"),ui=read("edgy-game-ui.js"),css=read("edgy-game-layout.css");
