@@ -84,5 +84,42 @@ function createResult({game,primaryLabel="Continuar",secondaryLabel="Rever parti
  });
  return Object.freeze({element:overlay,show,hide});
 }
-window.EDGY_platform=Object.freeze({games:GAMES,config,code,rooms,createResult});
+
+function confirmAction({title="Confirmar ação",message="",confirmLabel="Confirmar",cancelLabel="Voltar"}={}){
+ return new Promise(resolve=>{
+  const overlay=document.createElement("div");
+  overlay.className="edgyConfirmOverlay";
+  overlay.innerHTML='<section class="edgyConfirmDialog" role="alertdialog" aria-modal="true" aria-labelledby="edgy-confirm-title" aria-describedby="edgy-confirm-message">'
+   +'<span class="edgyConfirmMark" aria-hidden="true">!</span>'
+   +'<h2 id="edgy-confirm-title"></h2><p id="edgy-confirm-message"></p>'
+   +'<div class="edgyConfirmActions"><button type="button" data-cancel></button><button type="button" data-approve></button></div></section>';
+  overlay.querySelector("h2").textContent=title;
+  overlay.querySelector("p").textContent=message;
+  overlay.querySelector("[data-cancel]").textContent=cancelLabel;
+  overlay.querySelector("[data-approve]").textContent=confirmLabel;
+  const original=document.activeElement;
+  function done(value){
+   document.removeEventListener("keydown",handleKey);
+   overlay.remove();
+   if(original?.isConnected)original.focus();
+   resolve(value);
+  }
+  function handleKey(event){
+   if(event.key==="Escape"){event.preventDefault();done(false)}
+   if(event.key==="Tab"){
+    const a=overlay.querySelector("[data-cancel]"),b=overlay.querySelector("[data-approve]");
+    if(event.shiftKey&&document.activeElement===a){event.preventDefault();b.focus()}
+    else if(!event.shiftKey&&document.activeElement===b){event.preventDefault();a.focus()}
+   }
+  }
+  overlay.querySelector("[data-cancel]").onclick=()=>done(false);
+  overlay.querySelector("[data-approve]").onclick=()=>done(true);
+  overlay.addEventListener("click",event=>{if(event.target===overlay)done(false)});
+  document.addEventListener("keydown",handleKey);
+  document.body.append(overlay);
+  overlay.querySelector("[data-cancel]").focus();
+ });
+}
+
+window.EDGY_platform=Object.freeze({games:GAMES,config,code,rooms,createResult,confirmAction});
 })();
