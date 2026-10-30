@@ -15,7 +15,7 @@ function validRound(r){return r&&data().answers.includes(r.answer)&&Array.isArra
 async function prepare(){
  const old=read(),statistics={...stats(),...(old.stats||{})};
  for(const k of Object.keys(stats()))statistics[k]=Math.max(0,Math.floor(Number(statistics[k])||0));
- saved={number:Math.max(0,Math.floor(Number(old.number)||0)),stats:statistics,round:null};
+ saved={number:Math.max(0,Math.floor(Number(old.number)||0)),stats:statistics,round:null,_owner:id()};
  if(validRound(old.round)){
   saved.round={answer:old.round.answer,guesses:old.round.guesses,
    finished:Boolean(old.round.finished),won:Boolean(old.round.won),hints:Math.max(0,Math.floor(Number(old.round.hints)||0)),credited:true};
@@ -33,12 +33,13 @@ async function createRound(){
 }
 async function open(){
  active=true;const token=++request;message="";busy=true;scope=id();
+ if(saved?._owner!==scope)saved=null;
  const root=document.getElementById("screen");
  if(root)root.innerHTML='<div class="edgyGamePage cxPage"><p class="sub">A preparar o Contexto…</p></div>';
  try{
   await seen()?.ready();
   if(token!==request||!active||scope!==id())return;
-  if(!saved||scope!==id())await prepare();
+  if(!saved)await prepare();
   else if(saved.round)await seen()?.importPrevious([saved.round.answer],"contexto");
   if(token!==request||!active)return;
  }catch(e){message="O histórico não pôde ser sincronizado. Podes continuar neste dispositivo.";console.warn(e)}
@@ -58,12 +59,21 @@ function finish(won){
  }else message="A resposta era "+r.answer.toUpperCase()+".";
  persist();
 }
+function showMessage(text){
+ message=text;
+ const node=document.querySelector("#screen .cxMessage");
+ if(node)node.textContent=text;
+ else{
+  const form=document.querySelector("#screen .cxForm");
+  if(form){const p=document.createElement("p");p.className="cxMessage";p.setAttribute("role","status");p.textContent=text;form.after(p)}
+ }
+}
 function submit(word,hint=false){
  const r=round(),text=rules().normalize(word);
  if(!r||r.finished||busy)return;
- if(text.length<3||text.length>20){message="Escreve uma palavra entre 3 e 20 letras.";render(false);return}
- if(!rules().isWord(text)){message="Palavra não reconhecida no vocabulário do jogo.";render(false);return}
- if(r.guesses.some(g=>g.word===text)){message="Já tentaste essa palavra.";render(false);return}
+ if(text.length<3||text.length>20){showMessage("Escreve uma palavra entre 3 e 20 letras.");return}
+ if(!rules().isWord(text)){showMessage("Palavra não reconhecida no vocabulário do jogo.");return}
+ if(r.guesses.some(g=>g.word===text)){showMessage("Já tentaste essa palavra.");return}
  const rank=rules().rank(r.answer,text);
  r.guesses.push({word:text,rank,hint});
  if(hint){r.hints++;saved.stats.hints++}
@@ -73,7 +83,7 @@ function submit(word,hint=false){
 }
 function hint(){
  const r=round();if(!r||r.finished||busy)return;
- if(r.hints>=3){message="Já usaste as três dicas desta ronda.";render(false);return}
+ if(r.hints>=3){showMessage("Já usaste as três dicas desta ronda.");return}
  const clue=rules().hint(r.answer,r.guesses);
  if(clue)submit(clue,true);
 }
@@ -95,8 +105,9 @@ async function nextRound(){
 function share(){
  const r=round();if(!r?.finished)return;
  const text="EDGY · Contexto #"+saved.number+"\n"+(r.won?"Consegui!":"Desisti")+" · "+r.guesses.length+" tentativas\n";
- navigator.clipboard?.writeText(text).then(()=>{message="Resultado copiado.";render(false)})
-  .catch(()=>{message="Não foi possível copiar.";render(false)});
+ if(!navigator.clipboard?.writeText){message="Não foi possível copiar.";render();return}
+ navigator.clipboard.writeText(text).then(()=>{message="Resultado copiado.";render()})
+  .catch(()=>{message="Não foi possível copiar.";render()});
 }
 function guessesHtml(){
  const r=round(),arr=[...r.guesses].sort((a,b)=>a.rank-b.rank),best=arr.length?arr[0].rank:null;
