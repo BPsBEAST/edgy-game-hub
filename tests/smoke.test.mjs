@@ -1,0 +1,127 @@
+/* No dependencies. Run: node --test tests/smoke.test.mjs */
+import test from "node:test";
+import assert from "node:assert/strict";
+import fs from "node:fs";
+import path from "node:path";
+import vm from "node:vm";
+import {fileURLToPath} from "node:url";
+const dir=path.resolve(path.dirname(fileURLToPath(import.meta.url)),"..");
+const read=file=>fs.readFileSync(path.join(dir,file),"utf8");
+const html=read("index.html");
+const gameFiles=["edgy-platform.js","players.js","social.js","history.js","chess-online.js","checkers-online.js","auth.js","sw.js"];
+test("All app scripts and inline bootstrap parse successfully",()=>{
+ for(const file of gameFiles)assert.doesNotThrow(()=>new vm.Script(read(file),{filename:file}),file);
+ const scripts=[...html.matchAll(/<script([^>]*)>([\s\S]*?)<\/script>/g)];
+ for(const script of scripts.filter(m=>!m[1].includes("src=")))assert.doesNotThrow(()=>new vm.Script(script[2]),"inline JS");
+});
+test("Every local asset referenced by the bootstrap exists",()=>{
+ const files=[...html.matchAll(/<(?:script|link)\b[^>]*?(?:src|href)="(\.\/[^"]+)"/g)].map(m=>m[1]);
+ for(const source of files)assert.ok(fs.existsSync(path.join(dir,source.split("?")[0])),source);
+ const assets=read("sw.js").match(/const ASSETS=\[([^\]]+)\]/)?.[1];
+ assert.ok(assets);
+ const names=[...assets.matchAll(/"([^"]+)"/g)].map(m=>m[1]);
+ for(const name of names)assert.ok(fs.existsSync(path.join(dir,name.split("?")[0])),name);
+ assert.ok(names.includes("./edgy-platform.js?v=27"),"shared platform cached");
+ assert.ok(names.includes("./edgy-theme.css?v=27"),"design cached");
+});
+test("Navigation keeps Histórico only inside Perfil",()=>{
+ const sidebar=html.split('<aside class="sidebar">')[1].split("</aside>")[0];
+ const mobile=html.split('<nav class="nav"')[1].split("</nav>")[0];
+ assert.ok(!sidebar.includes('data-page="history"'));
+ assert.ok(!mobile.includes('data-page="history"'));
+ assert.ok(html.includes('id="profileHistory"'));
+ assert.deepEqual([...mobile.matchAll(/data-page="([^"]+)"/g)].map(m=>m[1]),["games","players","home","rooms","profile"]);
+ assert.ok(mobile.includes('class="navHomeGlyph"'));
+});
+test("Retired Memory and Quiz are no longer part of loaded bootstrap",()=>{
+ assert.ok(!html.includes('id:"memory"')&&!html.includes('id:"quiz"'));
+ assert.ok(!html.includes('function drawMemory()')&&!html.includes('function drawQuiz()'));
+});
+function platformFixture(){
+ const calls=[],api={rpc(name,args){calls.push({name,args});return Promise.resolve({data:"OK",error:null})},from(table){calls.push({table});return {select(){return this},eq(){return this},maybeSingle(){return Promise.resolve({data:{id:1},error:null})}}}};
+ const document={body:{append(){}},activeElement:null,addEventListener(){},createElement(){throw Error("DOM not set up")}};
+ const window={EDGY_auth:{getClient(){return api}}};
+ vm.runInNewContext(read("edgy-platform.js"),{window,document,console});
+ return {platform:window.EDGY_platform,api,calls,window,document};
+}
+test("Single registry serves all online games and rejects invalid codes",async()=>{
+ const {platform,calls}=platformFixture();
+ assert.deepEqual(Object.keys(platform.games).sort(),["checkers","chess","reaction","tic"]);
+ assert.equal(platform.code(" aB41cD23 "),"AB41CD23");
+ assert.throws(()=>platform.code("oops"),/8 caracteres/);
+ assert.throws(()=>platform.rooms.create("reaction"),/não suporta/);
+ await platform.rooms.create("chess",{base:600,increment:0});
+ await platform.rooms.create("checkers");
+ await platform.rooms.join("chess","aB41cD23");
+ await platform.rooms.join("checkers","aB41cD23");
+ await platform.rooms.cancel("chess","aB41cD23");
+ await platform.rooms.invite("checkers","aB41cD23","some-user-id");
+ await platform.rooms.respond("some-invite",true);
+ await platform.rooms.list(200);
+ assert.deepEqual(calls.map(c=>c.name),["edgy_create_chess_room_timed","edgy_checkers_create","edgy_join_chess_room","edgy_checkers_join","edgy_cancel_waiting_chess_room","edgy_invite_send","edgy_invite_respond","edgy_my_rooms"]);
+ assert.deepEqual(JSON.parse(JSON.stringify(calls[0].args)),{p_base:600,p_increment:0});
+ assert.deepEqual(JSON.parse(JSON.stringify(calls.at(-1).args)),{p_limit:100});
+});
+test("Common result dialog handles win, loss, draw and closing",()=>{
+ const {platform,document}=platformFixture();
+ let focused=null,appended=null;
+ const nodes=new Map();
+ document.createElement=()=>({
+  hidden:true,attributes:{},dataset:{},
+  innerHTML:"",className:"",
+  setAttribute(k,v){this.attributes[k]=v},
+  querySelector(sel){
+   if(!nodes.has(sel))nodes.set(sel,{textContent:"",innerHTML:"",handlers:{},addEventListener(event,fn){this.handlers[event]=fn},focus(){focused=sel}});
+   return nodes.get(sel);
+  },
+  addEventListener(){},
+ });
+ document.body.append=elem=>{appended=elem};
+ const modal=platform.createResult({game:"chess"});
+ assert.ok(appended);
+ for(const [outcome,label] of [["win","Venceste!"],["loss","Perdeste!"],["draw","Empate!"]]){
+  modal.show({outcome,reason:"Partida encerrada"});
+  assert.equal(nodes.get("[data-title]").textContent,label);
+  assert.equal(nodes.get("[data-reason]").textContent,"Partida encerrada");
+  assert.equal(modal.element.dataset.result,outcome);
+  assert.equal(modal.element.hidden,false);
+  assert.equal(focused,"[data-primary]");
+  modal.hide();assert.equal(modal.element.hidden,true);
+ }
+});
+test("Damas retain forward-only capture, flying kings, initial board",()=>{
+ const source=read("checkers-rules.js").replace(/\bexport\s+/g,"");
+ const context={};vm.runInNewContext(source+";globalThis.testRules={initialState,legalMoves,applyMove};",context);
+ const rules=context.testRules;
+ const state=(pieces,turn="w")=>{
+  const board=Array(64).fill(null);
+  for(const [index,piece] of pieces)board[index]=piece;
+  return {board,turn,ply:0,status:"active",history:[],last:[],quiet:0};
+ };
+ assert.equal(rules.legalMoves(rules.initialState()).length,7);
+ const caps=s=>rules.legalMoves(s).some(m=>m.captures?.length>0);
+ assert.ok(caps(state([[42,"w"],[33,"b"]])));
+ assert.ok(!caps(state([[26,"w"],[35,"b"]])));
+ assert.ok(caps(state([[17,"b"],[26,"w"]],"b")));
+ assert.ok(!caps(state([[33,"b"],[24,"w"]],"b")));
+ assert.ok(caps(state([[26,"W"],[35,"b"]])));
+ assert.ok(caps(state([[44,"W"],[26,"b"]])));
+ assert.ok(rules.legalMoves(state([[42,"w"],[33,"b"],[17,"b"]])).some(m=>m.captures?.length===2));
+});
+test("Unified visual rules include accessible motion reduction",()=>{
+ const css=read("edgy-theme.css");
+ for(const token of ["--edgy-surface","--edgy-stroke","--edgy-accent",".edgyOutcomeDialog",".edgyOutcomeOverlay",".edgyLobby",".nav button.navHome .navHomeGlyph","prefers-reduced-motion:reduce"])assert.ok(css.includes(token),token);
+ const chess=read("chess-online.js"),checkers=read("checkers-online.js");
+ for(const code of [chess,checkers]){
+  assert.ok(code.includes("window.EDGY_platform.createResult("));
+  assert.ok(code.includes("window.EDGY_platform.rooms.create("));
+  assert.ok(code.includes('classList.toggle("edgyLobby",!room)'));
+ }
+});
+test("Chess engine and Damas rules load only when the game is opened",()=>{
+ const chess=read("chess-online.js"),checkers=read("checkers-online.js");
+ assert.match(chess,/function loadEngine\(\)/);
+ assert.match(checkers,/function loadRules\(\)/);
+ assert.match(chess,/autoTried=false;loadEngine\(\);draw\(\)/);
+ assert.match(checkers,/joined=false;loadRules\(\);draw\(\)/);
+});
