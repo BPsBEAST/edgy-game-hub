@@ -105,7 +105,8 @@ async function renderRooms(id,game=null){
   const {data,error}=await db().rpc("edgy_my_rooms",{p_limit:80});if(error)throw error;
   if(!host.isConnected)return;
   const rooms=(Array.isArray(data)?data:[]).filter(r=>(r.status==="waiting"||r.status==="active")&&(!game||r.game===game));
-  host.innerHTML=rooms.length?'<div class="edgyRooms">'+rooms.map(roomCard).join("")+'</div>':'<p class="edgyRoomsEmpty">Não tens salas abertas. As partidas terminadas podem ser revistas no Histórico, dentro do Perfil.</p>';
+  const visible=id==="edgy-home-rooms"?rooms.slice(0,3):rooms;
+  host.innerHTML=visible.length?'<div class="edgyRooms">'+visible.map(roomCard).join("")+'</div>':'<p class="edgyRoomsEmpty">Não tens salas abertas. As partidas terminadas podem ser revistas no Histórico, dentro do Perfil.</p>';
   host.querySelectorAll("[data-open]").forEach(b=>b.onclick=()=>{const [g,c]=b.dataset.open.split("|");window.EDGY_openRoom?.(g,c)});
   host.querySelectorAll("[data-invite]").forEach(b=>b.onclick=()=>{const [g,c]=b.dataset.invite.split("|");openInvite(g,c)});
   host.querySelectorAll("[data-cancel]").forEach(b=>b.onclick=async()=>{
