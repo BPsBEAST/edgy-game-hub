@@ -120,3 +120,12 @@ A aplicação pública é uma versão experimental para amigos; ainda não há m
 - A página Salas e o resumo do Início mostram apenas salas à espera ou em curso. O Início apresenta até 3 salas, com ligação Ver todas.
 - A função SQL edgy_my_rooms(integer) foi atualizada para filtrar partidas terminadas. Estas continuam disponíveis no histórico de partidas.
 - Testes: sintaxe JavaScript, sequência dos botões mobile, versão dos assets da PWA e transações SQL revertidas com partidas concluídas e salas de espera.
+
+## EDGY v25 — perfis e desafios
+
+- Perfil público atualizado com cartões de estatísticas retangulares, cabeçalho compacto, atividade recente legível e secções separadas visualmente.
+- Perfil pessoal passa a partilhar as mesmas superfícies e controlos planos.
+- Em vez dos dois botões separados, cada perfil público apresenta **Desafiar jogador**, que abre um seletor pesquisável de jogos multiplayer. Os jogos compatíveis são definidos num registo central em `social.js`, preparado para futuros jogos com backend online.
+- A barra inferior mantém-se com cinco opções e Início ao centro; o ícone central agora é uma casa branca visível dentro de um botão circular, com feedback de toque.
+- O sino e a fotografia no topo mantêm o posicionamento aprovado da v24.
+- Testes de sintaxe JavaScript, referências da PWA, navegação, modal de desafio e CSS responsive/reduced-motion concluídos; falta teste visual real em dispositivo.
