@@ -1,5 +1,5 @@
-const CACHE="edgy-v49";
-const ASSETS=["./","./index.html","./manifest.webmanifest","./icon.svg","./config.js?v=5","./auth.js?v=18","./avatar-editor.js?v=7","./players.js?v=44","./chess-pieces.js?v=18","./history.js?v=43","./base.css?v=29","./app.js?v=49","./edgy-platform.js?v=48","./edgy-game-ui.js?v=48","./edgy-game-layout.css?v=47","./barricade.css?v=47","./wordle.css?v=48","./wordle-data.js?v=48","./wordle-rules.js?v=48","./wordle-game.js?v=49","./chess-online.js?v=41","./checkers-rules.js?v=37","./checkers-replay.js?v=33","./checkers-online.js?v=40","./tic-online.js?v=40","./barricade-online.js?v=47","./barricade-rules.js?v=1","./social.js?v=43","./edgy-theme.css?v=34"];
+const CACHE="edgy-v50";
+const ASSETS=["./","./index.html","./manifest.webmanifest","./icon.svg","./config.js?v=5","./auth.js?v=18","./avatar-editor.js?v=7","./players.js?v=44","./chess-pieces.js?v=18","./history.js?v=43","./base.css?v=29","./app.js?v=50","./edgy-platform.js?v=50","./edgy-game-ui.js?v=50","./edgy-game-layout.css?v=47","./barricade.css?v=47","./wordle.css?v=50","./wordle-data.js?v=48","./wordle-rules.js?v=48","./wordle-game.js?v=50","./chess-online.js?v=41","./checkers-rules.js?v=37","./checkers-replay.js?v=33","./checkers-online.js?v=40","./tic-online.js?v=40","./barricade-online.js?v=47","./barricade-rules.js?v=1","./social.js?v=43","./edgy-theme.css?v=34"];
 self.addEventListener("install",event=>{
  event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS)));
  self.skipWaiting();
