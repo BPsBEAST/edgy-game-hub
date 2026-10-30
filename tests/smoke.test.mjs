@@ -308,7 +308,7 @@ test("Personal history includes Damas results and opens the existing read-only r
  assert.ok(history.includes('checkersCloud=[]'));
  assert.ok(history.includes('const ownRooms=query=>'));
  assert.ok(history.includes('api().from("checkers_rooms").select('));
- assert.ok(history.includes('cloud.concat(ticCloud,checkersCloud)'));
+ assert.ok(history.includes('cloud.concat(ticCloud,checkersCloud,barricadeCloud)'));
  assert.ok(history.includes('if(g.isCheckers){window.EDGY_checkersReplay?.open(g.code);return}'));
  assert.ok(history.includes('game:"Damas",isCheckers:true'));
  assert.ok(history.includes('checkers.error'));
