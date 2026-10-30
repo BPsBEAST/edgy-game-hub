@@ -37,7 +37,7 @@ begin
  do update set created_at=now(),expires_at=now()+interval '7 days'
  returning id into v_id;
  return v_id;
-end;$function$
+end;$function$;
 
 CREATE OR REPLACE FUNCTION public.edgy_invite_respond(p_invite_id uuid, p_accept boolean)
  RETURNS jsonb
@@ -79,7 +79,7 @@ begin
  update public.edgy_game_invites set status='cancelled',responded_at=now()
  where game=v_inv.game and room_code=v_inv.room_code and id<>v_inv.id and status='pending';
  return jsonb_build_object('accepted',true,'game',v_inv.game,'code',v_inv.room_code);
-end;$function$
+end;$function$;
 
 CREATE OR REPLACE FUNCTION public.edgy_my_invites()
  RETURNS jsonb
@@ -105,7 +105,7 @@ from (select * from public.edgy_game_invites v where v.recipient_id=(select auth
   and r.white_id=v.sender_id and r.black_id is null and r.status='waiting') end)
  order by v.created_at desc limit 30) i
 left join public.profiles p on p.id=i.sender_id;
-$function$
+$function$;
 
 CREATE OR REPLACE FUNCTION public.edgy_my_rooms(p_limit integer DEFAULT 60)
  RETURNS jsonb
@@ -140,5 +140,4 @@ select coalesce(jsonb_agg(jsonb_build_object(
 from chosen r
 left join public.profiles w on w.id=r.white_id
 left join public.profiles b on b.id=r.black_id;
-$function$
-
+$function$;
