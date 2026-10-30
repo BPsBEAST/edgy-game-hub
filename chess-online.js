@@ -1,6 +1,6 @@
 (function(){
 "use strict";
-let Chess=null,room=null,players=null,channel=null,poller=null,selected="",promo=null,busy=false,pending="",engineError="",autoTried=false,clockTimer=null,previewIndex=null,confirmResign=false,timeBase=Date.now(),timeAt=performance.now(),lastCheck=0,rivalry=null,rivalryKey="",rivalryLoading=false,resultSeen=new Set(),drawerOpen=false,drawerSection="actions";
+let Chess=null,room=null,players=null,channel=null,poller=null,selected="",promo=null,busy=false,pending="",engineError="",autoTried=false,clockTimer=null,previewIndex=null,confirmResign=false,timeBase=Date.now(),timeAt=performance.now(),lastCheck=0,rivalry=null,rivalryKey="",rivalryLoading=false,resultSeen=new Set();
 const glyph={wk:"♔",wq:"♕",wr:"♖",wb:"♗",wn:"♘",wp:"♙",bk:"♚",bq:"♛",br:"♜",bb:"♝",bn:"♞",bp:"♟︎"};
 const x=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const auth=()=>window.EDGY_auth;
@@ -15,7 +15,7 @@ const resultUI=window.EDGY_platform.createResult({
  game:"chess",
  primaryLabel:"Continuar",
  secondaryLabel:"Ver confrontos",
- onSecondary:()=>{drawerOpen=true;draw()}
+ onSecondary:()=>{draw();window.EDGY_gameUI.openMobilePanel(document.getElementById("screen"),"history")}
 });
 const closeResult=()=>resultUI.hide();
 function showResult(){
@@ -50,7 +50,7 @@ function rivalryHtml(){
  return '<section class="chessRivalry"><div class="chessRivalryTitle"><span>Confrontos diretos</span><span class="pill">'+Number(rivalry.total||0)+' partidas</span></div><div class="chessRivalryScore"><span><b>'+Number(rivalry.wins||0)+'</b>Vitórias</span><span><b>'+Number(rivalry.draws||0)+'</b>Empates</span><span><b>'+Number(rivalry.losses||0)+'</b>Derrotas</span></div>'+(games.length?'<ul class="chessRivalryList">'+games.map(g=>'<li><span>'+x(resultWord[g.outcome]||"Partida")+' · '+x(g.color==="white"?"Brancas":"Pretas")+'</span><span>'+new Date(g.date).toLocaleDateString("pt-PT")+'</span></li>').join("")+'</ul>':'<p class="sub" style="margin:8px 0 0">Ainda não jogaram uma partida completa.</p>')+'</section>';
 }
 
-function clear(){closeResult();drawerOpen=false;rivalry=null;rivalryKey="";rivalryLoading=false;document.querySelector(".main")?.classList.remove("chess-viewport");if(clockTimer){clearInterval(clockTimer);clockTimer=null}previewIndex=null;confirmResign=false;if(channel){db()?.removeChannel(channel);channel=null}if(poller){clearInterval(poller);poller=null}room=null;players=null;selected="";promo=null}
+function clear(){closeResult();window.EDGY_gameUI.clearMobilePanel("chess");rivalry=null;rivalryKey="";rivalryLoading=false;document.querySelector(".main")?.classList.remove("chess-viewport");if(clockTimer){clearInterval(clockTimer);clockTimer=null}previewIndex=null;confirmResign=false;if(channel){db()?.removeChannel(channel);channel=null}if(poller){clearInterval(poller);poller=null}room=null;players=null;selected="";promo=null}
 function close(){clear();const u=new URL(location.href);u.searchParams.delete("room");history.replaceState(null,"",u.pathname+u.search+u.hash)}
 
 const serverNow=()=>timeBase+performance.now()-timeAt;
@@ -193,7 +193,7 @@ async function join(code){
 async function load(code){
  const {data,error}=await window.EDGY_platform.rooms.load("chess",code);
  if(error||!data){notice(error?.message||"Sala indisponível");return}
- room=data;selected="";promo=null;previewIndex=null;drawerOpen=false;rivalry=null;rivalryKey="";setUri();await Promise.all([fetchPlayers(),timeSync()]);listen();draw();showResult();
+ room=data;selected="";promo=null;previewIndex=null;rivalry=null;rivalryKey="";setUri();await Promise.all([fetchPlayers(),timeSync()]);listen();draw();showResult();
 }
 async function fetchPlayers(){if(!room)return;const {data}=await db().rpc("edgy_chess_players",{p_code:room.code});if(data)players=data;fetchRivalry()}
 function listen(){
@@ -245,7 +245,7 @@ function board(){
 }
 function draw(){
  const root=document.getElementById("screen");if(!root||game!=="chess")return;root.classList.toggle("edgyLobby",!room);
- root.classList.toggle("chess-drawer-open",drawerOpen&&Boolean(room));document.querySelector(".main")?.classList.toggle("chess-viewport",Boolean(room));
+ document.querySelector(".main")?.classList.toggle("chess-viewport",Boolean(room));
  if(!room&&pending&&user()&&!busy&&!autoTried&&/^[A-F0-9]{8}$/.test(pending)){autoTried=true;queueMicrotask(()=>join(pending))}
  if(!Chess){root.innerHTML='<div class="chessWrap edgyGamePage">'+window.EDGY_gameUI.header("chess")+'<p class="sub">'+x(engineError||"A carregar as regras...")+'</p></div>';root.querySelector("[data-back]").onclick=()=>nav("games");return}
  if(!user()){root.innerHTML='<div class="chessWrap edgyGamePage">'+window.EDGY_gameUI.header("chess")+window.EDGY_gameUI.card("Iniciar sessão",'<p class="sub">Entra como convidado ou com conta para jogar.</p><button class="chessBtn" data-auth>Entrar</button>')+'</div>';root.querySelector("[data-back]").onclick=()=>nav("games");root.querySelector("[data-auth]").onclick=()=>auth()?.showEntry();return}
@@ -265,7 +265,7 @@ function draw(){
  const black=user()?.id===room.black_id,upper=black?"w":"b",lower=black?"b":"w",control=(room.base_ms/60000)+"+"+(room.increment_ms/1000);
  const stage='<p class="chessMobileStatus">'+x(status())+'</p>'+clockRow(upper)+board()+clockRow(lower)+reviewControls()
   +(previewIndex!==null?'<div class="chessReview">A rever lance '+previewIndex+' <button class="chessBtn" data-live>Voltar ao jogo</button></div>':"");
- const side='<button type="button" class="chessDrawerClose" data-close-panel>✕ Fechar</button><div class="chessStatus">'+x(status())+'</div>'
+ const side='<div class="chessStatus">'+x(status())+'</div>'
   +proposal()+'<div class="chessRow"><button class="chessBtn" data-copy>Copiar convite</button>'
   +(room.status==="waiting"&&room.white_id===user()?.id?'<button class="secondary" data-chess-invite>Convidar jogador</button>':"")
   +'<button class="secondary" data-refresh>Atualizar</button></div><p class="result" id="chess-info"></p>'
@@ -275,36 +275,20 @@ function draw(){
   +(promo?'<div class="chessDecision"><p>Escolhe a promoção:</p><div class="chessPromotion">'+["q","r","b","n"].map(p=>'<button data-promotion="'+p+'">'+glyph[room.turn+p]+'</button>').join("")+'</div><button class="secondary" data-cancel-promo>Cancelar</button></div>':"");
  root.innerHTML='<div class="chessWrap edgyGamePage">'
   +window.EDGY_gameUI.header("chess",{room:control+" · "+room.code,intro:""})
-  +'<div class="chessMobileTools"><button type="button" data-chess-panel="actions">Partida &amp; opções</button><button type="button" data-chess-panel="history">Jogadas &amp; confrontos</button></div>'
-  +window.EDGY_gameUI.match({game:"chess",stage,side,layoutClass:"chessMainGrid",stageClass:"chessBoardArea",sideClass:"chessSide",between:'<div class="chessMobileScrim" data-close-panel></div>'})
+  +window.EDGY_gameUI.match({game:"chess",stage,side,layoutClass:"chessMainGrid",stageClass:"chessBoardArea",sideClass:"chessSide"})
   +'</div>';
  const sheet=root.querySelector(".chessSide");
  if(sheet){
-  sheet.dataset.activeSheet=drawerSection;
-  const actions=document.createElement("section");actions.className="chessSheetView";actions.dataset.sheetView="actions";
-  const historyPanel=document.createElement("section");historyPanel.className="chessSheetView";historyPanel.dataset.sheetView="history";
-  [...sheet.children].forEach(child=>{
-   if(child.matches(".chessDrawerClose"))return;
-   (child.matches(".section.panel,.chessRivalry")?historyPanel:actions).append(child);
-  });
-  const tabs=document.createElement("div");tabs.className="chessDrawerTabs";tabs.setAttribute("role","tablist");tabs.setAttribute("aria-label","Opções da partida");
-  for(const [tab,label] of [["actions","Partida & opções"],["history","Jogadas & confrontos"]]){
-   const button=document.createElement("button");button.type="button";button.dataset.sheetTab=tab;button.textContent=label;
-   button.setAttribute("role","tab");button.setAttribute("aria-selected",String(tab===drawerSection));
-   tabs.append(button);
-  }
-  sheet.append(tabs,actions,historyPanel);
-  sheet.querySelectorAll("[data-sheet-tab]").forEach(button=>button.onclick=()=>{
-   drawerSection=button.dataset.sheetTab;sheet.dataset.activeSheet=drawerSection;
-   sheet.querySelectorAll("[data-sheet-tab]").forEach(tab=>tab.setAttribute("aria-selected",String(tab.dataset.sheetTab===drawerSection)));
-   sheet.scrollTop=0;
-  });
+  // Group the existing chess controls without creating a second tabs/drawer implementation.
+  const actions=document.createElement("section");actions.className="edgyGamePanel chessOptionPanel";
+  const historyPanel=document.createElement("section");historyPanel.className="edgyGamePanel chessHistoryPanel";
+  [...sheet.children].forEach(child=>(child.matches(".section.panel,.chessRivalry")?historyPanel:actions).append(child));
+  sheet.append(actions,historyPanel);
  }
- root.querySelectorAll("[data-chess-panel]").forEach(btn=>btn.onclick=()=>{
-  drawerSection=btn.dataset.chessPanel;drawerOpen=true;draw();
-  const panel=root.querySelector(".chessSide");if(panel){panel.scrollTop=0;panel.querySelector("[data-close-panel]")?.focus({preventScroll:true})}
+ window.EDGY_gameUI.bindMobilePanel(root,{
+  game:"chess",sideSelector:".chessSide",optionSelector:".chessOptionPanel",
+  historySelector:".chessHistoryPanel",placementSelector:".edgyGameHeader"
  });
- root.querySelectorAll("[data-close-panel]").forEach(btn=>btn.onclick=()=>{drawerOpen=false;draw()});
  root.querySelector("[data-back]").onclick=()=>nav("games");
  root.querySelector("[data-chess-invite]")?.addEventListener("click",()=>window.EDGY_social?.openInvite("chess",room.code));
  root.querySelector("[data-copy]").onclick=async()=>{try{await navigator.clipboard.writeText(uri());notice("Convite copiado!")}catch{notice("Partilha "+uri())}};
@@ -332,7 +316,7 @@ function select(sq){
  const c=engine(),p=c.get(sq);
  if(selected){
   const hits=c.moves({square:selected,verbose:true}).filter(m=>m.to===sq);
-  if(hits.length){if(hits.some(m=>m.promotion)){promo={from:selected,to:sq};drawerSection="actions";drawerOpen=true;draw();return}send(selected,sq);return}
+  if(hits.length){if(hits.some(m=>m.promotion)){promo={from:selected,to:sq};draw();window.EDGY_gameUI.openMobilePanel(document.getElementById("screen"),"options");return}send(selected,sq);return}
  }
  selected=p?.color===myColor?sq:"";draw();
 }
