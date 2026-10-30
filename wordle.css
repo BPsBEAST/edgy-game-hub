@@ -1,0 +1,118 @@
+/* EDGY Palavra Oculta — scoped card, 5×6 board and keyboard matching the Game Hub. */
+#screen .wdPage{width:min(100%,1120px);margin:0 auto}
+#screen .wdLayout{grid-template-columns:minmax(0,1fr) minmax(225px,280px)!important;align-items:start!important;gap:22px}
+#screen .wdStage{min-width:0;width:100%}
+#screen .wdPlay{
+ --wd-green:#247e6b;--wd-yellow:#ae8043;--wd-grey:#534a63;
+ width:100%;max-width:590px;margin:0 auto;padding:16px 18px 14px;
+ border:1px solid #493656;border-radius:6px;
+ background:linear-gradient(165deg,#251c39,#201a34 75%);
+ box-shadow:0 15px 35px #0805163c;
+}
+#screen .wdTopline{display:flex;justify-content:space-between;gap:10px;align-items:center;margin:0 0 11px}
+#screen .wdRoundLabel{letter-spacing:1.6px;font-size:10px;font-weight:900;color:#fa69b2}
+#screen .wdAttemptLabel{font-size:11px;color:#bcafcf}
+#screen .wdBoard{display:grid;gap:5px;width:min(100%,340px);margin:0 auto 9px}
+#screen .wdRow{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px}
+#screen .wdTile{
+ width:100%;aspect-ratio:1;display:flex;align-items:center;justify-content:center;
+ min-width:0;min-height:0;border:1px solid #645273;border-radius:5px;
+ background:#171326;color:#f6edfd;
+ font-weight:900;font-size:clamp(19px,3.2vw,27px);
+ text-transform:uppercase;line-height:1;user-select:none;
+ font-variant-numeric:tabular-nums;
+}
+#screen .wdTile.wdFilled{border-color:#ad6f9a;background:#30213f}
+#screen .wdTile.wd-correct,#screen .wdExample.wd-correct{background:var(--wd-green,#247e6b);border-color:#5cbaa0;color:white}
+#screen .wdTile.wd-present,#screen .wdExample.wd-present{background:var(--wd-yellow,#ae8043);border-color:#d9b477;color:white}
+#screen .wdTile.wd-absent,#screen .wdExample.wd-absent{background:var(--wd-grey,#534a63);border-color:#675b73;color:#f8efff}
+#screen .wdTile.wdReveal{
+ animation:wdFlip .43s cubic-bezier(.22,.68,.25,1.05) both;
+ animation-delay:calc(var(--wd-order) * 65ms);
+}
+@keyframes wdFlip{
+ 0%{opacity:.8;transform:perspective(280px) rotateX(-70deg) scale(.94)}
+ 60%{transform:perspective(280px) rotateX(9deg) scale(1.02);opacity:1}
+ 100%{transform:perspective(280px) rotateX(0) scale(1);opacity:1}
+}
+#screen .wdMessage{min-height:26px;margin:8px 0 8px;text-align:center;color:#b8a9c9;font-size:12px;font-weight:650}
+#screen .wdMessage.wdMessageVisible{color:#ffb9dd}
+#screen .wdKeyboard{display:grid;gap:6px;width:min(100%,530px);margin:0 auto}
+#screen .wdKeys{display:flex;align-items:stretch;justify-content:center;gap:4px;min-width:0}
+#screen .wdKey{
+ appearance:none;flex:1 1 0;min-width:0;height:47px;
+ border:1px solid #665476;border-radius:5px;background:#3a2d4c;
+ color:#f9f3ff;padding:0;font-weight:850;font-size:13px;user-select:none;
+ touch-action:manipulation;transition:background-color .16s,border-color .16s,transform .12s,box-shadow .16s;
+}
+#screen .wdKeyWide{flex:1.65 1 0;font-size:10px;letter-spacing:.1px}
+#screen .wdKey:not(:disabled):active{transform:scale(.95)}
+#screen .wdKey:hover:not(:disabled){border-color:#f16aaf;background:#593353}
+#screen .wdKey.wdKey-correct{background:#247e6b;border-color:#4eb19a}
+#screen .wdKey.wdKey-present{background:#ae8043;border-color:#d9b477}
+#screen .wdKey.wdKey-absent{background:#50465c;border-color:#5c5267;color:#d7cbdc}
+#screen .wdKey:focus-visible{outline:2px solid #ff5dac;outline-offset:2px}
+#screen .wdBottomHint{
+ display:flex;align-items:center;justify-content:center;gap:7px;
+ margin:13px auto 0;color:#ab9dbb;font-size:10px;text-align:center;line-height:1.4;
+}
+#screen .wdHintDot{width:6px;height:6px;border-radius:50%;background:#ef338f;box-shadow:0 0 8px #f73498}
+#screen .wdOutcome{border:1px solid #815477;background:#3a2546;padding:13px;border-radius:5px;margin:10px auto 12px;max-width:430px;text-align:center}
+#screen .wdOutcome.wdWon{border-color:#3c957f;background:#1a3c3b}
+#screen .wdOutcomeLead{font-size:15px;font-weight:900;color:#fff}
+#screen .wdOutcome p{font-size:12px;margin:5px 0 12px;color:#f5e5f5}
+#screen .wdEndActions{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+#screen .wdEndActions button{min-height:42px;border-radius:4px;padding:9px 12px;font-size:12px}
+#screen .wdStats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+#screen .wdStat{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:66px;border:1px solid #5a456b;border-radius:5px;background:#30243f}
+#screen .wdStat strong{font-size:22px;font-weight:900;color:#fff}
+#screen .wdStat span{margin-top:3px;font-size:10px;color:#bbaac9}
+#screen .wdSavedNotice{font-size:10px;color:#a69bb8;margin:10px 0 0;line-height:1.4}
+#screen .wdSide p{font-size:12px;line-height:1.65;color:#c0b3cf}
+#screen .wdLegend{display:flex;align-items:center;gap:9px;margin:10px 0;color:#d1c1de;font-size:11px;line-height:1.4}
+#screen .wdExample{width:29px;height:29px;flex:0 0 29px;display:grid;place-items:center;border:1px solid #6e536f;border-radius:3px;color:#fff;font-size:14px;font-weight:900}
+#screen .wdHelpLast{margin-top:14px}
+@media(max-width:799px){
+ #screen .wdPage{width:100%;max-width:100%;margin:0}
+ #screen .wdLayout{display:flex!important;flex-direction:column!important;gap:12px!important}
+ #screen .wdPlay{padding:12px 10px 15px}
+ #screen .wdBoard{width:min(100%,315px);gap:4px}
+ #screen .wdRow{gap:4px}
+ #screen .wdTile{font-size:clamp(18px,6vw,26px);border-radius:4px}
+ #screen .wdKeyboard{gap:5px}
+ #screen .wdKeys{gap:3px}
+ #screen .wdKey{height:44px;font-size:clamp(10px,3vw,13px)}
+ #screen .wdKeyWide{font-size:9px}
+ #screen .wdTopline{margin-bottom:9px}
+ #screen .wdMessage{margin:7px 0;min-height:23px}
+ #screen .wdSide{display:grid;gap:11px;width:100%;min-width:0!important}
+ #screen .wdSide .edgyGamePanel{margin:0!important}
+ .main:has(> #screen .wdPage){
+  height:100dvh!important;min-height:0!important;display:flex!important;
+  flex-direction:column!important;overflow:hidden!important;
+  padding-bottom:calc(78px + env(safe-area-inset-bottom))!important;
+ }
+ .main:has(> #screen .wdPage)>.top{flex:0 0 auto!important}
+ .main:has(> #screen .wdPage)>#screen{
+  flex:1 1 auto!important;min-height:0!important;height:auto!important;
+  overflow-y:auto!important;overflow-x:hidden!important;
+  overscroll-behavior-y:contain!important;-webkit-overflow-scrolling:touch!important;
+  touch-action:pan-y pinch-zoom!important;padding-bottom:22px!important;
+ }
+ .main:has(> #screen .wdPage)>.foot{
+  display:block!important;flex:0 0 auto!important;margin:0!important;
+  padding:10px 0 5px!important;font-size:10px!important;
+ }
+ .main:has(> #screen .wdPage)>#screen.edgyPageIn{animation:none!important;transform:none!important;filter:none!important}
+}
+@media(max-width:370px){
+ #screen .wdPlay{padding:10px 7px 12px}
+ #screen .wdKeyboard{gap:4px}
+ #screen .wdKeys{gap:2px}
+ #screen .wdKey{height:41px;font-size:10px}
+ #screen .wdKeyWide{font-size:8px}
+}
+@media(prefers-reduced-motion:reduce){
+ #screen .wdTile.wdReveal{animation:none!important}
+ #screen .wdKey{transition:none!important}
+}
