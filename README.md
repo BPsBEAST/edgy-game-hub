@@ -2,34 +2,42 @@
 
 Uma plataforma PWA **mobile-first** para minijogos entre amigos. Interface minimalista, roxo profundo e gradiente magenta.
 
-## Primeira versão
-- Homepage, biblioteca, perfil de convidado e histórico local
-- Jogo do Galo (contra computador ou no mesmo dispositivo)
-- Memória, Quiz e teste de reflexos
-- Pontos XP e recordes guardados no navegador
-- Instalação no telemóvel (PWA) e funcionamento offline após a primeira visita
+## Estado atual — EDGY v29
 
-> **Nota:** esta primeira versão não tem contas reais nem partidas online. Os dados são locais ao dispositivo. Autenticação e salas multiplayer serão acrescentadas com Supabase quando for configurado. Não confundir um perfil de convidado com uma conta online.
+- Quatro jogos ativos: **Xadrez online, Damas online, Jogo do Galo e Reflexos**.
+- Contas, perfis, fotografias, XP, histórico e replays; a área Histórico fica dentro do Perfil.
+- Salas privadas, listagem de partidas abertas e convites internos com notificações na aplicação.
+- Um **registo comum de jogos e operações multiplayer** em `edgy-platform.js`, que unifica criação/entrada/cancelamento de salas e resultados. O motor e a validação de cada jogo permanecem separados.
+- Interface mobile-first, compatível com GitHub Pages e PWA. Os motores de jogos são carregados apenas quando necessários.
+- Os jogos antigos Memória e Quiz já não fazem parte da biblioteca (históricos existentes preservados).
+
+**Produção:** https://bpsbeast.github.io/edgy-game-hub/
 
 ## Publicar no GitHub Pages
 
 1. No repositório, abre **Settings → Pages**.
 2. Em **Build and deployment**, seleciona **Deploy from a branch**.
 3. Seleciona **master** e **/(root)** e guarda.
-4. Depois da publicação, o endereço será `https://BPsBEAST.github.io/BPs/` (ou `https://BPsBEAST.github.io/edgy-game-hub/` se renomeares o repositório).
+4. Endereço atual: `https://bpsbeast.github.io/edgy-game-hub/`.
 
 ## Renomear repositório (opcional)
 No GitHub: **Settings → General → Repository name** → `edgy-game-hub`. Esta alteração é independente do código.
 
 ## Tecnologia
-HTML + CSS + JavaScript (sem build), manifest PWA, service worker. GitHub Pages é alojamento estático, pelo que não aloja servidores de jogos nem bases de dados. Para login, perfis partilhados e partidas online será necessário um backend externo, como o Supabase.
+HTML + CSS + JavaScript sem compilação, Supabase para autenticação, perfis, salas, convites e persistência, e GitHub Pages para alojamento estático. As regras dos jogos continuam a ser validadas no respetivo backend. O PWA utiliza manifest e service worker.
 
 ## Estrutura
-- `index.html` — aplicação
-- `index.html` inclui CSS e JavaScript para facilitar o alojamento estático e a edição inicial
-- `manifest.webmanifest` — instalação PWA
-- `sw.js` — cache e offline
-- `icon.svg` — ícone da aplicação
+- `index.html` — estrutura HTML, com dependências carregadas na ordem correta.
+- `base.css` — tipografia, estrutura e estilos base.
+- `edgy-theme.css` — design system, layouts responsivos, navegação, lobbies e resultados partilhados.
+- `app.js` — navegação, biblioteca, perfil local, Jogo do Galo e Reflexos.
+- `edgy-platform.js` — registo de jogos, operações multiplayer comuns e modal de resultado.
+- `social.js`, `players.js`, `auth.js` — convites, comunidade, contas e autenticação.
+- `chess-online.js`, `checkers-online.js`, `checkers-rules.js` — lógica específica dos jogos.
+- `history.js` — histórico e visualização de partidas.
+- `manifest.webmanifest`, `icon.svg`, `sw.js` — instalação e cache PWA.
+- `tests/smoke.test.mjs` — testes sem dependências (`node --test tests/smoke.test.mjs`).
+- `.github/workflows/edgy-validation.yml` — validações automáticas nos commits.
 
 ## Desenvolvimento local
 Executa um servidor HTTP na pasta do projeto (`python -m http.server 8080`), depois abre `http://localhost:8080`. Não uses `file://` para testar a PWA.
@@ -138,3 +146,12 @@ A aplicação pública é uma versão experimental para amigos; ainda não há m
 - O seletor de jogos para desafiar inclui entrada animada, realce de escolha, indicador de preparação da sala e bloqueio contra solicitações duplicadas; respeita preferências de movimento reduzido.
 - A barra inferior mobile e o sino de notificações mantiveram o layout da versão anterior.
 - JavaScript, referências de cache PWA e principais estados da UI verificados estaticamente. A experiência visual em dispositivos reais ainda deve ser validada.
+
+
+## EDGY v29 — consolidação e auditoria
+
+- **UI:** removido Histórico do menu do computador (continua acessível no Perfil); botão central mobile redesenhado com o símbolo geométrico EDGY; ecrãs de entrada e criação de salas unificados; Xadrez e Damas usam o mesmo modal de resultado, acessível via teclado e com três estados.
+- **Arquitetura:** `edgy-platform.js` define um catálogo de jogos e partilha funções de criar, entrar, carregar e fechar salas, convidar jogadores, responder a convites e mostrar o resultado. Esta camada pode ser reutilizada por futuros jogos online, sem forçar um único formato de tabuleiro ou regras.
+- **Manutenção e desempenho:** `index.html` passou a ser uma página de entrada com poucos KB, o CSS e JavaScript foram separados, a folha de estilos é carregada no `head`, código de Memória/Quiz foi removido, consultas obsoletas a salas foram eliminadas e os motores são carregados sob demanda.
+- **Validação:** testes estáticos de sintaxe, referências de ficheiros, navegação, estilos, regras das Damas, operações de sala e componentes de resultado; fluxos SQL de criar → convidar → aceitar → entrar nos dois jogos validados em transação com `ROLLBACK`. Foi adicionada integração contínua no GitHub Actions.
+- **Limites dos testes:** não existe nesta revisão um teste automatizado de interação visual em dois telemóveis reais nem confirmação aqui do estado de execução do GitHub Actions. A publicação no GitHub Pages e a atualização offline devem ser validadas em dispositivo.
