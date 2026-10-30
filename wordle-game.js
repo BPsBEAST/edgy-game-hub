@@ -224,7 +224,7 @@ function render(){
   +'</div>';
  root.querySelector("[data-back]")?.addEventListener("click",()=>nav("games"));
  const native=root.querySelector("[data-wd-native]");
- native?.addEventListener("input",()=>setNativeDraft(native));
+ native?.addEventListener("input",event=>{if(!event.isComposing)setNativeDraft(native)});
  native?.addEventListener("compositionend",()=>setNativeDraft(native));
  root.querySelector("[data-wd-form]")?.addEventListener("submit",event=>{
   event.preventDefault();
