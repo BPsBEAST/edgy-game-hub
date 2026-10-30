@@ -240,7 +240,7 @@ test("Wordle native typing does not rebuild the screen, keeps focus and submits 
  assert.ok(root.innerHTML.includes('inputmode="text"'));
  const before=redraws;
  input.value="pá";
- input.events.input();
+ input.events.input({isComposing:false});
  assert.equal(JSON.parse(state.get("edgy_wordle_v1")).round.draft,"PA");
  assert.equal(input.value,"PA");
  assert.equal(current.row.tiles[0].textContent,"P");
@@ -252,7 +252,7 @@ test("Wordle native typing does not rebuild the screen, keeps focus and submits 
  assert.equal(redraws,before,"invalid submission keeps the native keyboard active");
  assert.equal(current.status.textContent,"Escreve uma palavra de cinco letras.");
  const answer=JSON.parse(state.get("edgy_wordle_v1")).round.answer;
- input.value=answer;input.events.input();
+ input.value=answer;input.events.input({isComposing:false});
  current.form.events.submit({preventDefault(){}});
  assert.equal(records.length,1);
  assert.equal(records[0][0],"Wordle");
