@@ -76,4 +76,4 @@ function drawReaction(){
   else{reactTimes=[];reactPhase="idle";drawReaction()}
  };
 }
-render();if("serviceWorker"in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=43").catch(()=>{}));
+render();if("serviceWorker"in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=44").catch(()=>{}));
