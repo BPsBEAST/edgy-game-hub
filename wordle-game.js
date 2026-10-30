@@ -1,4 +1,4 @@
-/* EDGY Palavra Oculta — offline-first, unlimited Portuguese word puzzles.
+/* EDGY Wordle — offline-first, unlimited Portuguese word puzzles.
    Local progress persists across refreshes; XP uses the same local EDGY record flow.
    All score/keyboard logic is delegated to wordle-rules.js. */
 (function(){
@@ -61,7 +61,7 @@ function finish(won){
  }else saved.stats.streak=0;
  const xp=won?Math.max(12,66-r.guesses.length*8):4;
  r.credited=true;persist();
- window.EDGY_recordLocalMatch?.("Palavra Oculta",won?"Vitória em "+r.guesses.length+"/6":"Derrota · "+r.answer,xp);
+ window.EDGY_recordLocalMatch?.("Wordle",won?"Vitória em "+r.guesses.length+"/6":"Derrota · "+r.answer,xp);
  message=won?"Excelente! Acertaste e ganhaste "+xp+" XP.":"A palavra era "+r.answer+". Ganhaste "+xp+" XP.";
 }
 function press(key){
@@ -106,7 +106,7 @@ function share(){
  const r=round();if(!r?.finished)return;
  const emoji={correct:"🟩",present:"🟨",absent:"⬛"};
  const lines=r.guesses.map(g=>rules().score(g,r.answer).map(s=>emoji[s]).join(""));
- const label="EDGY · Palavra Oculta #"+saved.number+" "+(r.won?r.guesses.length: "X")+"/6";
+ const label="EDGY · Wordle #"+saved.number+" "+(r.won?r.guesses.length: "X")+"/6";
  const result=label+"\n"+lines.join("\n")+"\n";
  if(navigator.clipboard?.writeText){
   navigator.clipboard.writeText(result).then(()=>{message="Resultado copiado, sem revelar a palavra.";render()})
@@ -167,11 +167,11 @@ function render(){
  root.classList.remove("edgyLobby");
  const r=round(),completed=r.guesses.length;
  const playing=!r.finished;
- const stage='<section class="wdPlay" aria-label="Jogo da Palavra Oculta">'
+ const stage='<section class="wdPlay" aria-label="Jogo Wordle">'
   +'<div class="wdTopline"><span class="wdRoundLabel">RONDA '+saved.number+'</span><span class="wdAttemptLabel">'+(playing?"Tentativa "+(completed+1)+" de 6":"Partida concluída")+'</span></div>'
   +'<div class="wdBoard" role="grid" aria-label="Grelha de seis tentativas para palavras de cinco letras">'+Array.from({length:6},(_,i)=>rowHtml(i)).join("")+'</div>'
   +'<p class="wdMessage'+(message?" wdMessageVisible":"")+'" role="status" aria-live="polite">'+(message?esc(message):playing?"Escreve a tua primeira palavra.":"")+'</p>'
-  +resultsHtml()+keyboardHtml()
+  +resultsHtml()+'<p class="wdDesktopHint">Escreve com o teclado do computador. Usa Enter para confirmar e Backspace para apagar.</p>'+keyboardHtml()
   +'<div class="wdBottomHint"><span class="wdHintDot"></span>'+words().answerCount+' palavras para descobrir · '+words().guessCount.toLocaleString("pt-PT")+' palavras aceites</div>'
   +'</section>';
  root.innerHTML='<div class="edgyGamePage wdPage">'
