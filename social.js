@@ -5,6 +5,7 @@ const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&
 const gameName=g=>window.EDGY_platform?.games?.[g]?.title||"Jogo";
 const statusName=s=>({waiting:"À espera",active:"Em curso",white_win:"Terminada",black_win:"Terminada",draw:"Empate"}[s]||s);
 let inbox=[],loading=false,currentUser="",modalMode="",roomGame="",roomCode="",request=0,debounce=null,working=false;
+let inviteChannel=null,subscribedUser="",refreshAgain=false;
 const modal=document.createElement("div");modal.className="edgySocialOverlay";modal.hidden=true;
 modal.innerHTML='<section class="edgySocialDialog" role="dialog" aria-modal="true" aria-labelledby="edgy-social-title"><header class="edgySocialHead"><div><h2 id="edgy-social-title"></h2><p id="edgy-social-subtitle"></p></div><button class="edgySocialAlt" data-close>✕</button></header><div id="edgy-social-body"></div><p class="edgySocialFeedback" id="edgy-social-feedback" role="status"></p></section>';
 document.body.append(modal);
@@ -26,10 +27,40 @@ function bell(){
  const badge=b.querySelector(".edgyBellCount");badge.hidden=!inbox.length;badge.textContent=inbox.length;b.classList.toggle("hasInvites",inbox.length>0);
 }
 async function refreshInvites(){
- if(!me()||!db()){inbox=[];bell();return}
- if(loading)return;loading=true;
- try{const {data,error}=await db().rpc("edgy_my_invites");if(error)throw error;inbox=Array.isArray(data)?data:[];currentUser=me().id}
- catch(e){console.warn("EDGY invites:",e)}finally{loading=false;bell()}
+ const viewer=me(),uid=viewer&&!viewer.is_anonymous?viewer.id:"";
+ if(!uid||!db()){inbox=[];currentUser="";bell();return}
+ if(loading){refreshAgain=true;return}
+ loading=true;
+ try{
+  const {data,error}=await db().rpc("edgy_my_invites");
+  if(error)throw error;
+  // A request started under a previous account must never replace the current inbox.
+  if(me()?.id!==uid)return;
+  inbox=Array.isArray(data)?data:[];currentUser=uid;
+ }catch(e){console.warn("EDGY invites:",e)}
+ finally{
+  loading=false;bell();
+  if(modalMode==="inbox")inboxDraw();
+  if(refreshAgain){refreshAgain=false;queueMicrotask(refreshInvites)}
+ }
+}
+/* Subscribe to invitation changes addressed to the signed-in recipient.
+   A periodic fallback covers mobile sleep and WebSocket reconnects. */
+function syncInviteChannel(){
+ const viewer=me(),uid=viewer&&!viewer.is_anonymous?viewer.id:"";
+ if(inviteChannel&&subscribedUser===uid)return;
+ if(inviteChannel){db()?.removeChannel(inviteChannel);inviteChannel=null}
+ if(uid!==subscribedUser){subscribedUser=uid;inbox=[];currentUser="";bell()}
+ if(!uid||!db())return;
+ inviteChannel=db().channel("edgy-invites-"+uid)
+  .on("postgres_changes",{event:"*",schema:"public",table:"edgy_game_invites",filter:"recipient_id=eq."+uid},
+   ()=>{if(subscribedUser===uid)refreshInvites()})
+  .subscribe(status=>{
+   if(subscribedUser!==uid)return;
+   if(status==="SUBSCRIBED")refreshInvites();
+   if(status==="CHANNEL_ERROR"||status==="TIMED_OUT")console.warn("EDGY: ligação de convites interrompida; sincronização periódica ativa.");
+  });
+ refreshInvites();
 }
 function openInbox(){openModal("Convites","Desafios recebidos na EDGY","inbox");inboxDraw();refreshInvites().then(()=>{if(modalMode==="inbox")inboxDraw()})}
 function inboxDraw(){
@@ -160,6 +191,19 @@ function refreshRoomsOnPage(){
  }
 }
 window.EDGY_social={openInvite,openChallenge,createAndInvite,refreshInvites,openInbox,renderRooms,refreshRoomsOnPage};
-bell();setTimeout(refreshInvites,1700);setTimeout(refreshRoomsOnPage,300);
-setInterval(()=>{if(me()?.id!==currentUser){inbox=[];currentUser="";bell()}refreshInvites()},15000);
+bell();setTimeout(syncInviteChannel,900);setTimeout(refreshRoomsOnPage,300);
+// WebSocket is primary; polling and window focus recover events missed while suspended.
+setInterval(()=>{
+ syncInviteChannel();
+ if(document.visibilityState!=="hidden")refreshInvites();
+},6000);
+document.addEventListener("visibilitychange",()=>{
+ if(document.visibilityState==="visible"){syncInviteChannel();refreshInvites()}
+});
+window.addEventListener("focus",()=>{syncInviteChannel();refreshInvites()});
+db()?.auth.onAuthStateChange(event=>{
+ if(["SIGNED_IN","SIGNED_OUT","USER_UPDATED","TOKEN_REFRESHED"].includes(event)){
+  setTimeout(()=>{syncInviteChannel();refreshInvites()},400);
+ }
+});
 })();
