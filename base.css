@@ -1,0 +1,57 @@
+/* EDGY base layout and typography */
+/* Prevent the hidden login overlay from covering the application. */
+#edgy-auth[hidden]{display:none!important}
+:root{--bg:#141126;--panel:#201a39;--panel2:#282141;--line:#39314d;--txt:#f8f6ff;--muted:#9b94af;--pink:#ff075c;--mag:#c300a7;--grad:linear-gradient(115deg,#ff075c,#c300a7);font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--txt);background:var(--bg)}
+*{box-sizing:border-box}body{margin:0;min-width:300px}button,input{font:inherit}button{cursor:pointer}button:disabled{opacity:.5;cursor:not-allowed}button:focus-visible,input:focus-visible{outline:2px solid #ff4e99;outline-offset:3px}
+.shell{max-width:1240px;margin:auto;min-height:100dvh}.sidebar{display:none}.main{padding:24px 18px 105px}.top{display:flex;align-items:center;justify-content:space-between;margin-bottom:30px}.brand{font-size:25px;letter-spacing:-1.5px;font-weight:950;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}.brand small{display:block;font-weight:600;font-size:9px;letter-spacing:3px;color:var(--muted);-webkit-text-fill-color:var(--muted)}.avatar{width:42px;height:42px;border-radius:50%;border:1px solid #695274;background:var(--panel2);color:white;font-weight:800}
+h1,h2,h3,p{margin-top:0}h1{font-size:32px;letter-spacing:-1.6px;line-height:1.12}h2{font-size:21px;letter-spacing:-.6px;margin-bottom:16px}h3{font-size:17px;letter-spacing:-.4px}p{line-height:1.5}.sub{color:var(--muted);font-size:14px}.eyebrow{color:#f357a5;font-weight:800;font-size:11px;letter-spacing:2px;text-transform:uppercase}.panel{background:var(--panel);border:1px solid #362d4b;border-radius:20px;padding:20px}.hero{padding:27px 23px;background:radial-gradient(circle at 100% 0%,#63214f 0%,#281936 35%,#201a39 75%);position:relative;overflow:hidden}.hero:after{content:"✦";font-size:170px;color:#ffffff07;position:absolute;right:-5px;top:10px;pointer-events:none}.hero>*{position:relative;z-index:1}.hero h1{margin:10px 0}.primary{background:var(--grad);border:0;color:white;font-weight:800;border-radius:12px;padding:13px 17px;box-shadow:0 7px 22px #f000642a}.secondary{background:#ffffff0d;border:1px solid #51455e;color:var(--txt);font-weight:700;border-radius:12px;padding:12px 16px}.row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.space{justify-content:space-between}.section{margin-top:29px}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:14px}.stat{padding:15px 9px;text-align:center}.stat b{display:block;font-size:22px;letter-spacing:-1px}.stat span{display:block;font-size:11px;color:var(--muted);margin-top:6px}.games{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.game{padding:0;overflow:hidden;text-align:left;background:var(--panel);border:1px solid #392e4d;border-radius:17px;color:white;transition:transform .15s,border-color .15s}.game:active{transform:scale(.98)}.game:hover{border-color:#b83b89}.art{height:124px;display:grid;place-items:center;font-size:48px;background:radial-gradient(circle at 52% 35%,#71315c,#2b1d48 70%)}.game:nth-child(2) .art{background:radial-gradient(circle at 50% 30%,#365378,#241a47 70%)}.game:nth-child(3) .art{background:radial-gradient(circle at 50% 30%,#634876,#271b44 70%)}.game:nth-child(4) .art{background:radial-gradient(circle at 50% 30%,#6b3354,#271b44 70%)}.gameBody{padding:15px}.gameBody strong{display:block;font-size:15px}.gameBody span{font-size:12px;color:var(--muted);display:block;margin-top:5px}.pill{display:inline-flex;padding:5px 9px;border:1px solid #674267;border-radius:20px;font-size:11px;color:#ffa1d0;background:#6d255b30}.nav{position:fixed;bottom:0;left:0;right:0;display:flex;justify-content:space-around;align-items:center;background:#1b1630f2;backdrop-filter:blur(18px);border-top:1px solid #403251;padding:9px 10px calc(9px + env(safe-area-inset-bottom));z-index:10}.nav button{border:0;background:none;color:#aaa3ba;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:10px;min-width:64px;padding:5px}.nav button i{font-size:23px;font-style:normal}.nav button.active{color:#ff4c9f}.hide{display:none!important}.field{background:#171229;border:1px solid #51415d;border-radius:12px;padding:12px 13px;width:100%;color:white;max-width:350px}.formLabel{display:block;color:var(--muted);font-size:12px;margin:14px 0 6px}.actionrow{display:flex;flex-wrap:wrap;gap:9px;margin-top:18px}.board{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;width:min(100%,320px);margin:25px auto}.cell{aspect-ratio:1;border:1px solid #534065;border-radius:14px;background:#2b2146;color:#ff398f;font-size:44px;font-weight:900}.cell.o{color:#a79afe}.boardHead{text-align:center;margin-top:20px}.reaction{width:100%;min-height:220px;border:0;border-radius:18px;background:#b34264;color:white;font-weight:850;font-size:22px;padding:25px}.reaction.ready{background:#239576}.activity{list-style:none;padding:0}.activity li{border-bottom:1px solid #3b3050;padding:13px 0;display:flex;justify-content:space-between;gap:10px;font-size:13px}.activity li:last-child{border:0}.muted{color:var(--muted)}.notice{border:1px solid #754a6c;background:#3a2147;border-radius:12px;padding:13px;font-size:13px;line-height:1.5}.foot{margin-top:45px;text-align:center;color:#777087;font-size:11px}.xpTrack{height:7px;background:#433453;border-radius:30px;overflow:hidden;margin:12px 0}.xpFill{height:100%;background:var(--grad);width:0}.back{background:none;border:0;color:#ded1eb;font-weight:700;padding:8px 0 20px}.result{font-size:15px;color:#f8aed0;font-weight:750;text-align:center;min-height:23px}.filters{display:flex;gap:7px;margin-bottom:15px;overflow:auto}.filters button{flex-shrink:0;border:1px solid #4d3c5f;color:#b9aecb;background:#211a37;padding:9px 14px;border-radius:30px;font-size:12px}.filters button.active{background:#673157;color:white;border-color:#b45286}.empty{color:var(--muted);font-size:13px}
+@media(min-width:800px){.shell{display:grid;grid-template-columns:240px 1fr}.sidebar{display:flex;flex-direction:column;position:sticky;top:0;height:100vh;padding:32px 18px;border-right:1px solid #3b3150;gap:10px}.sideBtn{padding:14px;border:0;background:transparent;border-radius:12px;color:#a9a1bb;text-align:left;font-weight:650}.sideBtn.active{background:#352541;color:#ff68ae}.main{padding:35px 45px 50px}.top{justify-content:flex-end}.top .brand{display:none}.nav{display:none}.hero{padding:40px}.hero h1{font-size:43px}.games{grid-template-columns:repeat(4,1fr)}.art{height:160px}.stats{max-width:600px}.section{margin-top:36px}}
+
+/* EDGY v13 – an app viewport with one intentional vertical scroll area.
+   Keep pinch-to-zoom available for accessibility; stop double-tap zoom on
+   interactive game controls using touch-action, never a blanket JS preventDefault. */
+html,body{width:100%;height:100%;max-width:100%;overflow:hidden;overscroll-behavior:none}
+body{min-width:0}
+.shell{height:100dvh;min-height:0;width:100%;max-width:1240px;overflow:hidden}
+.main{height:100%;min-width:0;max-width:100%;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;scrollbar-width:none;touch-action:pan-y pinch-zoom}
+.main::-webkit-scrollbar{display:none}
+#screen,.top,.panel,.row,.section{min-width:0;max-width:100%}
+#screen{overflow-wrap:break-word}
+button,a,[role=button]{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.filters{flex-wrap:wrap;overflow:visible}
+.game,.panel{max-width:100%}
+.nav{max-width:100vw}
+@media(min-width:800px){
+ .shell{grid-template-columns:240px minmax(0,1fr)}
+ .sidebar{min-height:0;height:100dvh;overflow:hidden}
+ .main{height:100dvh}
+}
+
+/* EDGY – unified icon navigation on mobile and desktop. */
+.navIcon{width:20px;height:20px;flex:0 0 20px;display:block}
+.sideBtn{display:flex;align-items:center;gap:13px;min-width:0;width:100%}
+.sideBtn .navIcon{width:19px;height:19px;flex-basis:19px}
+.nav{gap:3px;padding-inline:max(8px,env(safe-area-inset-left)) max(8px,env(safe-area-inset-right))}
+.nav button{flex:1;min-width:0;padding:6px 1px;font-size:10px;gap:5px}
+.nav button .navIcon{height:21px;width:21px;flex-basis:21px}
+.nav button span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;font-weight:650}
+.nav button.active .navIcon,.sideBtn.active .navIcon{color:#ff3f9b}
+@media(max-width:350px){.nav button{font-size:9px}.nav button .navIcon{width:19px;height:19px}}
+
+/* EDGY v15 – smooth page changes without replaying animation on live chess updates. */
+#screen.edgyPageIn{animation:edgyPageEnter .3s cubic-bezier(.2,.82,.28,1) both}
+@keyframes edgyPageEnter{from{opacity:0;transform:translate3d(0,11px,0);filter:blur(2px)}to{opacity:1;transform:translate3d(0,0,0);filter:blur(0)}}
+.sideBtn,.nav button{transition:background-color .2s ease,color .2s ease,transform .2s ease}
+.sideBtn:active,.nav button:active{transform:scale(.96)}
+.game,.panel,.playerCard{backface-visibility:hidden}
+.game:hover{transform:translateY(-3px)}
+@media(prefers-reduced-motion:reduce){#screen.edgyPageIn{animation:none!important}.game:hover{transform:none}}
+
+/* Logo acts as an accessible, lightweight home button */
+button.brandButton{appearance:none;border:0;margin:0;background:linear-gradient(115deg,#ff075c,#c300a7);-webkit-background-clip:text;background-clip:text;color:transparent;text-align:left;padding:3px 0;line-height:1.05;cursor:pointer;white-space:nowrap;user-select:none;align-self:flex-start;transition:opacity .18s ease,transform .18s ease}
+button.brandButton:hover{opacity:.83;transform:translateY(-1px)}
+button.brandButton:active{transform:translateY(0) scale(.98)}
+button.brandButton:focus-visible{outline:2px solid #ef4197;outline-offset:5px;border-radius:3px}
+button.brandButton small{font-size:9px;letter-spacing:3px;margin-top:3px}
+@media(prefers-reduced-motion:reduce){button.brandButton{transition:none}}
+.nav button{min-width:0!important;flex:1}.sideBtn{border-radius:3px!important}@media(max-width:380px){.nav button{font-size:9px!important;padding:4px 0!important}.nav .navIcon{width:18px!important;height:18px!important}}@media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
