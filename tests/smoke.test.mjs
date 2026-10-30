@@ -194,7 +194,11 @@ test("Wordle native typing does not rebuild the screen, keeps focus and submits 
    setAttribute(){},textContent:""};
  }
  const root={
-  classList:{remove(){}},
+  classList:{
+   values:new Set(),
+   remove(...names){for(const n of names)this.values.delete(n)},
+   toggle(name,enabled){if(enabled)this.values.add(name);else this.values.delete(name)}
+  },
   get innerHTML(){return this._html||""},
   set innerHTML(html){
    this._html=html;redraws++;
@@ -238,6 +242,8 @@ test("Wordle native typing does not rebuild the screen, keeps focus and submits 
  let input=current.input;
  assert.ok(input&&current.form&&current.row);
  assert.ok(root.innerHTML.includes('inputmode="text"'));
+ input.events.focus();
+ assert.equal(root.classList.values.has("wdTyping"),true,"focusing native input activates compact mode");
  const before=redraws;
  input.value="pá";
  input.events.input({isComposing:false});
@@ -257,7 +263,36 @@ test("Wordle native typing does not rebuild the screen, keeps focus and submits 
  assert.equal(records.length,1);
  assert.equal(records[0][0],"Wordle");
  assert.equal(JSON.parse(state.get("edgy_wordle_v1")).round.finished,true);
+ assert.equal(root.classList.values.has("wdTyping"),false,"confirmation exits compact keyboard layout");
  assert.equal(current.input,null,"finished games no longer show a typing field");
+});
+test("Wordle mobile game board fits above navigation and focused mode keeps live attempt visible",()=>{
+ const css=read("wordle.css"),js=read("wordle-game.js");
+ const mobile=css.slice(css.indexOf("@media(max-width:799px)"),css.indexOf("@media(max-width:370px)"));
+ assert.ok(mobile.includes("#screen .wdBoard{width:min(100%,265px)"),"six-row board must shrink on phones");
+ assert.ok(mobile.includes("#screen.wdTyping .wdRow:not([data-wd-current"),"hide inactive rows only while typing");
+ assert.ok(mobile.includes('#screen.wdTyping .wdRow[data-wd-previous="true"]'),"retain previous attempt feedback");
+ assert.ok(mobile.includes('body:has(#screen.wdTyping) .nav{display:none!important}'),"mobile navbar must not overlap system keyboard");
+ assert.ok(mobile.includes('.main:has(> #screen.wdTyping .wdPage)>.top'),"phone keyboard focus reclaims header height");
+ assert.ok(mobile.includes('#screen.wdTyping .wdNativeForm{margin:6px auto 3px}'));
+ assert.ok(js.includes('native?.addEventListener("focus",()=>setTypingMode(true))'));
+ assert.ok(js.includes('setTypingMode(false);'),"submitting valid guess returns to full board");
+ assert.ok(js.includes('root.scrollTop=0;'));
+ assert.ok(js.includes('data-wd-previous="true"'));
+});
+test("Wordle tile colours are revealed sequentially on flips, reduced-motion respected",()=>{
+ const css=read("wordle.css"),js=read("wordle-game.js");
+ assert.ok(css.includes("animation:wdRevealColor .56s"));
+ assert.ok(css.includes("animation-delay:calc(var(--wd-order) * 105ms)"));
+ assert.ok(css.includes("48%{transform:perspective(300px) rotateX(-90deg);background:#30213f"));
+ assert.ok(css.includes("50%{transform:perspective(300px) rotateX(-90deg);background:var(--wd-reveal-bg)"));
+ for(const value of ["wd-correct","wd-present","wd-absent"])
+  assert.ok(css.includes(".wdTile."+value+"{--wd-reveal-bg"));
+ assert.ok(css.includes("prefers-reduced-motion:reduce"));
+ assert.ok(css.includes(".wdTile.wdReveal{animation:none!important}"));
+ assert.ok(js.includes('revealRow=r.guesses.length-1;'));
+ assert.ok(js.includes('const reveal=attempt&&revealRow===i;'));
+ assert.ok(js.includes('tile.animate([{transform:"scale(.88)"'),"new letters pop into their cells");
 });
 test("Navigation keeps Histórico only inside Perfil",()=>{
  const sidebar=html.split('<aside class="sidebar">')[1].split("</aside>")[0];
