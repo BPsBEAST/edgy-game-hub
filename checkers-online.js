@@ -116,7 +116,7 @@ function animateMove(previous,current){
   transform:"translate("+(p.x-points[0].x)+"px,"+(p.y-points[0].y)+"px) scale("+(i===points.length-1?1:1.05)+")"
  }));
  const animation=clone.animate(keyframes,{duration:Math.min(850,290+(path.length-2)*180),easing:"ease-in-out",fill:"forwards"});
- const currentFlight={animation,clone,ghost:clone,landed};
+ const currentFlight={animation,ghost:clone,landed:landing};
  pieceFlight=currentFlight;
  const finish=()=>{
   if(pieceFlight!==currentFlight)return;
@@ -205,7 +205,14 @@ function bindHistory(el){
  el.querySelector("[data-history-live]")?.addEventListener("click",liveGame);
  el.querySelectorAll("[data-history-step]").forEach(b=>b.onclick=()=>historyJump(Number(b.dataset.historyStep)));
  const active=el.querySelector(".ckMoveHistory .ckMove.active");
- if(active)active.scrollIntoView({block:"nearest",behavior:"instant"});
+ if(active){
+  const list=active.closest(".ckMoveHistory");
+  if(list){
+   const item=active.getBoundingClientRect(),container=list.getBoundingClientRect();
+   if(item.top<container.top)list.scrollTop-=container.top-item.top;
+   else if(item.bottom>container.bottom)list.scrollTop+=item.bottom-container.bottom;
+  }
+ }
 }
 
 function board(){const mine=seat(),flip=mine==="b",rr=flip?[7,6,5,4,3,2,1,0]:[0,1,2,3,4,5,6,7],cc=flip?[7,6,5,4,3,2,1,0]:[0,1,2,3,4,5,6,7];const moves=room.status==="active"?rules.legalMoves(state()):[];const next=selected.length?[...new Set(moves.filter(m=>selected.every((v,i)=>m.path[i]===v)).map(m=>m.path[selected.length]).filter(v=>v!==undefined))]:[];const pieces=reviewStep!==null?recordedBoard(reviewStep):selected.length>1?rules.preview(state(),selected):room.board;let h='<div class="ckBoard">';for(const r of rr)for(const c of cc){let i=r*8+c,p=pieces[i];h+='<button class="ckSquare '+((r+c)%2?"dark":"light")+(next.includes(i)?" dest":"")+(selected.at(-1)===i?" sel":"")+((reviewStep===null?room.last_move:room.moves?.[reviewStep-1]?.path)?.includes(i)?" last":"")+'" data-cell="'+i+'" aria-label="Casa '+(r+1)+','+(c+1)+'">'+(p?'<span class="ckDisc '+p.toLowerCase()+(p===p.toUpperCase()?" king":"")+'"></span>':"")+'</button>'}return h+"</div>"}
