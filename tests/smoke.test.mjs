@@ -23,7 +23,7 @@ test("Every local asset referenced by the bootstrap exists",()=>{
  const names=[...assets.matchAll(/"([^"]+)"/g)].map(m=>m[1]);
  for(const name of names)assert.ok(fs.existsSync(path.join(dir,name.split("?")[0])),name);
  assert.ok(names.includes("./edgy-platform.js?v=43"),"shared platform cached");
- assert.ok(names.includes("./app.js?v=46"),"bootstrap cached");
+ assert.ok(names.includes("./app.js?v=47"),"bootstrap cached");
  assert.ok(names.includes("./base.css?v=29"),"base stylesheet cached");
  assert.ok(names.includes("./edgy-theme.css?v=34"),"design cached");
  assert.ok(names.includes("./tic-online.js?v=40"),"online tic cached");
@@ -110,7 +110,7 @@ test("Barricade uses private 2-player rooms, invitations, shared UI and history"
  assert.ok(history.includes('barricadeCloud='));
  assert.ok(history.includes('isBarricade'));
  assert.ok(social.includes('["edgy-barricade-rooms","barricade"]'));
- for(const file of ["barricade-online.js?v=45","barricade.css?v=43"])assert.ok(html.includes(file)&&sw.includes(file));
+ for(const file of ["barricade-online.js?v=47","barricade.css?v=47"])assert.ok(html.includes(file)&&sw.includes(file));
 });
 test("Common result dialog handles win, loss, draw and closing",()=>{
  const {platform,document}=platformFixture();
@@ -245,7 +245,7 @@ test("Stable footer, profile replay links and chess mobile actions",()=>{
 test("Game library uses a single registry loaded before bootstrap",()=>{
  const scripts=[...html.matchAll(/<script[^>]*src="([^"]+)"/g)].map(m=>m[1]);
  const platform=scripts.indexOf("./edgy-platform.js?v=43");
- const bootstrap=scripts.indexOf("./app.js?v=46");
+ const bootstrap=scripts.indexOf("./app.js?v=47");
  assert.ok(platform>=0&&bootstrap>=0&&platform<bootstrap);
  const app=read("app.js"),defs=read("edgy-platform.js");
  assert.ok(app.includes("Object.values(window.EDGY_platform.games).map("));
@@ -369,7 +369,7 @@ test("Chess shares the match shell, drawer binder and move controls",()=>{
 test("All games share one header, lobby cards and match presentation",()=>{
  const html=read("index.html"),ui=read("edgy-game-ui.js"),css=read("edgy-game-layout.css");
  assert.ok(html.includes('edgy-game-ui.js?v=43'));
- assert.ok(html.includes('edgy-game-layout.css?v=46'));
+ assert.ok(html.includes('edgy-game-layout.css?v=47'));
  for(const game of ["chess","checkers","tic","reaction","barricade"])assert.ok(ui.includes(game+':{title:'));
  for(const file of ["chess-online.js","checkers-online.js","tic-online.js","barricade-online.js","app.js"]){
   const src=read(file);
@@ -411,22 +411,40 @@ test("Xadrez, Damas and Galo use one mobile options/history panel implementation
  assert.ok(css.includes('[data-game-panel-open="history"]'));
 });
 
-test("Mobile library and Barricade scroll inside the app, above bottom navigation",()=>{
- const css=read("edgy-game-layout.css"),game=read("barricade-online.js");
- assert.ok(css.includes('EDGY v45 — reliable touch scrolling'));
- assert.ok(css.includes('.main:has(> #screen.edgyLibraryPage)'));
- assert.ok(css.includes('.main:has(> #screen .brWrap)'));
- assert.ok(css.includes('overflow-y:auto!important;'));
- assert.ok(css.includes('flex:1 1 auto!important;'));
- assert.ok(css.includes('padding-bottom:calc(78px + env(safe-area-inset-bottom))!important;'));
+test("Biblioteca uses only the main scroll viewport, never a nested scroller",()=>{
+ const css=read("edgy-game-layout.css"),app=read("app.js"),html=read("index.html");
+ assert.ok(app.includes('classList.toggle("edgyLibraryViewport",page==="games"&&!game)'));
+ assert.ok(app.includes('classList.remove("edgyLibraryViewport");game=id'));
+ assert.ok(app.includes('classList.remove("edgyLibraryViewport");game=name'));
+ assert.ok(css.includes('EDGY v47 — one real vertical scroll container for Biblioteca'));
+ const main=css.slice(css.indexOf('.main.edgyLibraryViewport{'),css.indexOf('.main.edgyLibraryViewport>#screen.edgyLibraryPage{'));
+ assert.ok(main.includes('overflow-y:auto!important'),'the main content scrolls');
+ assert.ok(main.includes('padding-bottom:calc(130px + env(safe-area-inset-bottom))!important;'),'last card clears navigation');
+ const screen=css.slice(css.indexOf('.main.edgyLibraryViewport>#screen.edgyLibraryPage{'),css.indexOf('.main.edgyLibraryViewport>.top{'));
+ assert.ok(screen.includes('overflow:visible!important;'),'library must not host a second scroll area');
+ assert.ok(screen.includes('animation:none!important;'),'page transition must not interfere with touch scroll');
+ assert.ok(html.includes("edgy-game-layout.css?v=47"));
+});
+test("Barricade scroll is preserved, move errors remain visible and animation follows confirmed server updates",()=>{
+ const css=read("edgy-game-layout.css"),src=read("barricade-online.js"),skin=read("barricade.css");
+ assert.ok(css.includes('.main:has(> #screen .brWrap)>#screen{'));
  assert.ok(css.includes('touch-action:pan-y pinch-zoom!important;'));
- assert.ok(css.includes('animation:none!important;'),"page-entry transform must not clip the fixed game panel");
- assert.ok(game.includes('role="alert"'),"move errors appear next to the board");
- assert.ok(game.includes('functions.invoke("barricade-action"'));
- const index=read("index.html"),sw=read("sw.js");
- for(const asset of ["edgy-game-layout.css?v=46","barricade-online.js?v=45"]){
-  assert.ok(index.includes(asset),asset+" loaded");
-  assert.ok(sw.includes(asset),asset+" cached");
+ assert.ok(src.includes('role="alert"'),'errors still appear beside board');
+ assert.ok(src.includes('functions.invoke("barricade-action"'));
+ assert.ok(src.includes('function captureBoardVisuals()'));
+ assert.ok(src.includes('function animateConfirmedTurn(previous,next,oldVisuals)'));
+ assert.ok(src.includes('const oldVisuals=review===null&&data.ply>previous.ply?captureBoardVisuals():null;'));
+ assert.ok(src.includes('animateConfirmedTurn(previous,data,oldVisuals)'));
+ assert.ok(src.includes('next.ply<=previous.ply'),'do not animate unchanged server states');
+ assert.ok(src.includes('(prefers-reduced-motion: reduce)'),'respect motion preferences');
+ assert.ok(src.includes('animation.onfinish='));
+ assert.ok(src.includes('data-br-wall-key='));
+ assert.ok(skin.includes('.brCell.brCellMoving{'));
+ assert.ok(skin.includes('@keyframes brLegalHint'));
+ assert.ok(skin.includes('@media(prefers-reduced-motion:reduce)'));
+ for(const asset of ["edgy-game-layout.css?v=47","barricade-online.js?v=47","barricade.css?v=47"]){
+  assert.ok(html.includes(asset)||asset!=="edgy-game-layout.css?v=47");
+  assert.ok(read("sw.js").includes(asset),"asset must be cached: "+asset);
  }
 });
 test("Five-game mobile library centers the orphan card and keeps filter buttons visible",()=>{
@@ -437,7 +455,7 @@ test("Five-game mobile library centers the orphan card and keeps filter buttons 
  assert.ok(css.includes('width:calc((100% - 11px)/2)!important'));
  assert.ok(css.includes('#screen .edgyGameCards>.game:only-child{'));
  assert.ok(css.includes('#screen.edgyLibraryPage .filters button{'));
- assert.ok(css.includes('padding-bottom:calc(105px + env(safe-area-inset-bottom))!important'));
+ assert.ok(css.includes('padding-bottom:calc(130px + env(safe-area-inset-bottom))!important'));
  assert.ok(app.includes('function cards(items){return'));
 });
 test("Community shows highest-level players first, XP breaks ties, and shows relative ranks",()=>{
@@ -464,9 +482,9 @@ test("Home and Biblioteca render exactly the same reusable game cards",()=>{
  assert.ok(css.includes('flex:0 0 160px!important'),"desktop artwork never shrinks for long descriptions");
  assert.ok(css.includes('flex-basis:84px!important'),"mobile artwork uses exactly the same geometry");
  assert.ok(css.includes('grid-auto-rows:1fr'),"all cards in the grid stretch equally");
- assert.ok(css.includes('.main:has(> #screen.edgyLibraryPage)>.foot'),"library footer clears the navigation");
- assert.ok(html.includes('edgy-game-layout.css?v=46'));
- assert.ok(html.includes('app.js?v=46'));
+ assert.ok(css.includes('.main.edgyLibraryViewport>.foot'),"library footer follows the cards in the main scroller");
+ assert.ok(html.includes('edgy-game-layout.css?v=47'));
+ assert.ok(html.includes('app.js?v=47'));
 });
 test("EDGY v36: chess title is short and empty join notice does not reserve space",()=>{
  const chess=read("chess-online.js"),ui=read("edgy-game-ui.js"),css=read("edgy-game-layout.css");
