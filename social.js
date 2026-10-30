@@ -15,6 +15,67 @@ modal.querySelector("[data-close]").onclick=close;
 modal.onclick=e=>{if(e.target===modal)close()};
 document.addEventListener("keydown",e=>{if(!modal.hidden&&e.key==="Escape")close()});
 function openModal(title,subtitle,mode){modalMode=mode;modal.hidden=false;$("#edgy-social-title").textContent=title;$("#edgy-social-subtitle").textContent=subtitle;$("#edgy-social-body").innerHTML="";msg("");modal.querySelector("[data-close]").focus()}
+/* Level milestones share the existing bell with invitations.
+   History and read state are stored separately per signed-in account, or per
+   guest device. A first cloud sync establishes a baseline, never a fake award. */
+const levelKey=()=>("edgy_level_notices_v1_"+(me()?.id||"local"));
+function levelStore(){
+ try{
+  const data=JSON.parse(localStorage.getItem(levelKey())||"null");
+  return {highest:Number.isInteger(data?.highest)?data.highest:null,
+   items:Array.isArray(data?.items)?data.items.filter(x=>Number.isInteger(x.level)&&x.level>1).slice(0,30):[]};
+ }catch{return {highest:null,items:[]}}
+}
+function saveLevels(state){
+ try{localStorage.setItem(levelKey(),JSON.stringify(state))}catch{}
+}
+function markLevelsRead(){
+ const state=levelStore();
+ if(state.items.some(x=>!x.read)){
+  state.items=state.items.map(x=>({...x,read:true}));
+  saveLevels(state);
+ }
+ bell();
+}
+const levelMask=document.createElement("div");
+levelMask.className="edgyLevelMask";levelMask.hidden=true;
+levelMask.innerHTML='<section class="edgyLevelDialog" role="dialog" aria-modal="true" aria-labelledby="edgy-level-title">'
+ +'<div class="edgyLevelSparkle" aria-hidden="true">✦</div>'
+ +'<span class="edgyLevelEyebrow">NOVO MARCO</span>'
+ +'<h2 id="edgy-level-title">Subiste de nível!</h2>'
+ +'<div class="edgyLevelNumber"></div>'
+ +'<p>Continua a jogar e a desbloquear novos níveis na EDGY.</p>'
+ +'<button type="button" class="edgyLevelDismiss">Continuar a jogar</button></section>';
+document.body.append(levelMask);
+function closeLevel(){levelMask.hidden=true}
+levelMask.querySelector(".edgyLevelDismiss").onclick=closeLevel;
+levelMask.addEventListener("click",event=>{if(event.target===levelMask)closeLevel()});
+document.addEventListener("keydown",event=>{if(event.key==="Escape"&&!levelMask.hidden)closeLevel()});
+function levelPopup(level){
+ levelMask.querySelector(".edgyLevelNumber").textContent="NÍVEL "+level;
+ levelMask.hidden=false;
+}
+function notifyLevelUp(from,to){
+ const previous=Math.max(1,Math.floor(Number(from)||1));
+ const next=Math.max(1,Math.floor(Number(to)||1));
+ if(next<=previous)return;
+ const state=levelStore(),start=Math.max(previous+1,(state.highest??previous)+1);
+ for(let level=start;level<=next;level++){
+  if(!state.items.some(x=>x.level===level)){
+   state.items.unshift({level,read:false,date:new Date().toISOString()});
+  }
+ }
+ state.items=state.items.slice(0,30);
+ state.highest=Math.max(state.highest??previous,next);
+ saveLevels(state);
+ if(start<=next){bell();levelPopup(next)}
+}
+function observeLevel(xp){
+ const level=Math.floor(Math.max(0,Number(xp)||0)/100)+1;
+ const state=levelStore();
+ if(state.highest===null){state.highest=level;saveLevels(state);bell();return}
+ if(level>state.highest)notifyLevelUp(state.highest,level);
+}
 function bell(){
  const host=document.querySelector(".topActions")||document.querySelector(".top");if(!host)return;
  let b=host.querySelector(".edgyBell");
@@ -23,8 +84,11 @@ function bell(){
   b.innerHTML='<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg><span class="edgyBellCount" hidden></span>';
   host.insertBefore(b,host.querySelector("#avatar"));b.onclick=openInbox;
  }
- b.setAttribute("aria-label",inbox.length?inbox.length+" convites pendentes":"Convites");
- const badge=b.querySelector(".edgyBellCount");badge.hidden=!inbox.length;badge.textContent=inbox.length;b.classList.toggle("hasInvites",inbox.length>0);
+ const unread=levelStore().items.filter(x=>!x.read).length,total=inbox.length+unread;
+ b.setAttribute("aria-label",total?total+" notificações por ler":"Notificações");
+ const badge=b.querySelector(".edgyBellCount");badge.hidden=!total;badge.textContent=total;
+ if(total>9)badge.textContent="9+";
+ b.classList.toggle("hasInvites",total>0);
 }
 async function refreshInvites(){
  const viewer=me(),uid=viewer&&!viewer.is_anonymous?viewer.id:"";
@@ -62,11 +126,20 @@ function syncInviteChannel(){
   });
  refreshInvites();
 }
-function openInbox(){openModal("Convites","Desafios recebidos na EDGY","inbox");inboxDraw();refreshInvites().then(()=>{if(modalMode==="inbox")inboxDraw()})}
+function openInbox(){
+ const notices=levelStore().items;
+ openModal("Notificações","Convites e conquistas na EDGY","inbox");
+ inboxDraw();
+ if(notices.some(x=>!x.read))markLevelsRead();
+ refreshInvites().then(()=>{if(modalMode==="inbox")inboxDraw()});
+}
 function inboxDraw(){
  if(modalMode!=="inbox")return;
  const e=$("#edgy-social-body");
- e.innerHTML=inbox.length?inbox.map(i=>'<div class="edgyInvite"><strong>'+esc(i.sender_name)+' convidou-te para '+gameName(i.game)+'</strong><small>@'+esc(i.sender_username)+' · Sala '+esc(i.code)+'</small><div class="edgyInviteControls"><button class="edgySocialPrimary" data-accept="'+esc(i.id)+'">Aceitar e jogar</button><button class="edgySocialAlt" data-decline="'+esc(i.id)+'">Recusar</button></div></div>').join(""):'<p class="sub">Não tens convites pendentes.</p>';
+ const levels=levelStore().items;
+ const inviteMarkup=inbox.map(i=>'<div class="edgyInvite"><strong>'+esc(i.sender_name)+' convidou-te para '+gameName(i.game)+'</strong><small>@'+esc(i.sender_username)+' · Sala '+esc(i.code)+'</small><div class="edgyInviteControls"><button class="edgySocialPrimary" data-accept="'+esc(i.id)+'">Aceitar e jogar</button><button class="edgySocialAlt" data-decline="'+esc(i.id)+'">Recusar</button></div></div>').join("");
+ const levelMarkup=levels.map(n=>'<div class="edgyLevelNotice"><span aria-hidden="true">✦</span><div><strong>Subiste para o nível '+n.level+'!</strong><small>Nova conquista · '+new Date(n.date||Date.now()).toLocaleDateString("pt-PT")+'</small></div></div>').join("");
+ e.innerHTML=inviteMarkup+levelMarkup||'<p class="sub">Não tens notificações por enquanto.</p>';
  e.querySelectorAll("[data-accept]").forEach(b=>b.onclick=()=>respond(b.dataset.accept,true));
  e.querySelectorAll("[data-decline]").forEach(b=>b.onclick=()=>respond(b.dataset.decline,false));
 }
@@ -190,7 +263,8 @@ function refreshRoomsOnPage(){
   if(document.getElementById(id))renderRooms(id,game);
  }
 }
-window.EDGY_social={openInvite,openChallenge,createAndInvite,refreshInvites,openInbox,renderRooms,refreshRoomsOnPage};
+window.EDGY_social={openInvite,openChallenge,createAndInvite,refreshInvites,openInbox,renderRooms,refreshRoomsOnPage,notifyLevelUp,observeLevel};
+setTimeout(()=>{const xp=window.EDGY_currentXP?.();if(Number.isFinite(xp))observeLevel(xp)},900);
 bell();setTimeout(syncInviteChannel,900);setTimeout(refreshRoomsOnPage,300);
 // WebSocket is primary; polling and window focus recover events missed while suspended.
 setInterval(()=>{
