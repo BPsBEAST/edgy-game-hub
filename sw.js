@@ -1,5 +1,5 @@
-const CACHE="edgy-v34";
-const ASSETS=["./","./index.html","./manifest.webmanifest","./icon.svg","./config.js?v=5","./auth.js?v=18","./avatar-editor.js?v=7","./players.js?v=33","./chess-pieces.js?v=18","./history.js?v=33","./base.css?v=29","./app.js?v=34","./edgy-platform.js?v=32","./chess-online.js?v=34","./checkers-rules.js?v=19","./checkers-replay.js?v=33","./checkers-online.js?v=33","./tic-online.js?v=34","./social.js?v=30","./edgy-theme.css?v=34"];
+const CACHE="edgy-v35";
+const ASSETS=["./","./index.html","./manifest.webmanifest","./icon.svg","./config.js?v=5","./auth.js?v=18","./avatar-editor.js?v=7","./players.js?v=33","./chess-pieces.js?v=18","./history.js?v=33","./base.css?v=29","./app.js?v=35","./edgy-platform.js?v=32","./edgy-game-ui.js?v=35","./edgy-game-layout.css?v=35","./chess-online.js?v=35","./checkers-rules.js?v=19","./checkers-replay.js?v=33","./checkers-online.js?v=35","./tic-online.js?v=35","./social.js?v=30","./edgy-theme.css?v=34"];
 self.addEventListener("install",event=>{
  event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS)));
  self.skipWaiting();
