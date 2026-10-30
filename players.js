@@ -26,7 +26,7 @@ async function openById(id){
  if(!p){el.innerHTML='<h3>Perfil indisponível</h3><p class="sub">O jogador pode ser convidado ou ter o perfil privado.</p>';return}
  const isOther=p.id!==user()?.id;
  const history=Array.isArray(p.recent)?p.recent:[];
- el.innerHTML='<div class="playerHead">'+avatar(p)+'<div class="playerIdentity"><span class="playerEyebrow">PERFIL EDGY</span><h2>'+esc(p.name)+'</h2><span class="playerHandle">@'+esc(p.username)+'</span></div></div>'+(p.bio?'<p class="playerBio">'+esc(p.bio)+'</p>':'')+'<div class="playerStats"><div class="playerStat"><b>'+Number(p.xp||0)+'</b><span>XP</span></div><div class="playerStat"><b>'+Number(p.level||1)+'</b><span>Nível</span></div><div class="playerStat"><b>'+Number(p.matches||0)+'</b><span>Partidas</span></div></div><h3 class="playerSectionTitle">Xadrez</h3><p class="sub playerChessRecord">'+Number(p.chess_wins||0)+' vitórias · '+Number(p.chess_draws||0)+' empates · '+Number(p.chess_losses||0)+' derrotas</p><h3 class="playerSectionTitle">Atividade recente</h3>'+(history.length?'<ul class="playerHistory">'+history.map(h=>'<li><span>'+esc(h.game)+' · '+esc(h.result)+'</span><span>'+new Date(h.date).toLocaleDateString("pt-PT")+'</span></li>').join("")+'</ul>':'<p class="sub">Sem partidas registadas.</p>');
+ el.innerHTML='<div class="playerHead">'+avatar(p)+'<div class="playerIdentity"><span class="playerEyebrow">PERFIL EDGY</span><h2>'+esc(p.name)+'</h2><span class="playerHandle">@'+esc(p.username)+'</span></div><div class="playerMiniStats" aria-label="Estatísticas de jogador"><span class="playerMiniStat"><strong>'+Number(p.level||1)+'</strong><small>Nível</small></span><span class="playerMiniStat"><strong>'+Number(p.xp||0)+'</strong><small>XP</small></span><span class="playerMiniStat"><strong>'+Number(p.matches||0)+'</strong><small>Partidas</small></span></div></div>'+(p.bio?'<p class="playerBio">'+esc(p.bio)+'</p>':'')+'<h3 class="playerSectionTitle">Xadrez</h3><p class="sub playerChessRecord">'+Number(p.chess_wins||0)+' vitórias · '+Number(p.chess_draws||0)+' empates · '+Number(p.chess_losses||0)+' derrotas</p><h3 class="playerSectionTitle">Atividade recente</h3>'+(history.length?'<ul class="playerHistory">'+history.map(h=>'<li><span>'+esc(h.game)+' · '+esc(h.result)+'</span><span>'+new Date(h.date).toLocaleDateString("pt-PT")+'</span></li>').join("")+'</ul>':'<p class="sub">Sem partidas registadas.</p>');
  if(isOther){
   const challenge=document.createElement("div");
   challenge.className="edgyPlayerInviteActions";
@@ -39,15 +39,16 @@ async function openById(id){
   el.append(challenge);
   challenge.querySelector("[data-challenge-open]").onclick=()=>window.EDGY_social?.openChallenge(p.id,p.name);
   const h2h=document.createElement("section");h2h.className="playerH2H";
-  h2h.innerHTML='<h3 class="playerSectionTitle">Confrontos contigo</h3><p class="sub">A consultar partidas entre vocês…</p>';
+  h2h.innerHTML='<div class="playerH2HLoading">A consultar confrontos…</div>';
   el.append(h2h);
   try{
    const {data:head,error:h2hError}=await sb().rpc("edgy_chess_head_to_head",{p_opponent:p.id});
    if(h2hError)throw h2hError;
    if(!h2h.isConnected)return;
    const results=Array.isArray(head?.games)?head.games:[];
-   h2h.innerHTML='<h3 class="playerSectionTitle">Confrontos contigo</h3><div class="playerStats"><div class="playerStat"><b>'+Number(head?.wins||0)+'</b><span>Vitórias</span></div><div class="playerStat"><b>'+Number(head?.draws||0)+'</b><span>Empates</span></div><div class="playerStat"><b>'+Number(head?.losses||0)+'</b><span>Derrotas</span></div></div>'+(results.length?'<ul class="playerHistory">'+results.slice(0,5).map(g=>'<li><span>'+esc(({win:"Vitória",loss:"Derrota",draw:"Empate"})[g.outcome]||"Partida")+'</span><span>'+new Date(g.date).toLocaleDateString("pt-PT")+'</span></li>').join("")+'</ul>':'<p class="sub">Ainda não jogaram uma partida completa entre vocês.</p>');
-  }catch(err){h2h.innerHTML='<h3 class="playerSectionTitle">Confrontos contigo</h3><p class="sub">Histórico indisponível neste momento.</p>'}
+   const wins=Number(head?.wins||0),draws=Number(head?.draws||0),losses=Number(head?.losses||0),total=wins+draws+losses;
+   h2h.innerHTML='<details class="playerH2HDetails"><summary><span class="playerH2HSummaryInfo"><strong>Confrontos contigo</strong><small>'+(total?total+' partida'+(total!==1?'s':'')+' no Xadrez':'Ainda sem partidas no Xadrez')+'</small></span><span class="playerH2HScore" aria-label="'+wins+' vitórias, '+draws+' empates, '+losses+' derrotas"><b>'+wins+'</b><span>V</span><i>·</i><b>'+draws+'</b><span>E</span><i>·</i><b>'+losses+'</b><span>D</span></span><span class="playerH2HChevron" aria-hidden="true">⌄</span></summary><div class="playerH2HContent"><p class="playerH2HHint">Resultados das últimas partidas entre vocês (Xadrez).</p>'+(results.length?'<ul class="playerHistory">'+results.slice(0,8).map(g=>'<li><span>'+esc(({win:"Vitória",loss:"Derrota",draw:"Empate"})[g.outcome]||"Partida")+'</span><span>'+new Date(g.date).toLocaleDateString("pt-PT")+'</span></li>').join("")+'</ul>':'<p class="sub">Ainda não jogaram uma partida completa entre vocês.</p>')+'</div></details>';
+  }catch(err){h2h.innerHTML='<div class="playerH2HUnavailable">Confrontos indisponíveis neste momento.</div>'}
  }
 
  }catch(error){el.innerHTML='<p class="playerEmpty">Não foi possível abrir o perfil. '+esc(error.message)+'</p>'}
@@ -65,7 +66,7 @@ async function load(query){
 }
 function mount(){
  const root=document.getElementById("screen");if(!root)return;
- root.innerHTML='<span class="eyebrow">Comunidade</span><h1>Jogadores <span style="color:#ff3c91">✦</span></h1><p class="sub">Descobre os perfis, as fotografias, o nível e as estatísticas da malta. O email nunca é público.</p><input type="search" class="playerSearch" id="edgy-player-search" maxlength="40" placeholder="Pesquisar nome ou @username" aria-label="Pesquisar jogadores"><div id="edgy-players-list"></div>';
+ root.innerHTML='<span class="eyebrow">Comunidade</span><h1>Jogadores <span style="color:#ff3c91">✦</span></h1><p class="sub">Descobre jogadores, consulta os seus perfis e desafia a tua malta.</p><input type="search" class="playerSearch" id="edgy-player-search" maxlength="40" placeholder="Pesquisar nome ou @username" aria-label="Pesquisar jogadores"><div id="edgy-players-list"></div>';
  root.querySelector("#edgy-player-search").oninput=e=>{clearTimeout(timer);timer=setTimeout(()=>load(e.target.value),220)};
  load("");
 }
