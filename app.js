@@ -17,7 +17,7 @@ const gameIcon={
  reaction:'<span class="edgyGameIcon edgyGameIconReflexos"><svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="35" r="20"/><path d="M32 24v12l9-6M26 9h12M32 9v6M48 18l5-5"/></svg></span>',
  tic:'<span class="edgyGameIcon"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M9 10 26 27M26 10 9 27M40 10 57 27M57 10 40 27"/><circle cx="18" cy="46" r="11"/><circle cx="48" cy="46" r="11"/></svg></span>'
 };
-function cards(items){return '<div class="games">'+items.map(g=>'<button class="game" data-game="'+g.id+'"><div class="art">'+(gameIcon[g.id]||g.emoji)+'</div><div class="gameBody"><strong>'+g.name+'</strong><span>'+g.type+' · '+g.mode+'</span></div></button>').join("")+'</div>'}
+function cards(items){return '<div class="games edgyGameCards">'+items.map(g=>'<button class="game" data-game="'+g.id+'"><div class="art">'+(gameIcon[g.id]||g.emoji)+'</div><div class="gameBody"><strong>'+g.name+'</strong><span>'+g.type+' · '+g.mode+'</span></div></button>').join("")+'</div>'}
 window.EDGY_openRoom=(name,code)=>{
  if(!window.EDGY_platform?.games[name]?.online||!/^[A-F0-9]{8}$/i.test(code||""))return;
  nav("games");screen.classList.remove("edgyLibraryPage");game=name;if(name==="tic")ticMode="online";
@@ -74,4 +74,4 @@ function drawReaction(){
   else{reactTimes=[];reactPhase="idle";drawReaction()}
  };
 }
-render();if("serviceWorker"in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=36").catch(()=>{}));
+render();if("serviceWorker"in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=38").catch(()=>{}));
