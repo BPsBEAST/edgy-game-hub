@@ -26,7 +26,7 @@ test("Every local asset referenced by the bootstrap exists",()=>{
  assert.ok(names.includes("./app.js?v=39"),"bootstrap cached");
  assert.ok(names.includes("./base.css?v=29"),"base stylesheet cached");
  assert.ok(names.includes("./edgy-theme.css?v=34"),"design cached");
- assert.ok(names.includes("./tic-online.js?v=35"),"online tic cached");
+ assert.ok(names.includes("./tic-online.js?v=40"),"online tic cached");
  assert.ok(names.includes("./checkers-replay.js?v=33"),"checkers replay cached");
 });
 test("Navigation keeps Histórico only inside Perfil",()=>{
@@ -323,6 +323,9 @@ test("Universal renderer escapes user text and keeps consistent structure",()=>{
 test("Xadrez, Damas and Galo use one mobile options/history panel implementation",()=>{
  const ui=read("edgy-game-ui.js"),css=read("edgy-game-layout.css");
  for(const file of ["chess-online.js","checkers-online.js","tic-online.js"])assert.ok(read(file).includes('window.EDGY_gameUI.bindMobilePanel('));
+ assert.ok(read("checkers-online.js").includes('clearMobilePanel("checkers")'));
+ assert.ok(read("tic-online.js").includes('clearMobilePanel("tic")'));
+ assert.ok(read("checkers-online.js").includes('document.visibilityState!=="hidden"'));
  assert.ok(ui.includes('function bindMobilePanel('));
  assert.ok(css.includes('#screen .edgyMatchSide.edgyMatchDrawer'));
  assert.ok(css.includes('[data-game-panel-open="history"]'));
