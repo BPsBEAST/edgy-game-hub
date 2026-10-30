@@ -376,6 +376,14 @@
   overflow:hidden!important;
   padding-bottom:calc(78px + env(safe-area-inset-bottom))!important;
  }
+ /* A persisted page-entry transform would turn fixed match dialogs into
+    scroll-container descendants. Disable it only for these two surfaces. */
+ .main:has(> #screen.edgyLibraryPage)>#screen.edgyPageIn,
+ .main:has(> #screen .brWrap)>#screen.edgyPageIn{
+  animation:none!important;
+  transform:none!important;
+  filter:none!important;
+ }
  .main:has(> #screen.edgyLibraryPage)>.top,
  .main:has(> #screen .brWrap)>.top{
   flex:0 0 auto!important;
