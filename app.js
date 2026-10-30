@@ -11,6 +11,7 @@ if(state.history.some(h=>h?.title==="Palavra Oculta")){
 }
 const esc=t=>String(t).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const level=()=>Math.floor(state.xp/100)+1,progress=()=>state.xp%100;
+window.EDGY_currentXP=()=>state.xp;
 function animatePage(){const target=document.getElementById("screen");if(!target)return;target.classList.remove("edgyPageIn");void target.offsetWidth;target.classList.add("edgyPageIn")}
 function nav(p){const changed=page!==p||Boolean(game);clearTimeout(reactTimeout);window.EDGY_chess?.close();window.EDGY_checkers?.close();window.EDGY_ticOnline?.close();window.EDGY_barricade?.close();window.EDGY_wordle?.close();game=null;page=p;render();document.querySelector(".main")?.scrollTo({top:0,behavior:"instant"});if(changed)animatePage()}
 document.querySelectorAll("[data-page]").forEach(b=>b.addEventListener("click",()=>nav(b.dataset.page)));
