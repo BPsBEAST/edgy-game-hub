@@ -23,7 +23,7 @@ test("Every local asset referenced by the bootstrap exists",()=>{
  const names=[...assets.matchAll(/"([^"]+)"/g)].map(m=>m[1]);
  for(const name of names)assert.ok(fs.existsSync(path.join(dir,name.split("?")[0])),name);
  assert.ok(names.includes("./edgy-platform.js?v=43"),"shared platform cached");
- assert.ok(names.includes("./app.js?v=43"),"bootstrap cached");
+ assert.ok(names.includes("./app.js?v=44"),"bootstrap cached");
  assert.ok(names.includes("./base.css?v=29"),"base stylesheet cached");
  assert.ok(names.includes("./edgy-theme.css?v=34"),"design cached");
  assert.ok(names.includes("./tic-online.js?v=40"),"online tic cached");
@@ -245,7 +245,7 @@ test("Stable footer, profile replay links and chess mobile actions",()=>{
 test("Game library uses a single registry loaded before bootstrap",()=>{
  const scripts=[...html.matchAll(/<script[^>]*src="([^"]+)"/g)].map(m=>m[1]);
  const platform=scripts.indexOf("./edgy-platform.js?v=43");
- const bootstrap=scripts.indexOf("./app.js?v=43");
+ const bootstrap=scripts.indexOf("./app.js?v=44");
  assert.ok(platform>=0&&bootstrap>=0&&platform<bootstrap);
  const app=read("app.js"),defs=read("edgy-platform.js");
  assert.ok(app.includes("Object.values(window.EDGY_platform.games).map("));
@@ -369,7 +369,7 @@ test("Chess shares the match shell, drawer binder and move controls",()=>{
 test("All games share one header, lobby cards and match presentation",()=>{
  const html=read("index.html"),ui=read("edgy-game-ui.js"),css=read("edgy-game-layout.css");
  assert.ok(html.includes('edgy-game-ui.js?v=43'));
- assert.ok(html.includes('edgy-game-layout.css?v=42'));
+ assert.ok(html.includes('edgy-game-layout.css?v=44'));
  for(const game of ["chess","checkers","tic","reaction","barricade"])assert.ok(ui.includes(game+':{title:'));
  for(const file of ["chess-online.js","checkers-online.js","tic-online.js","barricade-online.js","app.js"]){
   const src=read(file);
@@ -411,6 +411,30 @@ test("Xadrez, Damas and Galo use one mobile options/history panel implementation
  assert.ok(css.includes('[data-game-panel-open="history"]'));
 });
 
+test("Five-game mobile library centers the orphan card and keeps filter buttons visible",()=>{
+ const css=read("edgy-game-layout.css"),app=read("app.js");
+ assert.ok(css.includes('#screen .edgyGameCards>.game:last-child:nth-child(odd){'));
+ assert.ok(css.includes('grid-column:1 / -1;'));
+ assert.ok(css.includes('justify-self:center;'));
+ assert.ok(css.includes('width:calc((100% - 11px)/2)!important'));
+ assert.ok(css.includes('#screen .edgyGameCards>.game:only-child{'));
+ assert.ok(css.includes('#screen.edgyLibraryPage .filters button{'));
+ assert.ok(css.includes('padding-bottom:calc(105px + env(safe-area-inset-bottom))!important'));
+ assert.ok(app.includes('function cards(items){return'));
+});
+test("Community shows highest-level players first, XP breaks ties, and shows relative ranks",()=>{
+ const players=read("players.js"),index=read("index.html"),sw=read("sw.js");
+ const match=players.match(/const ranked=([\\s\\S]*?)\\n holder\\.innerHTML=ranked\\.length/);
+ assert.ok(match,"ranking is computed before rendering");
+ const names=vm.runInNewContext(
+  '(()=>{const data=[{name:"Baixo",xp:40,username:"b"},{name:"EmpateB",xp:220,username:"b"},{name:"Alto",xp:315,username:"a"},{name:"EmpateA",xp:220,username:"a"}];const ranked='+match[1]+';return ranked.map(x=>x.name)})()'
+ );
+ assert.deepEqual(Array.from(names),["Alto","EmpateA","EmpateB","Baixo"]);
+ assert.ok(players.includes('class="playerRank"'));
+ assert.ok(players.includes('class="playerLevel"'));
+ assert.ok(players.includes('Ordenados por nível (mais alto primeiro)'));
+ assert.ok(index.includes("players.js?v=44")&&sw.includes("players.js?v=44"));
+});
 test("Home and Biblioteca render exactly the same reusable game cards",()=>{
  const css=read("edgy-game-layout.css"),app=read("app.js"),html=read("index.html");
  assert.ok(app.includes('function cards(items){return \'<div class="games edgyGameCards">\''));
@@ -422,8 +446,8 @@ test("Home and Biblioteca render exactly the same reusable game cards",()=>{
  assert.ok(css.includes('flex-basis:84px!important'),"mobile artwork uses exactly the same geometry");
  assert.ok(css.includes('grid-auto-rows:1fr'),"all cards in the grid stretch equally");
  assert.ok(css.includes('.main:has(> #screen.edgyLibraryPage)>.foot'),"library footer clears the navigation");
- assert.ok(html.includes('edgy-game-layout.css?v=42'));
- assert.ok(html.includes('app.js?v=43'));
+ assert.ok(html.includes('edgy-game-layout.css?v=44'));
+ assert.ok(html.includes('app.js?v=44'));
 });
 test("EDGY v36: chess title is short and empty join notice does not reserve space",()=>{
  const chess=read("chess-online.js"),ui=read("edgy-game-ui.js"),css=read("edgy-game-layout.css");
