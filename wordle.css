@@ -1,4 +1,4 @@
-/* EDGY Palavra Oculta — scoped card, 5×6 board and keyboard matching the Game Hub. */
+/* EDGY Wordle — scoped 5×6 board, mobile native input and physical desktop typing. */
 #screen .wdPage{width:min(100%,1120px);margin:0 auto}
 #screen .wdLayout{grid-template-columns:minmax(0,1fr) minmax(225px,280px)!important;align-items:start!important;gap:22px}
 #screen .wdStage{min-width:0;width:100%}
@@ -37,25 +37,34 @@
 }
 #screen .wdMessage{min-height:26px;margin:8px 0 8px;text-align:center;color:#b8a9c9;font-size:12px;font-weight:650}
 #screen .wdMessage.wdMessageVisible{color:#ffb9dd}
-/* The physical keyboard is primary on desktop. Show the on-screen keyboard only in mobile layout. */
-#screen .wdKeyboard{display:none;gap:6px;width:min(100%,530px);margin:0 auto}
+/* Desktop keeps the physical keyboard. Mobile uses the phone's native keyboard
+   through one accessible input, with the same EDGY purple/pink styling. */
+#screen .wdNativeForm{display:none}
 #screen .wdDesktopHint{display:block;margin:10px auto 16px;text-align:center;
  max-width:370px;font-size:12px;line-height:1.6;color:#c5b5d1}
 #screen .wdDesktopHint::before{content:"⌨";display:block;color:#ee76af;font-size:24px;margin-bottom:4px}
-#screen .wdKeys{display:flex;align-items:stretch;justify-content:center;gap:4px;min-width:0}
-#screen .wdKey{
- appearance:none;flex:1 1 0;min-width:0;height:47px;
- border:1px solid #665476;border-radius:5px;background:#3a2d4c;
- color:#f9f3ff;padding:0;font-weight:850;font-size:13px;user-select:none;
- touch-action:manipulation;transition:background-color .16s,border-color .16s,transform .12s,box-shadow .16s;
+#screen .wdRow[data-wd-current="true"]{cursor:text}
+#screen .wdNativeLabel{display:block;margin:0 0 8px;color:#cabbd5;font-size:12px;text-align:center}
+#screen .wdNativeControls{display:flex;align-items:stretch;gap:8px;min-width:0}
+#screen .wdNativeControls input{
+ min-width:0;flex:1 1 auto;width:100%;height:46px;box-sizing:border-box;
+ border:1px solid #796083;border-radius:5px;padding:10px 12px;
+ background:#171326;color:#f8f1fa;font-family:inherit;font-size:16px;
+ font-weight:750;letter-spacing:2px;outline:none;text-transform:uppercase;
+ caret-color:#ff63ad;touch-action:manipulation;
 }
-#screen .wdKeyWide{flex:1.65 1 0;font-size:10px;letter-spacing:.1px}
-#screen .wdKey:not(:disabled):active{transform:scale(.95)}
-#screen .wdKey:hover:not(:disabled){border-color:#f16aaf;background:#593353}
-#screen .wdKey.wdKey-correct{background:#247e6b;border-color:#4eb19a}
-#screen .wdKey.wdKey-present{background:#ae8043;border-color:#d9b477}
-#screen .wdKey.wdKey-absent{background:#50465c;border-color:#5c5267;color:#d7cbdc}
-#screen .wdKey:focus-visible{outline:2px solid #ff5dac;outline-offset:2px}
+#screen .wdNativeControls input::placeholder{font-weight:450;letter-spacing:0;text-transform:none;color:#9b8ba8}
+#screen .wdNativeControls input:focus{
+ border-color:#f476b7;box-shadow:0 0 0 2px #f476b73a;
+}
+#screen .wdNativeSubmit{
+ flex:0 0 auto;height:46px;min-width:100px;padding:8px 12px;
+ border:1px solid #ed5ca9;border-radius:5px;background:#7f315c;
+ color:#fff;font-family:inherit;font-size:12px;font-weight:800;
+ touch-action:manipulation;
+}
+#screen .wdNativeSubmit:focus-visible{outline:2px solid #ffb0dc;outline-offset:2px}
+#screen .wdNativeSubmit:active{transform:scale(.98)}
 #screen .wdBottomHint{
  display:flex;align-items:center;justify-content:center;gap:7px;
  margin:13px auto 0;color:#ab9dbb;font-size:10px;text-align:center;line-height:1.4;
@@ -83,11 +92,8 @@
  #screen .wdBoard{width:min(100%,315px);gap:4px}
  #screen .wdRow{gap:4px}
  #screen .wdTile{font-size:clamp(18px,6vw,26px);border-radius:4px}
- #screen .wdKeyboard{display:grid;gap:5px}
+ #screen .wdNativeForm{display:block;width:min(100%,420px);margin:10px auto 13px}
  #screen .wdDesktopHint{display:none}
- #screen .wdKeys{gap:3px}
- #screen .wdKey{height:44px;font-size:clamp(10px,3vw,13px)}
- #screen .wdKeyWide{font-size:9px}
  #screen .wdTopline{margin-bottom:9px}
  #screen .wdMessage{margin:7px 0;min-height:23px}
  #screen .wdSide{display:grid;gap:11px;width:100%;min-width:0!important}
@@ -112,12 +118,10 @@
 }
 @media(max-width:370px){
  #screen .wdPlay{padding:10px 7px 12px}
- #screen .wdKeyboard{gap:4px}
- #screen .wdKeys{gap:2px}
- #screen .wdKey{height:41px;font-size:10px}
- #screen .wdKeyWide{font-size:8px}
+ #screen .wdNativeControls{gap:6px}
+ #screen .wdNativeSubmit{min-width:92px;padding-inline:8px}
 }
 @media(prefers-reduced-motion:reduce){
  #screen .wdTile.wdReveal{animation:none!important}
- #screen .wdKey{transition:none!important}
+ #screen .wdNativeSubmit{transition:none!important}
 }
