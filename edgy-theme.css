@@ -901,3 +901,8 @@
 @media(prefers-reduced-motion:reduce){
  .playerOverlay.isClosing,.playerOverlay.isClosing .playerDialog{animation:none!important}
 }
+
+
+/* Community and replay overlays stay above a currently open chess drawer. */
+.playerOverlay{z-index:175!important}
+.edReplayMask{z-index:180!important}
