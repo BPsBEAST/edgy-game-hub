@@ -84,11 +84,19 @@ A aplicação pública é uma versão experimental para amigos; ainda não há m
 ## EDGY v17 — Damas online + material no xadrez
 
 - A biblioteca inclui agora **Damas online** com tabuleiro 8×8 roxo/lavanda e peças rosa/plum; convites por código e URL `?checkers=XXXXXXXX`.
-- Variante escolhida: **damas brasileiras 8×8**, com 12 peças por lado; peça normal move-se uma casa na diagonal para a frente e captura nas quatro diagonais.
+- Variante escolhida: **damas brasileiras 8×8**, com 12 peças por lado; peça normal move-se e captura apenas na diagonal para a frente (variante EDGY personalizada, não o regulamento oficial francês).
 - Captura obrigatória, sequência com o **maior número de capturas**, múltiplas capturas, dama voadora e promoção quando a peça termina um movimento na última fila.
 - A validação autoritativa das jogadas acontece em `supabase/functions/checkers-action/index.ts`, utilizando o mesmo motor de regras que a interface (`checkers-rules.js`). Os jogadores não têm permissão de atualizar diretamente `checkers_rooms`.
 - O resultado das damas é guardado no histórico e atribui XP pelo servidor: vitória 40, empate 15, derrota 5.
 - O xadrez apresenta peças capturadas junto de cada jogador e respetiva vantagem de material (peão 1, cavalo 3, bispo 3, torre 5, rainha 9).
 - O PWA atualiza para `edgy-v17` e inclui os assets das damas.
 
-**Testes executados:** motor de regras (abertura, capturas obrigatórias, maior número de peças, captura para trás, dama voadora, promoção), SQL (criar/entrar na sala, tabuleiro inicial, resultado/XP, rollback), permissões (o cliente não pode escrever no tabuleiro) e sintaxe JavaScript. **A sincronização em dois dispositivos reais ainda precisa de validação manual.**
+**Testes executados:** motor de regras (abertura, capturas obrigatórias, maior número de peças, captura apenas para a frente pelas peças normais, dama voadora, promoção), SQL (criar/entrar na sala, tabuleiro inicial, resultado/XP, rollback), permissões (o cliente não pode escrever no tabuleiro) e sintaxe JavaScript. **A sincronização em dois dispositivos reais ainda precisa de validação manual.**
+
+
+## EDGY v19 — Damas: captura para a frente e interface
+
+- Peças normais capturam **apenas para a frente**; damas promovidas capturam em ambas as direções, com alcance longo. Mantêm-se a captura obrigatória, a maior captura e as sequências de captura.
+- Regra personalizada EDGY 8×8: não corresponde integralmente às damas oficiais francesas/internacionais.
+- Modal próprio de desistência e animações de seleção, deslocação após confirmação do servidor, captura e promoção. Respeita movimentos reduzidos.
+- Client e Edge Function usam a mesma versão de `checkers-rules.js`; o servidor valida os lances antes de os guardar.
