@@ -2,7 +2,7 @@
 (function(){
 "use strict";
 const details=Object.freeze({
- chess:{title:"Xadrez online",icon:"♞",intro:"Relógio por jogador · Estratégia · Online"},
+ chess:{title:"Xadrez",icon:"♞",intro:"Relógio por jogador · Estratégia · Online"},
  checkers:{title:"Damas",icon:"◎",intro:"8×8 · Captura obrigatória · Dama voadora"},
  tic:{title:"Jogo do Galo",icon:"⊗",intro:"3×3 · 2 jogadores · Online ou local"},
  reaction:{title:"Reflexos",icon:"◴",intro:"Arcade · 1 jogador · 3 rondas"}
