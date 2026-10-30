@@ -107,7 +107,10 @@ async function move(cell){
 }
 async function resign(){
  if(!room||busy||room.status!=="active")return;
- const ok=window.confirm("Desistir da partida? A vitória será atribuída ao adversário.");
+ const ok=await window.EDGY_platform.confirmAction({
+  title:"Desistir da partida?",message:"Se desistires, a vitória será atribuída ao adversário.",
+  confirmLabel:"Sim, desistir",cancelLabel:"Continuar a jogar"
+ });
  if(!ok)return;
  busy=true;try{
   const {error}=await api().rpc("edgy_tic_resign",{p_code:room.code});
