@@ -48,7 +48,64 @@ document.addEventListener("keydown",event=>{
  }
 });
 
-function clear(){closeResign();if(poll)clearInterval(poll);poll=null;if(channel)db()?.removeChannel(channel);channel=null;room=null;players=null;selected=[]}
+
+/* Motion based exclusively on the server-confirmed turn/path. */
+let pieceFlight=null;
+function stopPieceFlight(){
+ if(!pieceFlight)return;
+ try{pieceFlight.animation?.cancel()}catch{}
+ pieceFlight.ghost?.remove();
+ if(pieceFlight.landed?.isConnected)pieceFlight.landed.style.visibility="";
+ pieceFlight=null;
+}
+function animateMove(previous,current){
+ stopPieceFlight();
+ if(!previous||!current||current.ply<=previous.ply)return;
+ if(window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches)return;
+ const path=current.last_move;
+ if(!Array.isArray(path)||path.length<2||path.some(i=>!Number.isInteger(i)||i<0||i>63))return;
+ const chessboard=document.querySelector("#screen .ckBoard");
+ if(!chessboard||!chessboard.isConnected)return;
+ const cells=path.map(pos=>chessboard.querySelector('[data-cell="'+pos+'"]'));
+ if(cells.some(cell=>!cell))return;
+ const start=path[0],end=path[path.length-1],landing=cells[cells.length-1].querySelector(".ckDisc");
+ if(!landing||!previous.board?.[start])return;
+ const rect=landing.getBoundingClientRect();
+ if(rect.width<1)return;
+ const points=cells.map(cell=>{const r=cell.getBoundingClientRect();return {x:r.left+r.width/2,y:r.top+r.height/2}});
+ const clone=landing.cloneNode(true);
+ if(previous.board[start]===previous.board[start].toLowerCase())clone.classList.remove("king");
+ clone.style.cssText="position:fixed;z-index:175;left:"+(points[0].x-rect.width/2)+"px;top:"+(points[0].y-rect.height/2)+"px;width:"+rect.width+"px;height:"+rect.height+"px;pointer-events:none;margin:0;will-change:transform;filter:drop-shadow(0 4px 4px #16092266)";
+ landing.style.visibility="hidden";
+ document.body.append(clone);
+ for(let i=0;i<64;i++){
+  if(i!==start&&previous.board[i]&&!current.board[i]){
+   const cell=chessboard.querySelector('[data-cell="'+i+'"]');
+   if(cell){cell.classList.add("ckCapturedPulse");cell.addEventListener("animationend",()=>cell.classList.remove("ckCapturedPulse"),{once:true})}
+  }
+ }
+ if(typeof clone.animate!=="function"){clone.remove();landing.style.visibility="";return}
+ const keyframes=points.map((p,i)=>({
+  offset:i/(points.length-1),
+  transform:"translate("+(p.x-points[0].x)+"px,"+(p.y-points[0].y)+"px) scale("+(i===points.length-1?1:1.05)+")"
+ }));
+ const animation=clone.animate(keyframes,{duration:Math.min(850,290+(path.length-2)*180),easing:"ease-in-out",fill:"forwards"});
+ const currentFlight={animation,clone,ghost:clone,landed};
+ pieceFlight=currentFlight;
+ const finish=()=>{
+  if(pieceFlight!==currentFlight)return;
+  clone.remove();landing.style.visibility="";
+  if(previous.board[start]!==current.board[end]&&current.board[end]===current.board[end]?.toUpperCase()){
+   cells[cells.length-1].classList.add("ckPromotionPulse");
+   cells[cells.length-1].addEventListener("animationend",()=>cells[cells.length-1].classList.remove("ckPromotionPulse"),{once:true});
+  }
+  pieceFlight=null;
+ };
+ animation.onfinish=finish;
+ animation.oncancel=finish;
+}
+
+function clear(){closeResign();stopPieceFlight();if(poll)clearInterval(poll);poll=null;if(channel)db()?.removeChannel(channel);channel=null;room=null;players=null;selected=[]}
 function close(){clear();const u=new URL(location.href);u.searchParams.delete("checkers");history.replaceState(null,"",u.pathname+u.search+u.hash)}
 function open(code=""){clear();pending=String(code).toUpperCase();joined=false;rooms=[];draw();loadRooms()}
 async function loadRooms(){if(!user()||!db())return;const uid=user().id;const {data}=await db().from("checkers_rooms").select("code,status,white_id").or("white_id.eq."+uid+",black_id.eq."+uid).in("status",["waiting","active"]).order("created_at",{ascending:false}).limit(20);rooms=data||[];if(!room)draw()}
@@ -57,10 +114,10 @@ async function join(code){pending=String(code||"").trim().toUpperCase();if(!/^[A
 async function load(code){const {data,error}=await db().from("checkers_rooms").select("*").eq("code",code).maybeSingle();if(error||!data){info=error?.message||"Sala não encontrada";draw();return}room=data;selected=[];history.replaceState(null,"",invitation());await loadPlayers();subscribe();draw()}
 async function loadPlayers(){const {data}=await db().rpc("edgy_checkers_players",{p_code:room.code});players=data}
 function subscribe(){if(channel)db().removeChannel(channel);if(poll)clearInterval(poll);channel=db().channel("checkers-"+room.id).on("postgres_changes",{event:"UPDATE",schema:"public",table:"checkers_rooms",filter:"id=eq."+room.id},()=>refresh()).subscribe();poll=setInterval(()=>{if(room&&game==="checkers")refresh()},3000)}
-async function refresh(){if(!room||busy)return;const old=room,{data}=await db().from("checkers_rooms").select("*").eq("id",room.id).maybeSingle();if(!data)return;if(data.ply!==old.ply||data.status!==old.status||data.black_id!==old.black_id){room=data;selected=[];if(data.black_id!==old.black_id)await loadPlayers();draw();if(old.status==="active"&&data.status!=="active")await window.EDGY_auth?.refreshProfile?.()}}
+async function refresh(){if(!room||busy)return;const old=room,{data}=await db().from("checkers_rooms").select("*").eq("id",room.id).maybeSingle();if(!data)return;if(data.ply!==old.ply||data.status!==old.status||data.black_id!==old.black_id){room=data;selected=[];if(data.black_id!==old.black_id)await loadPlayers();draw();animateMove(old,data);if(old.status==="active"&&data.status!=="active")await window.EDGY_auth?.refreshProfile?.()}}
 function board(){const mine=seat(),flip=mine==="b",rr=flip?[7,6,5,4,3,2,1,0]:[0,1,2,3,4,5,6,7],cc=flip?[7,6,5,4,3,2,1,0]:[0,1,2,3,4,5,6,7];const moves=room.status==="active"?rules.legalMoves(state()):[];const next=selected.length?[...new Set(moves.filter(m=>selected.every((v,i)=>m.path[i]===v)).map(m=>m.path[selected.length]).filter(v=>v!==undefined))]:[];const pieces=selected.length>1?rules.preview(state(),selected):room.board;let h='<div class="ckBoard">';for(const r of rr)for(const c of cc){let i=r*8+c,p=pieces[i];h+='<button class="ckSquare '+((r+c)%2?"dark":"light")+(next.includes(i)?" dest":"")+(selected.at(-1)===i?" sel":"")+(room.last_move?.includes(i)?" last":"")+'" data-cell="'+i+'" aria-label="Casa '+(r+1)+','+(c+1)+'">'+(p?'<span class="ckDisc '+p.toLowerCase()+(p===p.toUpperCase()?" king":"")+'"></span>':"")+'</button>'}return h+"</div>"}
 function choose(i){if(busy||room.status!=="active"||seat()!==room.turn)return;const moves=rules.legalMoves(state());if(!selected.length){if(moves.some(m=>m.path[0]===i)){selected=[i];draw()}return}if(selected.length===1&&selected[0]===i){selected=[];draw();return}const candidates=moves.filter(m=>selected.every((p,j)=>m.path[j]===p)&&m.path[selected.length]===i);if(candidates.length){selected.push(i);if(candidates.some(m=>m.path.length===selected.length)){const path=selected.slice();selected=[];send(path)}else draw();return}if(selected.length===1&&room.board[i]?.toLowerCase()===seat()&&moves.some(m=>m.path[0]===i)){selected=[i];draw()}}
-async function action(action,path){if(busy)return;busy=true;info="A confirmar…";draw();try{const {data,error}=await db().functions.invoke("checkers-action",{body:{action,code:room.code,...(path?{path}:{})}});if(error||!data?.ok){info=data?.error||error?.message||"Não foi possível guardar a jogada";if(error?.context?.json)try{info=(await error.context.json()).error||info}catch{}}else info=""}catch{info="Falha de ligação"}finally{busy=false;await refresh();draw()}}
+async function action(action,path){if(busy)return;busy=true;info="A confirmar…";draw();try{const {data,error}=await db().functions.invoke("checkers-action",{body:{action,code:room.code,...(path?{path}:{})}});if(error||!data?.ok){info=data?.error||error?.message||"Não foi possível guardar a jogada";if(error?.context?.json)try{info=(await error.context.json()).error||info}catch{}}else info=""}catch{info="Falha de ligação"}finally{busy=false;const beforePly=room?.ply;await refresh();if(room?.ply===beforePly)draw()}}
 const send=path=>action("move",path);
 async function cancel(code){const {data,error}=await db().rpc("edgy_checkers_cancel",{p_code:code});info=error?.message||(!data?"A sala já foi iniciada":"Sala fechada");await loadRooms()}
 function player(color){const p=color==="w"?players?.white:players?.black;return '<div class="ckP '+(room.turn===color&&room.status==="active"?"turn":"")+'"><strong>'+(color==="w"?"🔴 ":"⚫ ")+esc(p?.name||(color==="w"?"Rosas":"À espera de adversário"))+'</strong><small>'+(room.board.filter(v=>v?.toLowerCase()===color).length)+' peças</small></div>'}
