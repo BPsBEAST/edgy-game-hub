@@ -119,7 +119,7 @@ test("Damas retain forward-only capture, flying kings, initial board",()=>{
 test("Damas allow a choice of capture while requiring the entire sequence on client and server",()=>{
  const client=read("checkers-rules.js"),server=read("supabase/functions/checkers-action/rules.js");
  assert.equal(client,server,"the online validator must enforce the same capture rules");
- const context={};vm.runInNewContext(client.replace(/\\bexport\\s+/g,"")+";globalThis.rules={legalMoves,applyMove};",context);
+ const context={};vm.runInNewContext(client.replace(/\bexport\s+/g,"")+";globalThis.rules={legalMoves,applyMove};",context);
  const board=Array(64).fill(null);
  for(const [i,p] of [[42,"w"],[46,"w"],[33,"b"],[17,"b"],[37,"b"]])board[i]=p;
  const state={board,turn:"w",ply:0,status:"active",history:[],last:[],quiet:0};
