@@ -238,7 +238,7 @@ function render(){
  const stage='<section class="wdPlay" aria-label="Jogo Wordle">'
   +'<div class="wdTopline"><span class="wdRoundLabel">RONDA '+saved.number+'</span><span class="wdAttemptLabel">'+(playing?"Tentativa "+(completed+1)+" de 6":"Partida concluída")+'</span></div>'
   +'<div class="wdBoard" role="grid" aria-label="Grelha de seis tentativas para palavras de cinco letras">'+Array.from({length:6},(_,i)=>rowHtml(i)).join("")+'</div>'
-  +'<p class="wdMessage'+(message?" wdMessageVisible":"")+'" role="status" aria-live="polite">'+(message?esc(message):playing?"Escreve a tua primeira palavra.":"")+'</p>'
+  +'<p class="wdMessage'+(message?" wdMessageVisible":"")+'" role="status" aria-live="polite">'+(message?esc(message):"")+'</p>'
   +resultsHtml()+'<p class="wdDesktopHint">Escreve com o teclado do computador. Usa Enter para confirmar e Backspace para apagar.</p>'+nativeTypingHtml()
   +'<div class="wdBottomHint"><span class="wdHintDot"></span>'+words().answerCount+' palavras para descobrir · '+words().guessCount.toLocaleString("pt-PT")+' palavras aceites</div>'
   +'</section>';
