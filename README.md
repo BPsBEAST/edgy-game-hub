@@ -100,3 +100,14 @@ A aplicação pública é uma versão experimental para amigos; ainda não há m
 - Regra personalizada EDGY 8×8: não corresponde integralmente às damas oficiais francesas/internacionais.
 - Modal próprio de desistência e animações de seleção, deslocação após confirmação do servidor, captura e promoção. Respeita movimentos reduzidos.
 - Client e Edge Function usam a mesma versão de `checkers-rules.js`; o servidor valida os lances antes de os guardar.
+
+## EDGY v23 — comunidade, salas e convites internos
+
+- Biblioteca visual simplificada: **Xadrez, Damas, Jogo do Galo e Reflexos**. Memória e Quiz foram removidos da navegação e do catálogo, sem apagar os históricos anteriores.
+- Ícones brancos e minimalistas para Damas e Reflexos.
+- Novo `edgy-theme.css`: painéis e botões retangulares, cores EDGY e rosa reservado a pequenos destaques.
+- Nova página **Salas**: combina Xadrez/Damas, nomes dos dois jogadores, estados e ações Retomar/Rever/Convidar/Fechar. O endpoint SQL `edgy_my_rooms` devolve apenas salas onde o utilizador participa.
+- Novo `social.js`: sino com contagem de convites, pesquisa de jogadores públicos, aceitar/recusar convites sem links. Os convites são verificados em intervalos de 15 segundos enquanto a app está aberta.
+- Os perfis públicos podem iniciar um convite direto a uma nova sala de Xadrez (10+0) ou Damas; convites tradicionais por URL continuam disponíveis.
+- Migração `edgy_private_game_invitations_and_combined_room_directory`: tabela `public.edgy_game_invites` com RLS de participantes; sem INSERT/UPDATE direto para o cliente. As operações privilegiadas usam RPCs com `auth.uid()`, confirmação de propriedade da sala e destinatário autorizado.
+- Testes SQL transacionais (rollback): criação de sala, envio, receção, aceitação, entrada como segundo jogador, nomes na lista e bloqueio de convites para sala ocupada, em ambos os jogos. Testes de sintaxe JavaScript e consistência dos assets da PWA efetuados. **O visual mobile e a receção de convites em dispositivos reais precisam de teste manual.**
