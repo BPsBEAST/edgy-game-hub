@@ -1,0 +1,156 @@
+/* EDGY shared game design system — v35
+   Every game uses the same header, panels and stage/sidebar layout.
+   Engine-specific boards, clocks and move rules remain separate. */
+#screen .edgyGamePage{width:100%;max-width:940px;min-width:0;margin-inline:auto}
+#screen .edgyGameHeader{
+ display:block;max-width:100%;margin:0 0 16px;padding:0;
+ border:0;background:transparent;overflow:visible;
+}
+#screen .edgyGameHeaderRow{display:flex;align-items:center;gap:13px;flex-wrap:wrap;min-height:46px}
+#screen .edgyGameBack{
+ display:inline-flex!important;align-items:center;justify-content:center;
+ min-height:42px;min-width:84px;margin:0!important;
+ padding:10px 13px!important;
+ border:1px solid #624b72!important;border-radius:3px!important;
+ background:#30243e!important;color:#f7eafc!important;
+ font-weight:750;font-size:13px;cursor:pointer;
+ flex:0 0 auto;line-height:1.2;
+ transition:background .18s,border-color .18s,transform .18s!important;
+}
+#screen .edgyGameBack:hover{background:#43304e!important;border-color:#cd5b98!important;transform:translateY(-1px)}
+#screen .edgyGameBack:active{transform:scale(.97)}
+#screen .edgyGameHeading{display:flex;align-items:center;gap:10px;min-width:0;flex:1 1 auto}
+#screen .edgyGameHeadingIcon{font-family:inherit;font-size:26px;font-weight:800;line-height:1;color:#f7efff;min-width:26px;text-align:center}
+#screen .edgyGameHeading h1{font-size:26px!important;line-height:1.15!important;letter-spacing:-.9px!important;margin:0!important;font-weight:850!important}
+#screen .edgyGameRoomCode{margin:0 0 0 auto!important;max-width:100%;overflow-wrap:anywhere;font-size:11px!important}
+#screen .edgyGameIntro{color:#b8a8c7;font-size:12px!important;line-height:1.5!important;margin:9px 0 0!important}
+#screen .edgyGamePanel{
+ padding:18px!important;margin:0 0 12px!important;
+ background:#231a36!important;border:1px solid #4d3a5b!important;
+ border-radius:3px!important;box-shadow:none!important;
+}
+#screen .edgyGamePanel h3{margin:0 0 12px!important;font-size:15px!important;line-height:1.3;font-weight:850}
+#screen .edgyGamePanelDescription{margin:0 0 12px!important;color:#b9a9c5!important;font-size:12px!important;line-height:1.5}
+#screen .edgyGamePanel input{display:block;width:100%;min-width:0;max-width:none!important;margin:0 0 10px!important;min-height:46px;border-radius:3px!important}
+#screen .edgyGamePanel button:not(.ckSquare):not(.chessSq):not(.edgyTicCell):not(.reaction){min-height:39px;border-radius:3px!important}
+#screen.edgyLobby .edgyGamePanel{margin-bottom:12px!important}
+#screen.edgyLobby .chessWrap,#screen.edgyLobby .ckWrap,#screen.edgyLobby .edgyTicWrap{max-width:940px;padding-top:0}
+#screen.edgyLobby .edgyGamePanel .chessControlSelect{margin:0 0 12px!important}
+#screen.edgyLobby .edgyGamePanel .chessControlSelect button{min-height:44px!important}
+#screen .edgyMatchLayout{
+ display:grid;grid-template-columns:minmax(0,1fr) minmax(235px,270px);
+ align-items:start;gap:16px;width:100%;min-width:0;
+}
+#screen .edgyMatchStage{min-width:0;max-width:100%;position:relative}
+#screen .edgyMatchSide{min-width:0;max-width:100%}
+#screen .edgyMatchSide .edgyGamePanel{margin-bottom:10px!important;padding:14px!important}
+#screen .edgyMatchSide .edgyGamePanel h3{font-size:14px!important}
+#screen .edgyMatchStage .chessBoard,
+#screen .edgyMatchStage .ckBoard{max-width:100%}
+#screen .edgyMatchStage .board{margin:12px auto!important;width:min(100%,410px)}
+#screen .edgySoloStage .edgyGamePanel{padding:16px!important}
+#screen .edgySoloActions{display:flex;flex-direction:column;gap:8px;margin-top:14px}
+#screen .edgySoloChoices{display:flex;gap:8px;flex-wrap:wrap}
+#screen .edgySoloChoices button{flex:1;min-width:95px}
+#screen .edgySoloSide .edgyGamePanel p.sub{margin:0!important;line-height:1.6}
+#screen .edgySoloStage .reaction{border-radius:3px!important;min-height:240px!important}
+#screen .edgySoloStage #reactMsg{margin:15px 0 0;min-height:25px}
+#screen .edgyTicMatchStatus{font-weight:800;font-size:14px;margin:0 0 11px}
+#screen .edgyMatchMobileTabs{display:none}
+#screen .edgyMatchBackdrop,#screen .edgyMatchDrawerClose{display:none}
+#screen .edgyMatchSide .edgyGamePanel[data-game-panel]{min-width:0}
+#screen .ckSide .ckPanel{border-radius:3px!important}
+#screen .ckSide .ckPanel.ckPanel{margin:0 0 10px!important}
+#screen .edgyMatchSide .ckHistoryControls{width:100%;display:flex;flex-wrap:wrap}
+#screen .edgyMatchSide .edgyTicReview{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px}
+#screen .edgyMatchSide .edgyTicReview button{min-width:0}
+#screen .edgyMatchSide .edgyTicMoves{max-height:250px;overflow-y:auto}
+/* Chess remains keyboard navigable and its existing game clock remains intact. */
+#screen .chessMainGrid.edgyMatchLayout{grid-template-columns:minmax(0,1fr) minmax(235px,270px)}
+#screen .chessSide.edgyMatchSide{min-width:0}
+#screen .chessMobileTools{margin:0 0 10px}
+@media(min-width:800px){
+ #screen .edgyGamePage{max-width:940px}
+ #screen .edgyMatchSide.edgyMatchDrawer{display:block!important;position:static!important;overflow:visible!important}
+ #screen .edgyMatchDrawer .edgyGamePanel[data-game-panel]{display:block!important}
+ #screen .edgyMatchDrawerClose{display:none!important}
+}
+@media(max-width:799px){
+ #screen .edgyGameHeader{margin:0 0 12px!important}
+ #screen .edgyGameHeaderRow{gap:9px;min-height:42px}
+ #screen .edgyGameBack{min-width:75px;min-height:40px;font-size:12px;padding:9px 10px!important}
+ #screen .edgyGameHeading{gap:7px;flex:1 1 auto}
+ #screen .edgyGameHeading h1{font-size:23px!important;letter-spacing:-.6px!important}
+ #screen .edgyGameHeadingIcon{font-size:23px;min-width:23px}
+ #screen .edgyGameRoomCode{margin-left:0!important;font-size:10px!important}
+ #screen .edgyGameIntro{margin:8px 0 0!important;font-size:11px!important}
+ #screen .edgyGamePanel{padding:14px!important}
+ #screen .edgyMatchLayout,
+ #screen .chessMainGrid.edgyMatchLayout,
+ #screen .ckGrid.edgyMatchLayout,
+ #screen .edgyTicGame.edgyMatchLayout,
+ #screen .edgySoloLayout.edgyMatchLayout{
+  display:block!important;height:auto!important;overflow:visible!important;
+ }
+ #screen .edgyMatchStage{width:100%;min-width:0}
+ #screen .edgySoloSide{margin-top:12px}
+ #screen .edgyMatchMobileTabs{
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:7px;width:100%;margin-top:12px
+ }
+ #screen .edgyMatchMobileTabs button{
+  min-height:44px;padding:9px 7px;border-radius:3px!important;
+  border:1px solid #62486f;background:#30243f;color:#f4e5f8;
+  font-weight:750;font-size:12px;line-height:1.25;cursor:pointer;touch-action:manipulation;
+ }
+ #screen .edgyMatchMobileTabs button[aria-expanded="true"]{
+  border-color:#ed68a9;background:#623756;box-shadow:inset 0 -2px #fa65ae;
+ }
+ #screen .edgyMatchSide.edgyMatchDrawer{display:none!important}
+ #screen[data-game-panel-open="options"] .edgyMatchSide.edgyMatchDrawer,
+ #screen[data-game-panel-open="history"] .edgyMatchSide.edgyMatchDrawer{
+  display:block!important;position:fixed!important;z-index:165!important;
+  left:8px;right:8px;top:auto;bottom:calc(76px + env(safe-area-inset-bottom));
+  width:auto!important;max-width:none!important;max-height:min(74dvh,625px);
+  overflow-y:auto!important;overscroll-behavior:contain!important;
+  padding:12px!important;border:1px solid #71537c!important;
+  border-radius:6px 6px 0 0!important;background:#211a34!important;
+  box-shadow:0 -18px 65px #0c081ec9;
+ }
+ #screen .edgyMatchDrawerClose{
+  display:block!important;min-height:39px;width:100%;margin:0 0 9px;
+  border:1px solid #604c6a!important;border-radius:3px!important;
+  background:#392948!important;color:#f3e4fa!important;cursor:pointer
+ }
+ #screen .edgyMatchDrawer .edgyGamePanel[data-game-panel]{display:none!important}
+ #screen[data-game-panel-open="options"] .edgyMatchDrawer .edgyGamePanel[data-game-panel="options"],
+ #screen[data-game-panel-open="history"] .edgyMatchDrawer .edgyGamePanel[data-game-panel="history"]{display:block!important}
+ #screen .edgyMatchBackdrop{display:none!important}
+ #screen[data-game-panel-open] .edgyMatchBackdrop{pointer-events:none}
+ #screen[data-game-panel-open="options"] .edgyMatchBackdrop,
+ #screen[data-game-panel-open="history"] .edgyMatchBackdrop{
+  display:block!important;pointer-events:auto;
+  position:fixed!important;inset:0;z-index:164!important;
+  width:100%;height:100%;background:#0a0617ba;border:0!important;border-radius:0!important;
+  cursor:pointer
+ }
+ #screen .edgyMatchSide.edgyMatchDrawer>.sub,
+ #screen .edgyMatchSide.edgyMatchDrawer>.ckMessage{padding:4px 3px;font-size:12px}
+ #screen .edgyGamePanel .edgyTicMoves{max-height:35dvh}
+ #screen .edgySoloSide{display:block}
+ #screen .edgySoloStage .reaction{min-height:220px!important}
+ #screen .edgySoloStage .board{width:min(100%,340px)}
+ /* Do not cover the shared game header with older chess mobile positioning. */
+ .main.chess-viewport #screen .chessWrap{height:auto!important;overflow:visible!important}
+ .main.chess-viewport #screen .edgyGameHeader{position:relative;z-index:1}
+ .main.chess-viewport #screen .chessMobileTools{margin:5px 0 12px!important}
+}
+@media(max-width:385px){
+ #screen .edgyGameRoomCode{flex:0 0 auto}
+ #screen .edgyGameHeading h1{font-size:20px!important}
+ #screen .edgyGameHeadingIcon{font-size:20px;min-width:20px}
+ #screen .edgyMatchMobileTabs button{font-size:11px}
+}
+@media(prefers-reduced-motion:reduce){
+ #screen .edgyGameBack{transition:none!important}
+}
