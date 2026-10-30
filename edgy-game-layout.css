@@ -260,3 +260,64 @@
   min-height:0!important;
  }
 }
+
+/* EDGY v39 — the Chess match reuses the Damas two-panel drawer.
+   These scoped overrides neutralise the former full-height chess sheet only;
+   the board, clocks and desktop stage keep their existing layout. */
+#screen .chessSide .chessOptionPanel,
+#screen .chessSide .chessHistoryPanel{min-width:0}
+#screen .chessSide .chessHistoryPanel>.section.panel{margin:0 0 10px!important}
+#screen .chessSide .chessHistoryPanel>.chessRivalry{margin:0}
+@media(min-width:800px){
+ #screen .chessSide.edgyMatchSide{
+  overflow-x:hidden!important;overflow-y:auto!important;
+  max-height:calc(100dvh - 160px);
+  align-content:start;
+ }
+ #screen .chessSide .chessOptionPanel,
+ #screen .chessSide .chessHistoryPanel{flex:0 0 auto!important}
+}
+@media(max-width:799px){
+ .main.chess-viewport #screen .chessSide.edgyMatchDrawer{
+  display:none!important;
+  position:fixed!important;
+  left:8px!important;right:8px!important;
+  top:auto!important;bottom:calc(76px + env(safe-area-inset-bottom))!important;
+  width:auto!important;max-width:none!important;
+  height:auto!important;max-height:min(74dvh,625px)!important;
+  overflow-y:auto!important;overflow-x:hidden!important;
+  padding:12px!important;
+  border:1px solid #71537c!important;
+  border-radius:6px 6px 0 0!important;
+  background:#211a34!important;
+  box-shadow:0 -18px 65px #0c081ec9!important;
+  transform:none!important;
+  visibility:visible!important;
+  transition:none!important;
+  gap:0!important;
+  z-index:165!important;
+ }
+ .main.chess-viewport #screen[data-game-panel-open="options"] .chessSide.edgyMatchDrawer,
+ .main.chess-viewport #screen[data-game-panel-open="history"] .chessSide.edgyMatchDrawer{
+  display:block!important;
+ }
+ .main.chess-viewport #screen .chessSide.edgyMatchDrawer>.edgyGamePanel[data-game-panel]{
+  display:none!important;
+ }
+ .main.chess-viewport #screen[data-game-panel-open="options"] .chessSide.edgyMatchDrawer>.edgyGamePanel[data-game-panel="options"],
+ .main.chess-viewport #screen[data-game-panel-open="history"] .chessSide.edgyMatchDrawer>.edgyGamePanel[data-game-panel="history"]{
+  display:block!important;
+ }
+ .main.chess-viewport #screen .chessSide.edgyMatchDrawer>.edgyGamePanel{
+  margin:0 0 10px!important;padding:14px!important;
+  min-height:0!important;
+ }
+ .main.chess-viewport #screen .chessSide .chessHistoryPanel>.section.panel{
+  margin:0 0 10px!important;padding:10px!important;
+ }
+ .main.chess-viewport #screen .chessSide .chessHistoryPanel>.chessRivalry{margin:0}
+ .main.chess-viewport #screen .edgyMatchDrawerClose{display:block!important}
+ .main.chess-viewport #screen .edgyMatchMobileTabs{
+  display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));
+ }
+}
