@@ -35,6 +35,7 @@ const sections=new Map();
 function bindMobilePanel(root,{game,sideSelector,optionSelector,historySelector,placementSelector}){
  const side=root.querySelector(sideSelector),placement=root.querySelector(placementSelector);
  if(!side||!placement)return;
+ side.classList.add("edgyMatchDrawer");
  const option=side.querySelector(optionSelector),history=side.querySelector(historySelector);
  if(!option||!history)return;
  option.dataset.gamePanel="options";history.dataset.gamePanel="history";
