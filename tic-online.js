@@ -7,6 +7,7 @@ const api=()=>window.EDGY_auth?.getClient?.(),me=()=>window.EDGY_auth?.getUser?.
 const ui=window.EDGY_platform.createResult({game:"tic",primaryLabel:"Continuar",secondaryLabel:"Rever jogadas",onSecondary:()=>{review=0;render()}});
 const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 function clean(){
+ window.EDGY_gameUI.clearMobilePanel("tic");
  epoch++;if(channel){api()?.removeChannel(channel);channel=null}
  if(poller){clearInterval(poller);poller=null}
  ui.hide();room=null;players=null;busy=false;notice="";review=null;
