@@ -1,5 +1,5 @@
-const CACHE="edgy-v16";
-const ASSETS=["./","./index.html","./manifest.webmanifest","./icon.svg","./config.js?v=5","./auth.js?v=16","./avatar-editor.js?v=7","./players.js?v=16","./chess-pieces.js?v=16","./history.js?v=16","./chess-online.js?v=16"];
+const CACHE="edgy-v17";
+const ASSETS=["./","./index.html","./manifest.webmanifest","./icon.svg","./config.js?v=5","./auth.js?v=17","./avatar-editor.js?v=7","./players.js?v=17","./chess-pieces.js?v=17","./history.js?v=17","./chess-online.js?v=17","./checkers-rules.js?v=17","./checkers-online.js?v=17"];
 self.addEventListener("install",event=>{
  event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS)));
  self.skipWaiting();
