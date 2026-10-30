@@ -1,6 +1,6 @@
 (function(){
 "use strict";
-let Chess=null,room=null,players=null,channel=null,poller=null,selected="",promo=null,busy=false,pending="",engineError="",autoTried=false,clockTimer=null,previewIndex=null,confirmResign=false,myRooms=[],roomsLoading=false,roomLoadError='',timeBase=Date.now(),timeAt=performance.now(),lastCheck=0,rivalry=null,rivalryKey="",rivalryLoading=false,resultSeen=new Set(),drawerOpen=false;
+let Chess=null,room=null,players=null,channel=null,poller=null,selected="",promo=null,busy=false,pending="",engineError="",autoTried=false,clockTimer=null,previewIndex=null,confirmResign=false,timeBase=Date.now(),timeAt=performance.now(),lastCheck=0,rivalry=null,rivalryKey="",rivalryLoading=false,resultSeen=new Set(),drawerOpen=false;
 const glyph={wk:"♔",wq:"♕",wr:"♖",wb:"♗",wn:"♘",wp:"♙",bk:"♚",bq:"♛",br:"♜",bb:"♝",bn:"♞",bp:"♟︎"};
 const x=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const auth=()=>window.EDGY_auth;
@@ -167,33 +167,11 @@ function animatedMove(prev,next){
  };
 }
 
-function open(code){clear();pending=String(code||"").toUpperCase();autoTried=false;myRooms=[];draw();listRooms()}
+function open(code){clear();pending=String(code||"").toUpperCase();autoTried=false;loadEngine();draw()}
 function engine(){if(!Chess)return null;const c=new Chess();if(room?.pgn)c.loadPgn(room.pgn);return c}
 function uri(){const u=new URL(location.href);u.searchParams.set("room",room.code);return u.href}
 function setUri(){history.replaceState(null,"",uri())}
 
-async function listRooms(){
- const me=user();if(!me||!db()||roomsLoading)return;
- roomsLoading=true;roomLoadError="";
- try{
-  const {data,error}=await db().from("chess_rooms").select("code,status,white_id,black_id,base_ms,increment_ms")
-   .or("white_id.eq."+me.id+",black_id.eq."+me.id).in("status",["waiting","active"]).order("created_at",{ascending:false}).limit(25);
-  if(error)throw error;myRooms=data||[];
- }catch(e){roomLoadError=e.message||"Erro ao carregar salas"}
- finally{roomsLoading=false;if(!room)draw()}
-}
-async function cancelRoom(code){
- if(busy)return;
- if(!myRooms.some(r=>r.code===code&&r.white_id===user()?.id&&r.status==="waiting"))return;
- busy=true;notice("A fechar a sala...");
- try{
-  const {data,error}=await window.EDGY_platform.rooms.cancel("chess",code);
-  if(error)throw error;if(!data)throw Error("A sala já não está disponível para fechar");
-  myRooms=myRooms.filter(r=>r.code!==code);
-  notice("Sala fechada.");
- }catch(e){notice(e.message||"Erro a fechar a sala")}
- finally{busy=false;draw()}
-}
 function roomsHtml(){
  return '<section class="chessRoomPanel"><h3>As tuas salas</h3><p class="sub">Partidas com os nomes dos jogadores e convites dentro da aplicação.</p><div id="edgy-chess-rooms"></div></section>';
 }
@@ -277,8 +255,8 @@ function draw(){
   root.querySelectorAll("[data-time]").forEach(b=>b.onclick=()=>{root.querySelectorAll("[data-time]").forEach(n=>n.classList.toggle("active",n===b));[base,inc]=b.dataset.time.split(",").map(Number)});
   root.querySelector("[data-create]").onclick=()=>create(base,inc);
   root.querySelector("[data-join]").onclick=()=>join(root.querySelector("#chessCode").value);
-  root.querySelectorAll("[data-resume]").forEach(el=>el.onclick=()=>load(el.dataset.resume));
-  root.querySelectorAll("[data-cancel-room]").forEach(el=>el.onclick=()=>cancelRoom(el.dataset.cancelRoom));
+
+
   root.querySelector("[data-back]").onclick=()=>nav("games");window.EDGY_social?.renderRooms("edgy-chess-rooms","chess");return;
  }
  const black=user()?.id===room.black_id,upper=black?"w":"b",lower=black?"b":"w",control=(room.base_ms/60000)+"+"+(room.increment_ms/1000);
@@ -346,5 +324,13 @@ document.addEventListener("keydown",e=>{if(game!=="chess"||!room||e.altKey||e.ct
 window.EDGY_chess={open,close,render:draw};
 const incoming=new URLSearchParams(location.search).get("room");
 if(incoming&&/^[0-9a-f]{8}$/i.test(incoming)){game="chess";open(incoming)}
-import("https://cdn.jsdelivr.net/npm/chess.js@1.4.0/dist/esm/chess.js").then(m=>{Chess=m.Chess;draw()}).catch(e=>{console.error("chess engine",e);engineError="Não foi possível carregar o motor de xadrez. Atualiza a página.";draw()});
+let chessEngineLoading=false;
+function loadEngine(){
+ if(Chess||chessEngineLoading)return;
+ chessEngineLoading=true;
+ import("https://cdn.jsdelivr.net/npm/chess.js@1.4.0/dist/esm/chess.js")
+ .then(m=>{Chess=m.Chess;engineError="";if(game==="chess")draw()})
+ .catch(e=>{console.error("chess engine",e);engineError="Não foi possível carregar o motor de xadrez. Atualiza a página.";if(game==="chess")draw()})
+ .finally(()=>{chessEngineLoading=false});
+}
 })();
