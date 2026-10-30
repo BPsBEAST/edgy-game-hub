@@ -9,7 +9,7 @@ const dir=path.resolve(path.dirname(fileURLToPath(import.meta.url)),"..");
 const read=file=>fs.readFileSync(path.join(dir,file),"utf8");
 const html=read("index.html");
 const app=read("app.js");
-const gameFiles=["app.js","edgy-platform.js","players.js","social.js","history.js","chess-online.js","checkers-replay.js","checkers-online.js","tic-online.js","auth.js","sw.js"];
+const gameFiles=["app.js","edgy-platform.js","edgy-game-ui.js","players.js","social.js","history.js","chess-online.js","checkers-replay.js","checkers-online.js","tic-online.js","auth.js","sw.js"];
 test("All app scripts and inline bootstrap parse successfully",()=>{
  for(const file of gameFiles)assert.doesNotThrow(()=>new vm.Script(read(file),{filename:file}),file);
  const scripts=[...html.matchAll(/<script([^>]*)>([\s\S]*?)<\/script>/g)];
@@ -23,10 +23,10 @@ test("Every local asset referenced by the bootstrap exists",()=>{
  const names=[...assets.matchAll(/"([^"]+)"/g)].map(m=>m[1]);
  for(const name of names)assert.ok(fs.existsSync(path.join(dir,name.split("?")[0])),name);
  assert.ok(names.includes("./edgy-platform.js?v=32"),"shared platform cached");
- assert.ok(names.includes("./app.js?v=34"),"bootstrap cached");
+ assert.ok(names.includes("./app.js?v=35"),"bootstrap cached");
  assert.ok(names.includes("./base.css?v=29"),"base stylesheet cached");
  assert.ok(names.includes("./edgy-theme.css?v=34"),"design cached");
- assert.ok(names.includes("./tic-online.js?v=34"),"online tic cached");
+ assert.ok(names.includes("./tic-online.js?v=35"),"online tic cached");
  assert.ok(names.includes("./checkers-replay.js?v=33"),"checkers replay cached");
 });
 test("Navigation keeps Histórico only inside Perfil",()=>{
@@ -165,7 +165,7 @@ test("Stable footer, profile replay links and chess mobile actions",()=>{
 test("Game library uses a single registry loaded before bootstrap",()=>{
  const scripts=[...html.matchAll(/<script[^>]*src="([^"]+)"/g)].map(m=>m[1]);
  const platform=scripts.indexOf("./edgy-platform.js?v=32");
- const bootstrap=scripts.indexOf("./app.js?v=34");
+ const bootstrap=scripts.indexOf("./app.js?v=35");
  assert.ok(platform>=0&&bootstrap>=0&&platform<bootstrap);
  const app=read("app.js"),defs=read("edgy-platform.js");
  assert.ok(app.includes("Object.values(window.EDGY_platform.games).map("));
@@ -236,28 +236,61 @@ test("Public profile opens at the top and routes all three game replays",()=>{
 });
 
 
-test("Jogo do Galo uses common online game lobby and the room registry",()=>{
- const tic=read("tic-online.js"),css=read("edgy-theme.css"),social=read("social.js");
- assert.ok(tic.includes('class="panel edgyTicLobby"'));
- assert.ok(tic.includes("<h3>Criar partida online</h3>"));
- assert.ok(tic.includes("<h3>Entrar numa sala</h3>"));
+test("Jogo do Galo uses the shared lobby renderer and rooms",()=>{
+ const tic=read("tic-online.js"),social=read("social.js");
+ assert.ok(tic.includes('window.EDGY_gameUI.header("tic"'));
+ assert.ok(tic.includes('window.EDGY_gameUI.card("Criar partida online"'));
+ assert.ok(tic.includes('window.EDGY_gameUI.card("Entrar numa sala"'));
+ assert.ok(tic.includes('window.EDGY_gameUI.card("As tuas salas"'));
  assert.ok(tic.includes('id="edgy-tic-rooms"'));
  assert.ok(tic.includes('window.EDGY_social?.renderRooms?.("edgy-tic-rooms","tic")'));
  assert.ok(tic.includes('window.EDGY_ticLocal?.()'));
  assert.ok(social.includes('["edgy-tic-rooms","tic"]'));
- assert.ok(css.includes('#screen.edgyLobby .edgyTicLobby{'));
- assert.ok(css.includes('#screen.edgyLobby .edgyTicCode{'));
 });
-test("Chess mobile game menu is above the board and never fixed over review buttons",()=>{
- const chess=read("chess-online.js"),css=read("edgy-theme.css");
- const markup=chess.slice(chess.indexOf("root.innerHTML=\u0027<div class=\"chessWrap\"><div class=\"chessMatchHeader\""));
- assert.ok(markup.includes('<div class="chessMatchHeader"'));
- assert.ok(markup.indexOf('class="chessMobileTools"') < markup.indexOf('class="chessMainGrid"'));
- assert.ok(markup.indexOf('class="chessMobileTools"') >= 0);
- assert.ok(markup.indexOf('class="chessMainGrid"') >= 0);
- assert.equal(chess.split('<div class="chessMobileTools">').length-1,1);
- assert.ok(css.includes('position:static!important;display:grid!important;'));
- assert.ok(css.includes('.main.chess-viewport #screen .chessReviewControls{'));
- assert.ok(css.includes('.main.chess-viewport .top{'));
- assert.ok(!css.includes('position:fixed!important;left:9px;right:9px;'));
+test("Chess mobile panel is before the match shell and retains history actions",()=>{
+ const chess=read("chess-online.js"),css=read("edgy-game-layout.css");
+ assert.ok(chess.includes('window.EDGY_gameUI.header("chess"'));
+ assert.ok(chess.includes('window.EDGY_gameUI.match({game:"chess"'));
+ assert.ok(chess.includes('<div class="chessMobileTools">'));
+ assert.ok(chess.includes('reviewControls()'));
+ assert.ok(chess.includes('button.dataset.sheetTab=tab'));
+ assert.ok(css.includes('#screen .edgyMatchStage'));
+ assert.ok(css.includes('#screen .edgyMatchSide'));
+});
+test("All games share one header, lobby cards and match presentation",()=>{
+ const html=read("index.html"),ui=read("edgy-game-ui.js"),css=read("edgy-game-layout.css");
+ assert.ok(html.includes('edgy-game-ui.js?v=35'));
+ assert.ok(html.includes('edgy-game-layout.css?v=35'));
+ for(const game of ["chess","checkers","tic","reaction"])assert.ok(ui.includes(game+':{title:'));
+ for(const file of ["chess-online.js","checkers-online.js","tic-online.js","app.js"]){
+  const src=read(file);
+  assert.ok(src.includes('window.EDGY_gameUI.header('),file);
+  assert.ok(src.includes('window.EDGY_gameUI.match('),file);
+ }
+ for(const file of ["chess-online.js","checkers-online.js","tic-online.js"]){
+  assert.ok(read(file).includes('window.EDGY_gameUI.card('),file);
+ }
+ assert.ok(css.includes('#screen .edgyGameHeaderRow'));
+ assert.ok(css.includes('#screen .edgyGamePanel'));
+ assert.ok(css.includes('#screen .edgyMatchLayout'));
+});
+test("Universal renderer escapes user text and keeps consistent structure",()=>{
+ const code=read("edgy-game-ui.js"),ctx={window:{},document:{}};
+ vm.runInNewContext(code,ctx);
+ const ui=ctx.window.EDGY_gameUI;
+ const header=ui.header("chess",{room:'<script>alert(1)</script>',intro:"Teste"});
+ assert.ok(header.includes('class="edgyGameHeader"'));
+ assert.ok(!header.includes("<script>"));
+ assert.ok(header.includes('&lt;script&gt;'));
+ const panel=ui.card('Criar partida','<button>OK</button>',{description:'Sala privada'});
+ assert.ok(panel.includes('edgyGamePanel'));
+ assert.ok(panel.includes('<button>OK</button>'));
+ assert.ok(ui.match({game:"checkers",stage:"TABULEIRO",side:"OPÇÕES"}).includes('class="edgyMatchSide'));
+});
+test("Damas and Galo use one mobile options/history panel implementation",()=>{
+ const ui=read("edgy-game-ui.js"),css=read("edgy-game-layout.css");
+ for(const file of ["checkers-online.js","tic-online.js"])assert.ok(read(file).includes('window.EDGY_gameUI.bindMobilePanel('));
+ assert.ok(ui.includes('function bindMobilePanel('));
+ assert.ok(css.includes('#screen .edgyMatchSide.edgyMatchDrawer'));
+ assert.ok(css.includes('[data-game-panel-open="history"]'));
 });
