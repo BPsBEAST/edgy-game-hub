@@ -2,7 +2,7 @@
 "use strict";
 const db=()=>window.EDGY_auth?.getClient(),me=()=>window.EDGY_auth?.getUser();
 const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const gameName=g=>g==="chess"?"Xadrez":"Damas";
+const gameName=g=>window.EDGY_platform?.games?.[g]?.title||"Jogo";
 const statusName=s=>({waiting:"À espera",active:"Em curso",white_win:"Terminada",black_win:"Terminada",draw:"Empate"}[s]||s);
 let inbox=[],loading=false,currentUser="",modalMode="",roomGame="",roomCode="",request=0,debounce=null,working=false;
 const modal=document.createElement("div");modal.className="edgySocialOverlay";modal.hidden=true;
@@ -75,14 +75,14 @@ async function send(playerId){
 }
 function openInvite(game,code){
  if(!me()||me().is_anonymous){openModal("Convites internos","Precisas de uma conta para convidar jogadores.","info");return}
- if(!["chess","checkers"].includes(game)||!/^[0-9A-F]{8}$/i.test(code||""))return;
+ if(!window.EDGY_platform?.games?.[game]?.online||!/^[0-9A-F]{8}$/i.test(code||""))return;
  roomGame=game;roomCode=String(code).toUpperCase();
  openModal("Convidar jogador",gameName(game)+" · Sala "+roomCode,"picker");picker("");
 }
 
 /* Only games with a working online invite backend appear here.
    New multiplayer games can be added to this registry without changing public profiles. */
-const CHALLENGE_GAMES=Object.values(window.EDGY_platform.games).filter(g=>g.online).map(g=>({...g,name:g.title,description:g.id==="chess"?"Estratégia · 2 jogadores · 10+0":"Estratégia · 2 jogadores · 8×8"}));
+const CHALLENGE_GAMES=Object.values(window.EDGY_platform.games).filter(g=>g.online).map(g=>({...g,name:g.title,description:g.id==="chess"?"Estratégia · 2 jogadores · 10+0":g.id==="checkers"?"Estratégia · 2 jogadores · 8×8":"Estratégia · 2 jogadores · Online"}));
 function openChallenge(playerId,playerName="jogador"){
  if(!me()||me().is_anonymous){openModal("Desafiar jogador","Entra numa conta para desafiar jogadores.","info");msg("Os convites internos requerem uma conta registada.");return}
  if(!playerId||playerId===me().id)return;
@@ -131,7 +131,7 @@ async function createAndInvite(game,playerId){
 }
 function roomCard(r){
  const waiting=r.status==="waiting",owner=r.white_id===me()?.id;
- const pace=r.game==="chess"?Math.round((r.base_ms||600000)/60000)+"+"+Math.round((r.increment_ms||0)/1000):"8×8";
+ const pace=r.game==="chess"?Math.round((r.base_ms||600000)/60000)+"+"+Math.round((r.increment_ms||0)/1000):r.game==="checkers"?"8×8":"3×3";
  return '<article class="edgyRoom"><div class="edgyRoomInfo"><strong>'+gameName(r.game)+' <span class="edgyRoomStatus '+esc(r.status)+'">· '+statusName(r.status)+'</span></strong><p>'+esc(r.white_name)+' <span>vs</span> '+esc(r.black_name||"À espera de jogador")+'</p><small>'+esc(r.code)+' · '+pace+'</small></div><div class="edgyRoomActions"><button class="edgySocialPrimary" data-open="'+r.game+'|'+esc(r.code)+'">'+(waiting?"Abrir":r.status==="active"?"Retomar":"Rever")+'</button>'+(waiting&&owner?'<button class="edgySocialAlt" data-invite="'+r.game+'|'+esc(r.code)+'">Convidar</button><button class="edgySocialAlt" data-cancel="'+r.game+'|'+esc(r.code)+'">Fechar</button>':"")+'</div></article>';
 }
 async function renderRooms(id,game=null){
@@ -155,7 +155,7 @@ async function renderRooms(id,game=null){
  }catch(e){if(host.isConnected)host.innerHTML='<p class="edgyRoomsEmpty">Erro ao carregar salas: '+esc(e.message)+'</p>'}
 }
 function refreshRoomsOnPage(){
- for(const [id,game] of [["edgy-home-rooms",null],["edgy-all-rooms",null],["edgy-chess-rooms","chess"],["edgy-checkers-rooms","checkers"]]){
+ for(const [id,game] of [["edgy-home-rooms",null],["edgy-all-rooms",null],["edgy-chess-rooms","chess"],["edgy-checkers-rooms","checkers"],["edgy-tic-rooms","tic"]]){
   if(document.getElementById(id))renderRooms(id,game);
  }
 }
