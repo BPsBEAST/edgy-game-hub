@@ -13,6 +13,8 @@ function captures(board,position,turn){
  if(!p)return opts;
  for(const [dr,dc] of dirs){
   if(!king){
+   // EDGY: ordinary pieces capture forward only. Kings remain bidirectional.
+   if(turn==="w"?dr!==-1:dr!==1)continue;
    const a=r+dr,b=c+dc,n=r+2*dr,m=c+2*dc;
    if(ok(n,m)&&foe(board[idx(a,b)],turn)&&board[idx(n,m)]===null)opts.push({to:idx(n,m),capture:idx(a,b)});
   }else{
