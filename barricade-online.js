@@ -36,6 +36,51 @@ async function loadPlayers(){
  const {data,error}=await window.EDGY_platform.rooms.players("barricade",room.code);
  if(!error)players=data;
 }
+/* Animate only confirmed server updates, never a speculative or rejected move.
+   FLIP measures the old/new pawn rectangles, so the animation remains accurate
+   when the mobile board resizes or is rotated for the blue player. */
+function captureBoardVisuals(){
+ const root=document.querySelector("#screen .brBoard");
+ if(!root)return null;
+ const center=color=>{
+  const rect=root.querySelector(".brPawn."+color)?.getBoundingClientRect();
+  return rect?{x:rect.left+rect.width/2,y:rect.top+rect.height/2}:null;
+ };
+ return {red:center("red"),blue:center("blue")};
+}
+function animateConfirmedTurn(previous,next,oldVisuals){
+ if(!oldVisuals||review!==null||next.ply<=previous.ply)return;
+ if(window.matchMedia?.("(prefers-reduced-motion: reduce)").matches)return;
+ const root=document.querySelector("#screen .brBoard");
+ if(!root)return;
+ for(const [color,field] of [["red","red_pos"],["blue","blue_pos"]]){
+  if(previous[field]===next[field]||!oldVisuals[color])continue;
+  const pawn=root.querySelector(".brPawn."+color);
+  if(!pawn||typeof pawn.animate!=="function")continue;
+  const rect=pawn.getBoundingClientRect();
+  const dx=oldVisuals[color].x-(rect.left+rect.width/2);
+  const dy=oldVisuals[color].y-(rect.top+rect.height/2);
+  if(!Number.isFinite(dx)||!Number.isFinite(dy))continue;
+  const square=pawn.closest(".brCell");
+  square?.classList.add("brCellMoving");
+  const animation=pawn.animate([
+   {transform:"translate("+dx+"px,"+dy+"px) scale(.94)",opacity:.82},
+   {transform:"translate(0,0) scale(1)",opacity:1}
+  ],{duration:310,easing:"cubic-bezier(.18,.85,.22,1)",fill:"both"});
+  animation.onfinish=()=>{square?.classList.remove("brCellMoving");animation.cancel()};
+ }
+ const prior=new Set((previous.walls||[]).map(w=>w.r+"-"+w.c+"-"+w.o));
+ for(const wall of next.walls||[]){
+  const key=wall.r+"-"+wall.c+"-"+wall.o;
+  if(prior.has(key))continue;
+  const element=root.querySelector('[data-br-wall-key="'+key+'"]');
+  if(typeof element?.animate!=="function")continue;
+  element.animate([
+   {opacity:0,transform:wall.o==="h"?"scaleX(.35)":"scaleY(.35)",filter:"brightness(1.8)"},
+   {opacity:1,transform:"scale(1)",filter:"brightness(1)"}
+  ],{duration:300,easing:"cubic-bezier(.17,.82,.25,1)"});
+ }
+}
 function subscribe(){
  if(!room||!api())return;
  if(channel)api().removeChannel(channel);
@@ -50,9 +95,11 @@ async function refresh(){
  const {data}=await api().from("barricade_rooms").select("*").eq("id",previous.id).maybeSingle();
  if(token!==epoch||!room||!data)return;
  if(data.updated_at===room.updated_at&&data.ply===room.ply&&data.status===room.status)return;
+ const oldVisuals=review===null&&data.ply>previous.ply?captureBoardVisuals():null;
  room=data;
  if(data.black_id!==previous.black_id)await loadPlayers();
  draw();
+ animateConfirmedTurn(previous,data,oldVisuals);
  if(previous.status==="active"&&room.status!=="active"){
   finished();window.EDGY_auth?.refreshProfile?.();
  }
@@ -97,7 +144,14 @@ async function act(payload){
   }
   message="";
  }catch(e){message=e.message||"Falha de ligação"}
- finally{busy=false;await refresh();draw()}
+ finally{
+  busy=false;
+  const plyBefore=room?.ply;
+  await refresh();
+  // refresh() already redraws a successful move and starts its animation.
+  // Only redraw here when no server update arrived (e.g. a rejected action).
+  if(room?.ply===plyBefore)draw();
+ }
 }
 async function resign(){
  if(!await window.EDGY_platform.confirmAction({title:"Desistir da partida?",message:"A partida será terminada e o adversário vence.",confirmLabel:"Desistir"}))return;
@@ -131,7 +185,7 @@ function wallsHTML(snapshot){
  let html="";
  for(const w of walls){
   const r=flip?7-w.r:w.r,c=flip?7-w.c:w.c;
-  html+='<span class="brWall brWall-'+w.o+'" style="grid-row:'+(2*r+(w.o==="h"?2:1))+(w.o==="h"?"":"/span 3")+';grid-column:'+(2*c+(w.o==="h"?1:2))+(w.o==="h"?"/span 3":"")+'"></span>';
+  html+='<span class="brWall brWall-'+w.o+'" data-br-wall-key="'+w.r+'-'+w.c+'-'+w.o+'" style="grid-row:'+(2*r+(w.o==="h"?2:1))+(w.o==="h"?"":"/span 3")+';grid-column:'+(2*c+(w.o==="h"?1:2))+(w.o==="h"?"/span 3":"")+'"></span>';
   // Position wall across 2 cells, anchored at their shared gap.
  }
  return html;
