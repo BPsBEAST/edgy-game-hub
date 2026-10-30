@@ -203,12 +203,13 @@ function draw(){
   +'<button type="button" data-br-orientation="v" class="'+(tool==="wall"&&orientation==="v"?"active":"")+'">Barreira │</button></div>';
  const stage=player(opp)+boardHTML(snapshot)+player(current)
   +(active&&turn?toolbar:'<p class="brStageHint">'+(review!==null?"A rever uma jogada. Seleciona «Ao vivo» para voltar.":esc(status()))+'</p>')
+  +(message?'<p class="brMessage" role="alert">'+esc(message)+'</p>':"")
   +'<p class="brRulesHint">Alcança o lado oposto. As barreiras não podem eliminar todos os caminhos.</p>';
  const side=ui().card("Partida & opções",'<p class="brStatus">'+esc(status())+'</p><div class="brActions"><button type="button" class="brPrimary" data-br-copy>Copiar convite</button>'
   +(room.status==="waiting"&&room.white_id===me()?.id?'<button type="button" class="secondary" data-br-invite>Convidar jogador</button>':"")
   +(room.status==="active"?'<button type="button" class="secondary" data-br-resign>Desistir</button>':"")+'</div>',{className:"brOptionPanel"})
   +ui().card("Jogadas & histórico",historyHTML(),{className:"brHistoryPanel"})
-  +(message?'<p class="brMessage" role="status">'+esc(message)+'</p>':"");
+  ;
  root.innerHTML='<div class="brWrap edgyGamePage">'+header+ui().match({game:"barricade",stage,side,layoutClass:"brLayout",stageClass:"brStage",sideClass:"brSide"})+'</div>';
  ui().bindMobilePanel(root,{game:"barricade",sideSelector:".brSide",optionSelector:".brOptionPanel",historySelector:".brHistoryPanel",placementSelector:".edgyGameHeader"});
  bind(root);
