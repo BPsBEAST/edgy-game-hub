@@ -92,6 +92,65 @@
  #screen .brSide.edgyMatchDrawer{max-width:none!important;width:auto!important}
  #screen .brHistoryList{max-height:34dvh}
 }
-@media(prefers-reduced-motion:reduce){
- #screen .brCell,#screen .brWall,#screen .brSlot{transition:none!important;animation:none!important}
+/* EDGY v47 — subtle, GPU-friendly feedback, only inside Barricade.
+   Movement and new walls animate after successful server confirmation in JS. */
+#screen .brCell{
+ transition:background-color .18s ease,border-color .18s ease,box-shadow .18s ease;
 }
+#screen .brCell.brCellMoving{
+ z-index:10!important;
+ overflow:visible!important;
+}
+#screen .brCell.brLegal{
+ box-shadow:inset 0 0 0 1px #f86cad51;
+}
+#screen .brCell.brLegal::after{
+ animation:brLegalHint 1.35s ease-out 1;
+}
+#screen .brCell.brLegal:hover,
+#screen .brCell.brLegal:focus-visible{
+ background:#78466e;
+ border-color:#ff7cbe;
+ box-shadow:inset 0 0 0 1px #ff9bcf;
+}
+#screen .brSlot::after{
+ transition:background-color .14s ease,box-shadow .14s ease,opacity .14s ease;
+}
+#screen .brPlayer{
+ transition:border-color .2s ease,background-color .2s ease,box-shadow .2s ease;
+}
+#screen .brPlayer.isTurn{
+ box-shadow:inset 3px 0 0 #f3389a;
+}
+#screen .brToolbar button,#screen .brReview button,
+#screen .brPrimary,#screen .brHistoryList button{
+ transition:background-color .17s ease,border-color .17s ease,box-shadow .17s ease,transform .17s ease;
+}
+#screen .brToolbar button:hover:not(:disabled),
+#screen .brReview button:hover:not(:disabled),
+#screen .brHistoryList button:hover:not(:disabled){
+ border-color:#ee6dad;
+ background:#51324e;
+}
+#screen .brPrimary:hover:not(:disabled){
+ filter:brightness(1.08);
+ box-shadow:0 6px 18px #d90d7950;
+}
+#screen .brToolbar button:active:not(:disabled),
+#screen .brReview button:active:not(:disabled),
+#screen .brPrimary:active:not(:disabled){
+ transform:scale(.97);
+}
+@keyframes brLegalHint{
+ 0%{opacity:.35;transform:scale(.65)}
+ 40%{opacity:.9;transform:scale(1.12)}
+ 100%{opacity:1;transform:scale(1)}
+}
+@media(prefers-reduced-motion:reduce){
+ #screen .brCell,#screen .brWall,#screen .brSlot,
+ #screen .brSlot::after,#screen .brPlayer,#screen .brToolbar button,
+ #screen .brReview button,#screen .brPrimary,#screen .brHistoryList button{
+  transition:none!important;animation:none!important
+ }
+}
+
