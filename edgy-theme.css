@@ -1,0 +1,62 @@
+
+/* EDGY v23 — tactical-console-inspired restrained rectangular surfaces.
+   Only the layout, not any third-party branding or artwork, is referenced. */
+:root{--panel:#211a34;--panel2:#2a213f;--line:#43344f;--pink:#f00975}
+.panel,.game,.sideBtn,.primary,.secondary,.field,.notice,.pill,.filters button,.answers button,.cell,
+.chessRoomPanel,.chessRoomRow,.chessBtn,.chessSubBtn,.chessInput,.chessClockBox,.chessClockTime,
+.chessStatus,.chessSide .section,.chessMoveButton,.chessControlSelect button,.chessMatchHeader button,
+.ckPanel,.ckP,.ckBtn,.ckAlt,.ckInput,.ckHead button,.historyStat,.historyCard,
+.edHistoryCard,.edHistoryStat,.edReplayCard,.edReplayFact,.edReplayClose,.edReplayControls button,
+.playerCard,.playerStat,.playerSearch,.playerModal,.edgyBioField textarea,.edgyRoom,.edgyBell,
+.edgySocialAction,.edgySocialAlt{border-radius:3px!important}
+.hero{background:linear-gradient(115deg,#2a2042,#241a37 70%)}
+.game .art{background:#2a2143!important;min-height:115px}
+.game:nth-child(even) .art{background:#302346!important}
+.game:hover{transform:translateY(-2px);border-color:#e1338e}
+.game{border-color:#413251;box-shadow:none}
+.gameBody{border-top:1px solid #493454}
+.panel,.chessRoomPanel,.ckPanel{border:1px solid #463751;background:#211a35}
+.primary,.chessBtn,.ckBtn{background:linear-gradient(110deg,#f20770,#c000a0);box-shadow:none}
+.sideBtn.active{border-left:3px solid #f22490;background:#2d223d;color:#fb75b3}
+.pill{border-radius:3px;color:#eaa6ce}
+.filters button.active,.chessControlSelect button.active{background:#65274d;border-color:#c93a87}
+.edgyBell{position:relative;display:grid;place-items:center;width:39px;height:39px;border:1px solid #584266;background:#29203a;color:#fff;border-radius:3px;margin-right:9px}
+.edgyBellCount{position:absolute;right:-5px;top:-6px;min-width:17px;padding:2px 5px;border-radius:9px;color:#fff;background:#e31374;font-size:10px;font-weight:850}
+.edgyBellCount[hidden]{display:none!important}
+.edgySocialOverlay{position:fixed;z-index:200;inset:0;display:grid;place-items:center;padding:15px;background:#0e091de0;backdrop-filter:blur(10px)}
+.edgySocialOverlay[hidden]{display:none!important}
+.edgySocialDialog{width:min(100%,500px);max-height:85dvh;overflow-y:auto;background:#211a35;border:1px solid #63446b;border-top:3px solid #ef298f;border-radius:3px;padding:18px;box-shadow:0 25px 80px #080314bd}
+.edgySocialHead{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;padding-bottom:13px;margin-bottom:14px;border-bottom:1px solid #493652}
+.edgySocialHead h2{margin:0 0 6px;font-size:21px}
+.edgySocialHead p{margin:0;color:#afa0c1;font-size:12px}
+.edgySocialAlt,.edgySocialPrimary{font-size:12px;font-weight:750;padding:9px 11px;min-height:36px;color:#fff;border-radius:3px;cursor:pointer}
+.edgySocialAlt{background:#352942;border:1px solid #654a70}
+.edgySocialPrimary{background:#992e70;border:1px solid #d54591}
+.edgySocialAlt:hover,.edgySocialPrimary:hover{filter:brightness(1.1)}
+.edgySocialInput{width:100%;padding:12px 13px;color:#fff;border:1px solid #654b70;background:#141025;border-radius:3px;margin-bottom:12px}
+.edgySocialFeedback{font-size:12px;color:#ffaed0;min-height:14px;margin:12px 0 0}
+.edgyInvite,.edgySocialUser{display:flex;gap:10px;align-items:center;border-bottom:1px solid #493552;padding:12px 0}
+.edgySocialUser>span{flex:1;min-width:0}
+.edgySocialUser strong,.edgyInvite strong{font-size:13px;display:block}
+.edgySocialUser small,.edgyInvite small{font-size:11px;color:#b6a5c4;display:block;margin-top:5px}
+.edgyInviteControls{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.edgyRooms{border:1px solid #4e385a;display:grid;gap:1px;background:#493751}
+.edgyRoom{padding:13px;background:#251c38;display:flex;gap:13px;align-items:center;flex-wrap:wrap}
+.edgyRoomInfo{flex:1;min-width:170px}
+.edgyRoomInfo strong{font-size:13px}
+.edgyRoomInfo p{font-size:12px;color:#e1d3eb;margin:7px 0}
+.edgyRoomInfo p span{color:#8c7c9f}
+.edgyRoomInfo small{font-size:11px;color:#a99aba}
+.edgyRoomStatus{font-weight:700;font-size:11px;color:#c4b4d2}
+.edgyRoomStatus.active{color:#82dab1}.edgyRoomStatus.waiting{color:#ffa5ce}
+.edgyRoomActions{display:flex;gap:6px;flex-wrap:wrap}
+.edgyRoomsEmpty{padding:16px;background:#251c38;border:1px solid #4c3858;color:#b7a8c7;font-size:12px}
+.edgyRoomsTitle{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:13px}
+.edgyRoomsTitle h3{margin:0}
+.edgyGameIcon{display:grid;place-items:center;color:#fff;width:55px;height:55px}
+.edgyGameIcon svg{width:50px;height:50px;stroke:#f9f7ff;fill:none;stroke-width:1.6;stroke-linejoin:round;stroke-linecap:round}
+.edgyGameIconChess{font-size:55px;line-height:1;color:#fff;font-family:"Segoe UI Symbol",serif}
+.edgyGameIconDamas svg{width:52px;height:52px}
+.edgyGameIconReflexos svg{width:50px;height:50px}
+.chessWrap .panel,.ckWrap .ckPanel{border-radius:3px!important}
+@media(max-width:430px){.edgyRoomActions{width:100%}.edgyRoomActions button{flex:1}.edgySocialDialog{padding:15px}.edgyGameIcon{width:43px;height:43px}.edgyGameIcon svg{width:40px;height:40px}}
