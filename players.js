@@ -25,7 +25,7 @@ function avatar(p){
 }
 async function openById(id){
  if(!sb()||!user()){window.EDGY_auth?.showEntry();return}
- const ticket=++profileRequest;clearTimeout(closingTimer);modal.classList.remove("isClosing");if(modal.hidden)returnFocus=document.activeElement;modal.hidden=false;document.body.classList.add("edgyProfileModalOpen");modal.querySelector(".playerClose").focus({preventScroll:true});const el=modal.querySelector("#edgy-player-info");el.innerHTML='<p class="sub">A carregar perfil…</p>';
+ const ticket=++profileRequest;clearTimeout(closingTimer);modal.classList.remove("isClosing");if(modal.hidden)returnFocus=document.activeElement;modal.hidden=false;modal.querySelector(".playerDialog").scrollTop=0;document.body.classList.add("edgyProfileModalOpen");modal.querySelector(".playerClose").focus({preventScroll:true});const el=modal.querySelector("#edgy-player-info");el.innerHTML='<p class="sub">A carregar perfil…</p>';
  try{
  const {data:p,error}=await sb().rpc("edgy_player_profile",{p_player_id:id});
  if(ticket!==profileRequest||modal.hidden)return;
@@ -58,12 +58,9 @@ async function openById(id){
    h2h.querySelectorAll("[data-replay]").forEach(b=>b.onclick=()=>{
     const [kind,code]=b.dataset.replay.split("|");
     closeProfile();
-    if(kind==="chess"){
-     nav("history");
-     window.EDGY_history?.openByCode(code);
-    }else if(window.EDGY_platform?.games?.[kind]?.online){
-     window.EDGY_openRoom?.(kind,code);
-    }
+    if(kind==="checkers")window.EDGY_checkersReplay?.open(code);
+    else if(kind==="chess")window.EDGY_history?.openByCode(code);
+    else if(kind==="tic")window.EDGY_history?.openByCode("tic",code);
    });
   }catch(err){h2h.innerHTML='<div class="playerH2HUnavailable">Confrontos indisponíveis neste momento.</div>'}
  }
