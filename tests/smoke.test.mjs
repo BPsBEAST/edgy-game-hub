@@ -21,8 +21,8 @@ test("Every local asset referenced by the bootstrap exists",()=>{
  assert.ok(assets);
  const names=[...assets.matchAll(/"([^"]+)"/g)].map(m=>m[1]);
  for(const name of names)assert.ok(fs.existsSync(path.join(dir,name.split("?")[0])),name);
- assert.ok(names.includes("./edgy-platform.js?v=27"),"shared platform cached");
- assert.ok(names.includes("./edgy-theme.css?v=27"),"design cached");
+ assert.ok(names.includes("./edgy-platform.js?v=28"),"shared platform cached");
+ assert.ok(names.includes("./edgy-theme.css?v=28"),"design cached");
 });
 test("Navigation keeps Histórico only inside Perfil",()=>{
  const sidebar=html.split('<aside class="sidebar">')[1].split("</aside>")[0];
