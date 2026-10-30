@@ -43,17 +43,17 @@ async function openById(id){
   h2h.innerHTML='<div class="playerH2HLoading">A consultar confrontos…</div>';
   el.append(h2h);
   try{
-   const {data:head,error:h2hError}=await sb().rpc("edgy_chess_head_to_head",{p_opponent:p.id});
+   const {data:head,error:h2hError}=await sb().rpc("edgy_head_to_head_all",{p_opponent:p.id});
    if(h2hError)throw h2hError;
    if(ticket!==profileRequest||!h2h.isConnected)return;
    const results=Array.isArray(head?.games)?head.games:[];
    const wins=Number(head?.wins||0),draws=Number(head?.draws||0),losses=Number(head?.losses||0),total=wins+draws+losses;
-   h2h.innerHTML='<details class="playerH2HDetails"><summary><span class="playerH2HSummaryInfo"><strong>Confrontos contigo</strong><small>'+(total?total+' partida'+(total!==1?'s':'')+' no Xadrez':'Ainda sem partidas no Xadrez')+'</small></span><span class="playerH2HScore" aria-label="'+wins+' vitórias, '+draws+' empates, '+losses+' derrotas"><b>'+wins+'</b><span>V</span><i>·</i><b>'+draws+'</b><span>E</span><i>·</i><b>'+losses+'</b><span>D</span></span><span class="playerH2HChevron" aria-hidden="true">⌄</span></summary><div class="playerH2HContent"><p class="playerH2HHint">Resultados das últimas partidas entre vocês (Xadrez).</p>'+(results.length?'<ul class="playerHistory">'+results.slice(0,8).map(g=>'<li><button type="button" class="playerReplayLink" data-replay="'+esc(g.code)+'"><span>'+esc(({win:"Vitória",loss:"Derrota",draw:"Empate"})[g.outcome]||"Partida")+' · '+Number(g.moves||0)+' lances</span><span>'+new Date(g.date).toLocaleDateString("pt-PT")+' · Ver partida →</span></button></li>').join("")+'</ul>':'<p class="sub">Ainda não jogaram uma partida completa entre vocês.</p>')+'</div></details>';
+   h2h.innerHTML='<details class="playerH2HDetails"><summary><span class="playerH2HSummaryInfo"><strong>Confrontos contigo</strong><small>'+(total?total+' partida'+(total!==1?'s':'')+' entre vocês':'Ainda sem partidas entre vocês')+'</small></span><span class="playerH2HScore" aria-label="'+wins+' vitórias, '+draws+' empates, '+losses+' derrotas"><b>'+wins+'</b><span>V</span><i>·</i><b>'+draws+'</b><span>E</span><i>·</i><b>'+losses+'</b><span>D</span></span><span class="playerH2HChevron" aria-hidden="true">⌄</span></summary><div class="playerH2HContent"><p class="playerH2HHint">Resultados das partidas entre vocês.</p>'+(results.length?'<ul class="playerHistory">'+results.slice(0,16).map(g=>'<li><button type="button" class="playerReplayLink" data-replay="'+esc(g.game)+'|'+esc(g.code)+'"><span>'+esc(window.EDGY_platform?.games?.[g.game]?.title||g.game)+' · '+esc(({win:"Vitória",loss:"Derrota",draw:"Empate"})[g.outcome]||"Partida")+' · '+Number(g.moves||0)+' lances</span><span>'+new Date(g.date).toLocaleDateString("pt-PT")+' · Ver partida →</span></button></li>').join("")+'</ul>':'<p class="sub">Ainda não jogaram uma partida completa entre vocês.</p>')+'</div></details>';
    h2h.querySelectorAll("[data-replay]").forEach(b=>b.onclick=()=>{
-    const code=b.dataset.replay;
+    const [kind,code]=b.dataset.replay.split("|");
     closeProfile();
-    nav("history");
-    window.EDGY_history?.openByCode(code);
+    if(kind==="chess"){nav("history");window.EDGY_history?.openByCode(code)}
+    else window.EDGY_openRoom?.(kind,code);
    });
   }catch(err){h2h.innerHTML='<div class="playerH2HUnavailable">Confrontos indisponíveis neste momento.</div>'}
  }
