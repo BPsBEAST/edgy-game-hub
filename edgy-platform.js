@@ -3,10 +3,10 @@
 (function(){
 "use strict";
 const GAMES=Object.freeze({
- chess:Object.freeze({id:"chess",title:"Xadrez",icon:"♞",online:true,create:"edgy_create_chess_room_timed",join:"edgy_join_chess_room",cancel:"edgy_cancel_waiting_chess_room",table:"chess_rooms",param:"room",defaultTime:600,increment:0}),
- checkers:Object.freeze({id:"checkers",title:"Damas",icon:"◎",online:true,create:"edgy_checkers_create",join:"edgy_checkers_join",cancel:"edgy_checkers_cancel",table:"checkers_rooms",param:"checkers"}),
- tic:Object.freeze({id:"tic",title:"Jogo do Galo",icon:"✕",online:true,create:"edgy_tic_create",join:"edgy_tic_join",cancel:"edgy_tic_cancel",table:"tic_rooms",param:"tic"}),
- reaction:Object.freeze({id:"reaction",title:"Reflexos",icon:"◴",online:false})
+ chess:Object.freeze({id:"chess",title:"Xadrez",display:"Xadrez online",category:"Multiplayer",mode:"2 jogadores · Online",icon:"♞",online:true,create:"edgy_create_chess_room_timed",join:"edgy_join_chess_room",cancel:"edgy_cancel_waiting_chess_room",table:"chess_rooms",param:"room",defaultTime:600,increment:0}),
+ checkers:Object.freeze({id:"checkers",title:"Damas",display:"Damas online",category:"Multiplayer",mode:"2 jogadores · Online",icon:"◎",online:true,create:"edgy_checkers_create",join:"edgy_checkers_join",cancel:"edgy_checkers_cancel",table:"checkers_rooms",param:"checkers"}),
+ tic:Object.freeze({id:"tic",title:"Jogo do Galo",display:"Jogo do Galo online",category:"Estratégia",mode:"1–2 jogadores · Online/local",icon:"✕",online:true,create:"edgy_tic_create",join:"edgy_tic_join",cancel:"edgy_tic_cancel",table:"tic_rooms",param:"tic"}),
+ reaction:Object.freeze({id:"reaction",title:"Reflexos",display:"Reflexos",category:"Arcade",mode:"1 jogador",icon:"◴",online:false})
 });
 const client=()=>window.EDGY_auth?.getClient?.();
 function config(id){const item=GAMES[id];if(!item)throw new Error("Jogo indisponível");return item}
