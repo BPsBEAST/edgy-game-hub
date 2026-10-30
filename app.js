@@ -4,6 +4,11 @@ let state;try{state=JSON.parse(localStorage.getItem(KEY))||{}}catch{state={}};st
 let page="home",filter="Todos",game=null,ticMode="online",tic=[],turn="X",versus="cpu",locked=false,reactPhase="idle",reactStart=0,reactTimeout=null,reactTimes=[];
 const $=s=>document.querySelector(s),screen=$("#screen");
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(state))}catch{}};
+// Keep previous local Wordle results consistent with the new public game name.
+if(state.history.some(h=>h?.title==="Palavra Oculta")){
+ state.history=state.history.map(h=>h?.title==="Palavra Oculta"?{...h,title:"Wordle"}:h);
+ save();
+}
 const esc=t=>String(t).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const level=()=>Math.floor(state.xp/100)+1,progress=()=>state.xp%100;
 function animatePage(){const target=document.getElementById("screen");if(!target)return;target.classList.remove("edgyPageIn");void target.offsetWidth;target.classList.add("edgyPageIn")}
