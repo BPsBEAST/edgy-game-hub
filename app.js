@@ -20,7 +20,7 @@ const gameIcon={
 function cards(items){return '<div class="games">'+items.map(g=>'<button class="game" data-game="'+g.id+'"><div class="art">'+(gameIcon[g.id]||g.emoji)+'</div><div class="gameBody"><strong>'+g.name+'</strong><span>'+g.type+' · '+g.mode+'</span></div></button>').join("")+'</div>'}
 window.EDGY_openRoom=(name,code)=>{
  if(!window.EDGY_platform?.games[name]?.online||!/^[A-F0-9]{8}$/i.test(code||""))return;
- nav("games");game=name;
+ nav("games");game=name;if(name==="tic")ticMode="online";
  if(name==="chess")window.EDGY_chess?.open(String(code).toUpperCase());
  else if(name==="checkers")window.EDGY_checkers?.open(String(code).toUpperCase());
  else window.EDGY_ticOnline?.open(String(code).toUpperCase());
