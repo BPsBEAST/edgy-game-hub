@@ -1,6 +1,6 @@
 (function(){
 "use strict";
-let Chess=null,room=null,players=null,channel=null,poller=null,selected="",promo=null,busy=false,pending="",engineError="",autoTried=false,clockTimer=null,previewIndex=null,confirmResign=false,timeBase=Date.now(),timeAt=performance.now(),lastCheck=0,rivalry=null,rivalryKey="",rivalryLoading=false,resultSeen=new Set(),drawerOpen=false;
+let Chess=null,room=null,players=null,channel=null,poller=null,selected="",promo=null,busy=false,pending="",engineError="",autoTried=false,clockTimer=null,previewIndex=null,confirmResign=false,timeBase=Date.now(),timeAt=performance.now(),lastCheck=0,rivalry=null,rivalryKey="",rivalryLoading=false,resultSeen=new Set(),drawerOpen=false,drawerSection="actions";
 const glyph={wk:"♔",wq:"♕",wr:"♖",wb:"♗",wn:"♘",wp:"♙",bk:"♚",bq:"♛",br:"♜",bb:"♝",bn:"♞",bp:"♟︎"};
 const x=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const auth=()=>window.EDGY_auth;
@@ -261,7 +261,32 @@ function draw(){
  }
  const black=user()?.id===room.black_id,upper=black?"w":"b",lower=black?"b":"w",control=(room.base_ms/60000)+"+"+(room.increment_ms/1000);
  root.innerHTML='<div class="chessWrap"><div class="chessMatchHeader"><button type="button" class="chessBackMini" data-back aria-label="Voltar aos jogos">← Jogos</button><div class="chessHeaderTitle"><span class="chessHeaderKnight">♞</span><h1>Xadrez</h1></div><span class="pill">'+x(control)+' · '+x(room.code)+'</span></div><div class="chessMainGrid"><div class="chessBoardArea">'+'<p class="chessMobileStatus">'+x(status())+'</p>'+clockRow(upper)+board()+clockRow(lower)+reviewControls()+'<div class="chessMobileTools"><button type="button" data-chess-panel="actions">Partida &amp; opções</button><button type="button" data-chess-panel="history">Jogadas &amp; confrontos</button></div>'+(previewIndex!==null?'<div class="chessReview">A rever lance '+previewIndex+' <button class="chessBtn" data-live>Voltar ao jogo</button></div>':"")+'</div><div class="chessMobileScrim" data-close-panel></div><aside class="chessSide"><button type="button" class="chessDrawerClose" data-close-panel>✕ Fechar</button><div class="chessStatus">'+x(status())+'</div>'+proposal()+'<div class="chessRow"><button class="chessBtn" data-copy>Copiar convite</button>'+(room.status==="waiting"&&room.white_id===user()?.id?'<button class="secondary" data-chess-invite>Convidar jogador</button>':"")+'<button class="secondary" data-refresh>Atualizar</button></div><p class="result" id="chess-info"></p><section class="section panel" style="padding:10px"><div class="row space"><h3 style="margin:6px">Jogadas</h3><span class="pill">'+(engine()?.history()?.length||0)+'</span></div>'+moveList()+(previewIndex!==null?'<button class="chessBtn" data-live>Voltar à partida</button>':"")+'</section>'+rivalryHtml()+(promo?'<div class="chessDecision"><p>Escolhe a promoção:</p><div class="chessPromotion">'+["q","r","b","n"].map(p=>'<button data-promotion="'+p+'">'+glyph[room.turn+p]+'</button>').join("")+'</div><button class="secondary" data-cancel-promo>Cancelar</button></div>':"")+'</aside></div></div>';
- root.querySelectorAll("[data-chess-panel]").forEach(btn=>btn.onclick=()=>{const section=btn.dataset.chessPanel;drawerOpen=true;draw();const panel=document.querySelector(".chess-viewport .chessSide");if(panel){panel.scrollTop=0;if(section==="history"){const moves=panel.querySelector(".section.panel");if(moves)panel.scrollTop=Math.max(0,moves.offsetTop-panel.offsetTop-52)}panel.querySelector("[data-close-panel]")?.focus({preventScroll:true})}});
+ const sheet=root.querySelector(".chessSide");
+ if(sheet){
+  sheet.dataset.activeSheet=drawerSection;
+  const actions=document.createElement("section");actions.className="chessSheetView";actions.dataset.sheetView="actions";
+  const historyPanel=document.createElement("section");historyPanel.className="chessSheetView";historyPanel.dataset.sheetView="history";
+  [...sheet.children].forEach(child=>{
+   if(child.matches(".chessDrawerClose"))return;
+   (child.matches(".section.panel,.chessRivalry")?historyPanel:actions).append(child);
+  });
+  const tabs=document.createElement("div");tabs.className="chessDrawerTabs";tabs.setAttribute("role","tablist");tabs.setAttribute("aria-label","Opções da partida");
+  for(const [tab,label] of [["actions","Partida & opções"],["history","Jogadas & confrontos"]]){
+   const button=document.createElement("button");button.type="button";button.dataset.sheetTab=tab;button.textContent=label;
+   button.setAttribute("role","tab");button.setAttribute("aria-selected",String(tab===drawerSection));
+   tabs.append(button);
+  }
+  sheet.append(tabs,actions,historyPanel);
+  sheet.querySelectorAll("[data-sheet-tab]").forEach(button=>button.onclick=()=>{
+   drawerSection=button.dataset.sheetTab;sheet.dataset.activeSheet=drawerSection;
+   sheet.querySelectorAll("[data-sheet-tab]").forEach(tab=>tab.setAttribute("aria-selected",String(tab.dataset.sheetTab===drawerSection)));
+   sheet.scrollTop=0;
+  });
+ }
+ root.querySelectorAll("[data-chess-panel]").forEach(btn=>btn.onclick=()=>{
+  drawerSection=btn.dataset.chessPanel;drawerOpen=true;draw();
+  const panel=root.querySelector(".chessSide");if(panel){panel.scrollTop=0;panel.querySelector("[data-close-panel]")?.focus({preventScroll:true})}
+ });
  root.querySelectorAll("[data-close-panel]").forEach(btn=>btn.onclick=()=>{drawerOpen=false;draw()});
  root.querySelector("[data-back]").onclick=()=>nav("games");
  root.querySelector("[data-chess-invite]")?.addEventListener("click",()=>window.EDGY_social?.openInvite("chess",room.code));
@@ -290,7 +315,7 @@ function select(sq){
  const c=engine(),p=c.get(sq);
  if(selected){
   const hits=c.moves({square:selected,verbose:true}).filter(m=>m.to===sq);
-  if(hits.length){if(hits.some(m=>m.promotion)){promo={from:selected,to:sq};draw();return}send(selected,sq);return}
+  if(hits.length){if(hits.some(m=>m.promotion)){promo={from:selected,to:sq};drawerSection="actions";drawerOpen=true;draw();return}send(selected,sq);return}
  }
  selected=p?.color===myColor?sq:"";draw();
 }
