@@ -23,7 +23,7 @@ test("Every local asset referenced by the bootstrap exists",()=>{
  const names=[...assets.matchAll(/"([^"]+)"/g)].map(m=>m[1]);
  for(const name of names)assert.ok(fs.existsSync(path.join(dir,name.split("?")[0])),name);
  assert.ok(names.includes("./edgy-platform.js?v=32"),"shared platform cached");
- assert.ok(names.includes("./app.js?v=35"),"bootstrap cached");
+ assert.ok(names.includes("./app.js?v=36"),"bootstrap cached");
  assert.ok(names.includes("./base.css?v=29"),"base stylesheet cached");
  assert.ok(names.includes("./edgy-theme.css?v=34"),"design cached");
  assert.ok(names.includes("./tic-online.js?v=35"),"online tic cached");
@@ -165,7 +165,7 @@ test("Stable footer, profile replay links and chess mobile actions",()=>{
 test("Game library uses a single registry loaded before bootstrap",()=>{
  const scripts=[...html.matchAll(/<script[^>]*src="([^"]+)"/g)].map(m=>m[1]);
  const platform=scripts.indexOf("./edgy-platform.js?v=32");
- const bootstrap=scripts.indexOf("./app.js?v=35");
+ const bootstrap=scripts.indexOf("./app.js?v=36");
  assert.ok(platform>=0&&bootstrap>=0&&platform<bootstrap);
  const app=read("app.js"),defs=read("edgy-platform.js");
  assert.ok(app.includes("Object.values(window.EDGY_platform.games).map("));
@@ -293,4 +293,28 @@ test("Damas and Galo use one mobile options/history panel implementation",()=>{
  assert.ok(ui.includes('function bindMobilePanel('));
  assert.ok(css.includes('#screen .edgyMatchSide.edgyMatchDrawer'));
  assert.ok(css.includes('[data-game-panel-open="history"]'));
+});
+
+test("EDGY v36: all library tiles have equal geometry and a readable footer",()=>{
+ const css=read("edgy-game-layout.css"),app=read("app.js"),html=read("index.html");
+ assert.ok(app.includes('screen.classList.toggle("edgyLibraryPage",page==="games"&&!game)'));
+ assert.ok(app.includes('function openGame(id){screen.classList.remove("edgyLibraryPage")'));
+ assert.ok(app.includes('nav("games");screen.classList.remove("edgyLibraryPage");game=name'));
+ assert.ok(css.includes('#screen.edgyLibraryPage .games{'));
+ assert.ok(css.includes('grid-auto-rows:1fr'));
+ assert.ok(css.includes('#screen.edgyLibraryPage .game .art,'));
+ assert.ok(css.includes('flex-basis:100px'));
+ assert.ok(css.includes('.main:has(> #screen.edgyLibraryPage)>.foot'));
+ assert.ok(html.includes('edgy-game-layout.css?v=36'));
+});
+test("EDGY v36: chess title is short and empty join notice does not reserve space",()=>{
+ const chess=read("chess-online.js"),ui=read("edgy-game-ui.js"),css=read("edgy-game-layout.css");
+ assert.ok(ui.includes('chess:{title:"Xadrez",icon:'));
+ assert.ok(!ui.includes('chess:{title:"Xadrez online"'));
+ assert.ok(chess.includes('class="result chessLobbyNotice" id="chess-info"'));
+ assert.ok(css.includes('#screen .chessLobbyNotice:empty{display:none!important}'));
+ const p=chess.indexOf('window.EDGY_gameUI.card("Entrar numa sala"');
+ const q=chess.indexOf('window.EDGY_gameUI.card("As tuas salas"',p);
+ assert.ok(p>=0&&q>p);
+ assert.ok(!chess.slice(p,q).includes("+'<p class=\"result\" id=\"chess-info\"></p>'"));
 });
