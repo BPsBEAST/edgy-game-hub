@@ -1,0 +1,71 @@
+/* EDGY v53 — compact home recommendations and shared level-up achievements. */
+#screen .edgyHomeGamesSubtitle{font-size:12px;margin:4px 0 0;line-height:1.45}
+#screen .edgyHomeMore{
+ min-height:36px;flex:0 0 auto;padding:8px 12px;
+ font-size:12px;font-weight:800;white-space:nowrap;
+ border:1px solid #6d4a71;background:#382943;color:#ffe9f5;
+}
+#screen .edgyHomeMore:hover{border-color:#f15fa9;background:#563350}
+#screen .section:has(.edgyHomeMore) .row.space{align-items:center;gap:9px}
+.edgyLevelMask[hidden]{display:none!important}
+.edgyLevelMask{
+ position:fixed;inset:0;z-index:230;display:grid;place-items:center;
+ padding:18px;background:#100b20db;backdrop-filter:blur(10px);
+ overflow:auto;overscroll-behavior:contain;
+}
+.edgyLevelDialog{
+ width:min(100%,385px);padding:28px 24px;
+ text-align:center;border:1px solid #a2518f;border-radius:12px;
+ background:radial-gradient(circle at 50% 5%,#693458 0,#30213d 48%,#21182f 100%);
+ box-shadow:0 28px 90px #0b071dbb,0 0 35px #ef328b21;
+ color:#fff;animation:edgyLevelEntrance .44s cubic-bezier(.17,.85,.23,1.1) both;
+}
+.edgyLevelSparkle{
+ display:grid;place-items:center;margin:0 auto 10px;width:74px;height:74px;
+ border-radius:50%;font-size:44px;color:#ffe1f2;
+ background:#7e365e;border:1px solid #f887ba;box-shadow:0 0 35px #ff48915e;
+ animation:edgyLevelGlow 2.4s ease-in-out infinite;
+}
+.edgyLevelEyebrow{letter-spacing:2.3px;font-size:10px;font-weight:850;color:#ff95c9}
+.edgyLevelDialog h2{font-size:25px;margin:8px 0 13px;line-height:1.2}
+.edgyLevelNumber{
+ margin:0 auto 13px;padding:13px 15px;width:max-content;max-width:100%;
+ border:1px solid #ed6bad;background:#593455;border-radius:6px;
+ font-size:27px;letter-spacing:1px;font-weight:950;color:white;
+}
+.edgyLevelDialog p{font-size:12px;color:#d7c0dc;line-height:1.65;margin:0 0 18px}
+.edgyLevelDismiss{
+ width:100%;min-height:44px;border:0!important;border-radius:5px!important;
+ background:linear-gradient(110deg,#f40f76,#bc0a94);
+ font-size:13px;font-weight:850;color:white;cursor:pointer;
+}
+.edgyLevelDismiss:hover{filter:brightness(1.08)}
+.edgyLevelNotice{
+ display:flex;align-items:center;gap:12px;margin:8px 0;padding:13px;
+ border:1px solid #694a6a;border-radius:6px;background:#33253f;
+}
+.edgyLevelNotice>span{
+ flex:0 0 38px;width:38px;height:38px;display:grid;place-items:center;
+ border:1px solid #dd5a9b;border-radius:50%;background:#6e3356;
+ font-size:24px;color:#ffe0ed;
+}
+.edgyLevelNotice>div{min-width:0}
+.edgyLevelNotice strong{display:block;font-size:13px;color:#fff}
+.edgyLevelNotice small{display:block;margin-top:5px;font-size:11px;color:#c6afce}
+@keyframes edgyLevelEntrance{
+ from{transform:translateY(14px) scale(.89);opacity:0}
+ to{transform:translateY(0) scale(1);opacity:1}
+}
+@keyframes edgyLevelGlow{
+ 50%{box-shadow:0 0 48px #ff5cab8b}
+}
+@media(max-width:799px){
+ #screen .edgyHomeGamesSubtitle{font-size:11px}
+ #screen .edgyHomeMore{min-height:36px;padding:7px 10px;font-size:11px}
+ .edgyLevelDialog{padding:24px 19px}
+ .edgyLevelDialog h2{font-size:23px}
+}
+@media(prefers-reduced-motion:reduce){
+ .edgyLevelDialog,.edgyLevelSparkle{animation:none!important}
+ .edgyLevelDismiss{transition:none!important}
+}
