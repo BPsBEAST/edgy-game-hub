@@ -361,3 +361,45 @@
   padding-bottom:calc(105px + env(safe-area-inset-bottom))!important;
  }
 }
+
+/* EDGY v45 — reliable touch scrolling for the mobile library and Barricade.
+   Keep the header and footer visible; only the long content scrolls inside the
+   app viewport. This avoids the global html/body overflow lock and the bottom nav
+   swallowing the final library tile or Barricade controls. */
+@media(max-width:799px){
+ .main:has(> #screen.edgyLibraryPage),
+ .main:has(> #screen .brWrap){
+  height:100dvh!important;
+  min-height:0!important;
+  display:flex!important;
+  flex-direction:column!important;
+  overflow:hidden!important;
+  padding-bottom:calc(78px + env(safe-area-inset-bottom))!important;
+ }
+ .main:has(> #screen.edgyLibraryPage)>.top,
+ .main:has(> #screen .brWrap)>.top{
+  flex:0 0 auto!important;
+ }
+ .main:has(> #screen.edgyLibraryPage)>#screen,
+ .main:has(> #screen .brWrap)>#screen{
+  flex:1 1 auto!important;
+  min-height:0!important;
+  height:auto!important;
+  overflow-y:auto!important;
+  overflow-x:hidden!important;
+  overscroll-behavior-y:contain!important;
+  -webkit-overflow-scrolling:touch!important;
+  touch-action:pan-y pinch-zoom!important;
+  padding-bottom:20px!important;
+  scrollbar-width:thin;
+  scrollbar-color:#695371 transparent;
+ }
+ .main:has(> #screen.edgyLibraryPage)>.foot,
+ .main:has(> #screen .brWrap)>.foot{
+  display:block!important;
+  flex:0 0 auto!important;
+  margin:0!important;
+  padding:10px 0 5px!important;
+  font-size:10px!important;
+ }
+}
