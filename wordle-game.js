@@ -48,7 +48,10 @@ function setup(){
  persist();
 }
 function open(){active=true;setup();message="";revealRow=-1;render()}
-function close(){active=false;message="";revealRow=-1}
+function close(){
+ active=false;message="";revealRow=-1;
+ document.getElementById("screen")?.classList.remove("wdTyping");
+}
 function round(){return saved?.round}
 function finish(won){
  const r=round();if(!r||r.finished)return;
@@ -81,9 +84,14 @@ function paintDraft(){
  if(!row||!r)return;
  row.querySelectorAll(".wdTile").forEach((tile,i)=>{
   const letter=r.draft[i]||"";
+  const changed=tile.textContent!==letter;
   tile.textContent=letter;
   tile.classList.toggle("wdFilled",Boolean(letter));
   tile.setAttribute("aria-label",letter||"vazio");
+  if(changed&&letter&&typeof tile.animate==="function"&&!window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches){
+   tile.animate([{transform:"scale(.88)",borderColor:"#f378b6"},{transform:"scale(1)",borderColor:"#ad6f9a"}],
+    {duration:155,easing:"cubic-bezier(.19,.85,.22,1)"});
+  }
  });
 }
 function setNativeDraft(input){
@@ -100,6 +108,12 @@ function focusNative(){
  const input=document.querySelector("#screen [data-wd-native]");
  if(input&&!input.disabled)input.focus({preventScroll:true});
 }
+function setTypingMode(enabled){
+ const root=document.getElementById("screen");
+ if(!root||!active||game!=="wordle")return;
+ root.classList.toggle("wdTyping",Boolean(enabled));
+ if(enabled)root.scrollTop=0;
+}
 function submitGuess(keepNativeFocus=false){
  if(!active||game!=="wordle"||!round()||round().finished)return;
  const r=round();
@@ -112,8 +126,15 @@ function submitGuess(keepNativeFocus=false){
  if(r.guesses.at(-1)===r.answer)finish(true);
  else if(r.guesses.length===MAX_GUESSES)finish(false);
  persist();
+ // Closing the native keyboard reveals the entire board and its colour animation.
+ setTypingMode(false);
+ if(keepNativeFocus){
+  const input=document.querySelector("#screen [data-wd-native]");
+  input?.blur?.();
+ }
  render();
- if(keepNativeFocus&&!r.finished)focusNative();
+ const root=document.getElementById("screen");
+ if(root)root.scrollTop=0;
 }
 function press(key){
  if(!active||game!=="wordle"||!round()||round().finished)return;
@@ -163,7 +184,10 @@ function rowHtml(i){
  const r=round(),attempt=r.guesses[i]||"",draft=!attempt&&i===r.guesses.length&&!r.finished?r.draft:"";
  const value=attempt||draft,results=attempt?rules().score(attempt,r.answer):[];
  const reveal=attempt&&revealRow===i;
- return '<div class="wdRow" role="row" '+(!attempt&&i===r.guesses.length&&!r.finished?'data-wd-current="true" title="Toca para escrever a palavra"':'')+' aria-label="Tentativa '+(i+1)+'">'
+ return '<div class="wdRow" role="row" '
+ +(!attempt&&i===r.guesses.length&&!r.finished?'data-wd-current="true" title="Toca para escrever a palavra"':'')
+ +(attempt&&i===r.guesses.length-1&&!r.finished?' data-wd-previous="true"':'')
+ +' aria-label="Tentativa '+(i+1)+'">'
  +Array.from({length:5},(_,j)=>{
   const letter=value[j]||"",state=results[j]||"",animate=reveal?" wdReveal":"";
   return '<span class="wdTile'+(state?" wd-"+state:"")+(letter?" wdFilled":"")+(animate)+"\" role=\"gridcell\" aria-label=\""+
@@ -174,7 +198,7 @@ function rowHtml(i){
 function nativeTypingHtml(){
  if(round().finished)return "";
  return '<form class="wdNativeForm" data-wd-form>'
-  +'<label for="wd-native-word" class="wdNativeLabel">Toca para escrever a palavra</label>'
+  +'<label for="wd-native-word" class="wdNativeLabel">A tua palavra</label>'
   +'<div class="wdNativeControls"><input id="wd-native-word" data-wd-native type="text"'
   +' inputmode="text" enterkeyhint="done" autocomplete="off" autocorrect="off"'
   +' autocapitalize="characters" spellcheck="false" maxlength="12"'
@@ -208,7 +232,7 @@ function sideHtml(){
 function render(){
  if(!active||game!=="wordle"||!saved)return;
  const root=document.getElementById("screen");if(!root)return;
- root.classList.remove("edgyLobby");
+ root.classList.remove("edgyLobby","wdTyping");
  const r=round(),completed=r.guesses.length;
  const playing=!r.finished;
  const stage='<section class="wdPlay" aria-label="Jogo Wordle">'
@@ -226,6 +250,11 @@ function render(){
  const native=root.querySelector("[data-wd-native]");
  native?.addEventListener("input",event=>{if(!event.isComposing)setNativeDraft(native)});
  native?.addEventListener("compositionend",()=>setNativeDraft(native));
+ native?.addEventListener("focus",()=>setTypingMode(true));
+ native?.addEventListener("blur",()=>{
+  // Tapping Confirmar must not expand the board before the submit/click fires.
+  if(!document.activeElement?.closest?.("[data-wd-form]"))setTypingMode(false);
+ });
  root.querySelector("[data-wd-form]")?.addEventListener("submit",event=>{
   event.preventDefault();
   if(native)setNativeDraft(native);
