@@ -193,3 +193,12 @@ A aplicação pública é uma versão experimental para amigos; ainda não há m
 - **Auditoria pendente:** o Supabase sinaliza 19 funções públicas `SECURITY DEFINER` antigas acessíveis ao role `authenticated`; devem ser revistas/migradas com segurança antes de abrir a aplicação a um público maior. Os avisos sobre acesso anónimo requerem avaliação tendo em conta o modo convidado; a proteção contra passwords divulgadas não está ativa. Quatro índices ainda não apresentam utilização significativa.
 
 **Adicionar um jogo novo:** definir uma entrada em `edgy-platform.js`, criar tabelas e operações autenticadas e validadas no servidor, associar as operações de sala e convites existentes e criar apenas a interface/regras específicas. Não duplicar a gestão de contas, convites ou o modal de resultado.
+
+
+## EDGY v34 — consistência e controlos mobile
+
+- Jogo do Galo: ecrã de entrada uniformizado com Xadrez/Damas (cabeçalho, cartões de criar/entrar, campos e botões); secção **As tuas salas** usa `EDGY_social.renderRooms` para não duplicar a lógica de listagem. O modo local mantém-se disponível.
+- Xadrez no telemóvel: botões de **Partida e opções** e **Jogadas e confrontos** passam para a zona superior, no fluxo normal da página, evitando sobrepor os controlos de revisão das jogadas. O painel de ações continua a abrir por separador e o tabuleiro permanece navegável com scroll.
+- Ajustados cabeçalho mobile e dimensão/área tocável dos controlos de histórico; removido posicionamento fixo obsoleto da barra do Xadrez.
+- PWA atualizada para a cache `edgy-v34`; acrescidos dois testes de regressão ao conjunto de verificações, agora com 20 testes definidos.
+- Falta confirmar manualmente no iPhone e em dois dispositivos os fluxos reais de navegação e jogo depois da publicação.
