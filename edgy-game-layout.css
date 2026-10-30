@@ -229,9 +229,6 @@
  }
  #screen .edgyGameCards .game .edgyGameIcon{transform:scale(.77)}
  /* The library footer clears the fixed five-tab mobile navigation. */
- .main:has(> #screen.edgyLibraryPage){
-  padding-bottom:calc(82px + env(safe-area-inset-bottom))!important;
- }
  .main:has(> #screen.edgyLibraryPage)>.foot{
   flex:0 0 auto!important;
   margin-top:14px!important;
@@ -357,17 +354,53 @@
   padding-inline:12px;
  }
  /* Keep the final row and page footer above the five-tab navigation. */
- .main:has(> #screen.edgyLibraryPage){
-  padding-bottom:calc(105px + env(safe-area-inset-bottom))!important;
- }
 }
 
-/* EDGY v45 — reliable touch scrolling for the mobile library and Barricade.
-   Keep the header and footer visible; only the long content scrolls inside the
-   app viewport. This avoids the global html/body overflow lock and the bottom nav
-   swallowing the final library tile or Barricade controls. */
+/* EDGY v47 — one real vertical scroll container for Biblioteca.
+   The app shell/body are viewport-locked; the previous nested #screen scroller
+   competed with flex sizing and could trap the final game underneath the tab bar.
+   A page state class on .main selects the EXISTING scroll host instead. */
 @media(max-width:799px){
- .main:has(> #screen.edgyLibraryPage),
+ .main.edgyLibraryViewport{
+  display:block!important;
+  height:100dvh!important;
+  min-height:0!important;
+  width:100%!important;
+  overflow-y:auto!important;
+  overflow-x:hidden!important;
+  overscroll-behavior-y:contain!important;
+  -webkit-overflow-scrolling:touch!important;
+  touch-action:pan-y pinch-zoom!important;
+  padding-bottom:calc(130px + env(safe-area-inset-bottom))!important;
+  scrollbar-width:thin;
+  scrollbar-color:#725477 transparent;
+ }
+ .main.edgyLibraryViewport>#screen.edgyLibraryPage{
+  display:block!important;
+  flex:0 0 auto!important;
+  height:auto!important;
+  min-height:0!important;
+  max-height:none!important;
+  overflow:visible!important;
+  padding-bottom:0!important;
+  transform:none!important;
+  animation:none!important;
+  filter:none!important;
+ }
+ .main.edgyLibraryViewport>.top{
+  display:flex!important;
+  margin-bottom:23px!important;
+ }
+ .main.edgyLibraryViewport>.foot{
+  display:block!important;
+  position:static!important;
+  flex:0 0 auto!important;
+  margin:22px 0 0!important;
+  padding:12px 0 6px!important;
+  min-height:0!important;
+  font-size:10px!important;
+ }
+ /* Barricade keeps its own independently tested match scroll behaviour. */
  .main:has(> #screen .brWrap){
   height:100dvh!important;
   min-height:0!important;
@@ -376,19 +409,12 @@
   overflow:hidden!important;
   padding-bottom:calc(78px + env(safe-area-inset-bottom))!important;
  }
- /* A persisted page-entry transform would turn fixed match dialogs into
-    scroll-container descendants. Disable it only for these two surfaces. */
- .main:has(> #screen.edgyLibraryPage)>#screen.edgyPageIn,
  .main:has(> #screen .brWrap)>#screen.edgyPageIn{
   animation:none!important;
   transform:none!important;
   filter:none!important;
  }
- .main:has(> #screen.edgyLibraryPage)>.top,
- .main:has(> #screen .brWrap)>.top{
-  flex:0 0 auto!important;
- }
- .main:has(> #screen.edgyLibraryPage)>#screen,
+ .main:has(> #screen .brWrap)>.top{flex:0 0 auto!important}
  .main:has(> #screen .brWrap)>#screen{
   flex:1 1 auto!important;
   min-height:0!important;
@@ -402,7 +428,6 @@
   scrollbar-width:thin;
   scrollbar-color:#695371 transparent;
  }
- .main:has(> #screen.edgyLibraryPage)>.foot,
  .main:has(> #screen .brWrap)>.foot{
   display:block!important;
   flex:0 0 auto!important;
