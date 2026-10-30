@@ -886,3 +886,18 @@
  .playerOverlay:not([hidden]) .edgyPlayerInviteActions,
  .main.chess-viewport #screen .chessSide .chessSheetView{animation:none!important}
 }
+
+
+/* Profile exit is animated, not abruptly removed, on desktop and mobile. */
+.playerOverlay.isClosing{pointer-events:none;animation:edgyProfileBackdropOut .18s ease-in both!important}
+.playerOverlay.isClosing .playerDialog{animation:edgyProfileArrivalOut .18s ease-in both!important}
+@keyframes edgyProfileBackdropOut{to{opacity:0}}
+@keyframes edgyProfileArrivalOut{to{opacity:0;transform:translateY(9px) scale(.985)}}
+@media(max-width:530px){
+ .playerOverlay:not([hidden]) .playerDialog{transform-origin:50% 85%}
+ .playerOverlay:not([hidden]) .playerHead,
+ .playerOverlay:not([hidden]) .playerMiniStats{animation-duration:.22s}
+}
+@media(prefers-reduced-motion:reduce){
+ .playerOverlay.isClosing,.playerOverlay.isClosing .playerDialog{animation:none!important}
+}
