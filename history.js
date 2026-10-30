@@ -129,7 +129,29 @@ function renderDetail(){
  host.querySelector("[data-end]").onclick=()=>navigate(moves.length);
  host.querySelectorAll("[data-move]").forEach(b=>b.onclick=()=>navigate(Number(b.dataset.move)));
 }
-async function openByCode(rawCode){
+async function openTicByCode(code){
+ mask.hidden=false;selected=null;
+ const host=mask.querySelector("#edgy-replay-content");
+ host.innerHTML='<div class="edReplayHead"><h2>Jogo do Galo · Replay</h2><button class="edReplayClose" data-close>✕ Fechar</button></div><p class="edReplayInfo">A carregar movimentos…</p>';
+ host.querySelector("[data-close]").onclick=close;
+ try{
+  const {data:r,error}=await api().from("tic_rooms").select("id,code,white_id,black_id,board,moves,status,updated_at,finish_reason").eq("code",code).maybeSingle();
+  if(mask.hidden)return;
+  if(error)throw error;
+  if(!r||!["white_win","black_win","draw"].includes(r.status))throw Error("Partida não terminada ou indisponível.");
+  const color=r.white_id===viewer()?.id?"X":r.black_id===viewer()?.id?"O":null;
+  if(!color)throw Error("Esta partida não pertence à tua conta.");
+  const outcome=r.status==="draw"?"draw":r.status===(color==="X"?"white_win":"black_win")?"win":"loss";
+  openTic({...r,isTic:true,color,outcome,when:r.updated_at});
+ }catch(e){
+  if(mask.hidden)return;
+  host.innerHTML='<div class="edReplayHead"><h2>Replay indisponível</h2><button class="edReplayClose" data-close>✕ Fechar</button></div><p class="edReplayInfo">'+esc(e.message||"Erro ao carregar")+'</p>';
+  host.querySelector("[data-close]").onclick=close;
+ }
+}
+async function openByCode(rawCode,otherCode){
+ if(otherCode!==undefined&&rawCode==="tic"){const tic=String(otherCode||"").trim().toUpperCase();if(/^[0-9A-F]{8}$/.test(tic)&&api()&&viewer())return openTicByCode(tic);return}
+
  const code=String(rawCode||"").toUpperCase();
  if(!/^[0-9A-F]{8}$/.test(code)||!api()||!viewer())return;
  const {data:r,error}=await api().from("chess_rooms")
