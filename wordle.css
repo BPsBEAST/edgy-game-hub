@@ -78,11 +78,6 @@
 }
 #screen .wdNativeSubmit:focus-visible{outline:2px solid #ffb0dc;outline-offset:2px}
 #screen .wdNativeSubmit:active{transform:scale(.98)}
-#screen .wdBottomHint{
- display:flex;align-items:center;justify-content:center;gap:7px;
- margin:13px auto 0;color:#ab9dbb;font-size:10px;text-align:center;line-height:1.4;
-}
-#screen .wdHintDot{width:6px;height:6px;border-radius:50%;background:#ef338f;box-shadow:0 0 8px #f73498}
 #screen .wdOutcome{border:1px solid #815477;background:#3a2546;padding:13px;border-radius:5px;margin:10px auto 12px;max-width:430px;text-align:center}
 #screen .wdOutcome.wdWon{border-color:#3c957f;background:#1a3c3b}
 #screen .wdOutcomeLead{font-size:15px;font-weight:900;color:#fff}
@@ -110,7 +105,6 @@
  #screen .wdDesktopHint{display:none}
  #screen .wdTopline{margin-bottom:7px}
  #screen .wdMessage{margin:5px 0;min-height:20px}
- #screen .wdBottomHint{margin-top:8px;font-size:9px}
  /* Focus mode: while the operating-system keyboard is open, keep the current
     and last submitted rows visible together with the input and confirmation.
     On submit, the keyboard closes and the complete board flips into view. */
@@ -122,7 +116,7 @@
  #screen.wdTyping .wdRow:not([data-wd-current="true"]):not([data-wd-previous="true"]){display:none}
  #screen.wdTyping .wdRow[data-wd-previous="true"]{opacity:.88}
  #screen.wdTyping .wdMessage{min-height:0;margin:4px 0}
- #screen.wdTyping .wdBottomHint,#screen.wdTyping .wdSide{display:none!important}
+ #screen.wdTyping .wdSide{display:none!important}
  #screen.wdTyping .wdNativeForm{margin:6px auto 3px}
  #screen.wdTyping .wdNativeLabel{margin-bottom:5px}
  .main:has(> #screen.wdTyping .wdPage){padding-bottom:0!important}
