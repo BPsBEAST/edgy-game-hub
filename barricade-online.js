@@ -131,7 +131,7 @@ function wallsHTML(snapshot){
  let html="";
  for(const w of walls){
   const r=flip?7-w.r:w.r,c=flip?7-w.c:w.c;
-  html+='<span class="brWall brWall-'+w.o+'" style="grid-row:'+(2*r+1)+(w.o==="h"?"":"/span 3")+';grid-column:'+(2*c+1)+(w.o==="h"?"/span 3":"")+'"></span>';
+  html+='<span class="brWall brWall-'+w.o+'" style="grid-row:'+(2*r+(w.o==="h"?2:1))+(w.o==="h"?"":"/span 3")+';grid-column:'+(2*c+(w.o==="h"?1:2))+(w.o==="h"?"/span 3":"")+'"></span>';
   // Position wall across 2 cells, anchored at their shared gap.
  }
  return html;
@@ -142,7 +142,7 @@ function wallSlots(){
  for(let sr=0;sr<8;sr++)for(let sc=0;sc<8;sc++){
   const r=flip?7-sr:sr,c=flip?7-sc:sc,w={r,c,o:orientation};
   if(!rules.canPlaceWall(room,w))continue;
-  html+='<button type="button" class="brSlot brSlot-'+orientation+'" style="grid-row:'+(2*sr+1)+(orientation==="h"?"":"/span 3")+';grid-column:'+(2*sc+1)+(orientation==="h"?"/span 3":"")+'" data-br-wall="'+r+','+c+','+orientation+'" aria-label="Colocar barreira '+(orientation==="h"?"horizontal":"vertical")+' na linha '+(r+1)+' e coluna '+(c+1)+'"></button>';
+  html+='<button type="button" class="brSlot brSlot-'+orientation+'" style="grid-row:'+(2*sr+(orientation==="h"?2:1))+(orientation==="h"?"":"/span 3")+';grid-column:'+(2*sc+(orientation==="h"?1:2))+(orientation==="h"?"/span 3":"")+'" data-br-wall="'+r+','+c+','+orientation+'" aria-label="Colocar barreira '+(orientation==="h"?"horizontal":"vertical")+' na linha '+(r+1)+' e coluna '+(c+1)+'"></button>';
  }
  return html;
 }
