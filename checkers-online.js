@@ -52,7 +52,7 @@ document.addEventListener("keydown",event=>{
 
 const resultUI=window.EDGY_platform.createResult({
  game:"checkers",primaryLabel:"Continuar",secondaryLabel:"Rever partida",
- onSecondary:()=>historyJump(0)
+ onSecondary:()=>{if(room?.code)window.EDGY_checkersReplay?.open(room.code)}
 });
 const closeResult=()=>resultUI.hide();
 function showResult(){
