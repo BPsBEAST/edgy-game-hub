@@ -424,10 +424,11 @@ test("Five-game mobile library centers the orphan card and keeps filter buttons 
 });
 test("Community shows highest-level players first, XP breaks ties, and shows relative ranks",()=>{
  const players=read("players.js"),index=read("index.html"),sw=read("sw.js");
- const match=players.match(/const ranked=([\\s\\S]*?)\\n holder\\.innerHTML=ranked\\.length/);
- assert.ok(match,"ranking is computed before rendering");
+ const start=players.indexOf("const ranked="),end=players.indexOf(" holder.innerHTML=ranked.length",start);
+ assert.ok(start>=0&&end>start,"ranking is computed before rendering");
+ const expression=players.slice(start+"const ranked=".length,end).trim();
  const names=vm.runInNewContext(
-  '(()=>{const data=[{name:"Baixo",xp:40,username:"b"},{name:"EmpateB",xp:220,username:"b"},{name:"Alto",xp:315,username:"a"},{name:"EmpateA",xp:220,username:"a"}];const ranked='+match[1]+';return ranked.map(x=>x.name)})()'
+  '(()=>{const data=[{name:"Baixo",xp:40,username:"b"},{name:"EmpateB",xp:220,username:"b"},{name:"Alto",xp:315,username:"a"},{name:"EmpateA",xp:220,username:"a"}];const ranked='+expression+';return ranked.map(x=>x.name)})()'
  );
  assert.deepEqual(Array.from(names),["Alto","EmpateA","EmpateB","Baixo"]);
  assert.ok(players.includes('class="playerRank"'));
