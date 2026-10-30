@@ -43,12 +43,13 @@ function maybeResult(){
 }
 async function names(){
  if(!room||!api())return;
- const ids=[room.white_id,room.black_id].filter(Boolean);
- const {data}=await api().from("profiles").select("id,display_name,username,avatar_path,public_visible").in("id",ids);
- if(room&&data){
-  const dict=Object.fromEntries(data.map(p=>[p.id,p]));
-  players={X:dict[room.white_id],O:dict[room.black_id]};
- }
+ const id=room.id;
+ try{
+  const {data,error}=await window.EDGY_platform.rooms.players("tic",room.code);
+  if(error)throw error;
+  if(room?.id===id)players={X:data?.X?{name:data.X.name,username:data.X.username,avatar:data.X.avatar}:null,
+    O:data?.O?{name:data.O.name,username:data.O.username,avatar:data.O.avatar}:null};
+ }catch(e){console.warn("EDGY Tic player labels",e)}
 }
 function listen(){
  if(channel)api()?.removeChannel(channel);
@@ -76,6 +77,7 @@ async function refresh(){
    if(old.black_id!==data.black_id)await names();
    if(ticket!==epoch)return;
    render();maybeResult();
+   if(old.status==="active"&&room.status!=="active")window.EDGY_auth?.refreshProfile?.();
   }
  }catch(e){console.warn("EDGY Tic refresh",e)}
 }
