@@ -16,7 +16,7 @@ mask.addEventListener("click",e=>{if(e.target===mask)close()});
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!mask.hidden)close()});
 function allGames(){
  const server=cloud.map(p=>({...p,key:p.id,game:"Xadrez",isChess:true,when:p.date})).concat(ticCloud);
- const others=local.filter(h=>h.title!=="Xadrez"||!cloud.some(c=>c.id===h.client_id)).map(h=>({...h,key:h.client_id||h.date,game:h.title,isChess:false,when:h.date,outcome:resultType(h.result)}));
+ const others=local.filter(h=>!(h.title==="Xadrez"&&cloud.some(c=>c.id===h.client_id))&&!(h.title==="Jogo do Galo"&&ticCloud.some(c=>c.id===h.client_id))).map(h=>({...h,key:h.client_id||h.date,game:h.title,isChess:false,when:h.date,outcome:resultType(h.result)}));
  return [...server,...others].sort((a,b)=>Date.parse(b.when||0)-Date.parse(a.when||0));
 }
 function draw(){
@@ -57,7 +57,7 @@ async function sync(){
     r.status===(color==="X"?"white_win":"black_win")?"win":"loss";
    return {id:r.id,key:"tic-"+r.id,game:"Jogo do Galo",isTic:true,when:r.updated_at,
     date:r.updated_at,color,outcome,status:r.status,board:r.board,moves:r.moves,
-    code:r.code,xp:0,reason:r.finish_reason,result:labels[outcome]};
+    code:r.code,xp:outcome==="win"?50:outcome==="draw"?20:10,reason:r.finish_reason,result:labels[outcome]};
   });
   if(info)info.textContent=tic.error?"Histórico de Xadrez sincronizado; Jogo do Galo temporariamente indisponível.":"Histórico online sincronizado entre dispositivos.";
  }catch(e){if(info)info.textContent="Histórico online indisponível. A mostrar os resultados guardados localmente."}
