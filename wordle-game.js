@@ -86,9 +86,10 @@ function press(key){
 }
 function keydown(event){
  if(!active||game!=="wordle"||event.metaKey||event.ctrlKey||event.altKey)return;
- const element=event.target;
+ const element=event.target,key=event.key;
+ // Native buttons must still activate with Enter and Space for keyboard users.
+ if((key==="Enter"||key===" "||key==="Backspace")&&element?.closest?.('button,a,[role="button"]'))return;
  if(element?.closest?.('input,textarea,select,[contenteditable="true"],[role="dialog"]'))return;
- const key=event.key;
  if(key==="Enter"||key==="Backspace"||/^[a-zA-ZÀ-ÿçÇ]$/.test(key)){
   event.preventDefault();
   press(key==="Enter"?"ENTER":key==="Backspace"?"BACKSPACE":key);
