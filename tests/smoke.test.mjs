@@ -23,7 +23,7 @@ test("Every local asset referenced by the bootstrap exists",()=>{
  const names=[...assets.matchAll(/"([^"]+)"/g)].map(m=>m[1]);
  for(const name of names)assert.ok(fs.existsSync(path.join(dir,name.split("?")[0])),name);
  assert.ok(names.includes("./edgy-platform.js?v=32"),"shared platform cached");
- assert.ok(names.includes("./app.js?v=36"),"bootstrap cached");
+ assert.ok(names.includes("./app.js?v=38"),"bootstrap cached");
  assert.ok(names.includes("./base.css?v=29"),"base stylesheet cached");
  assert.ok(names.includes("./edgy-theme.css?v=34"),"design cached");
  assert.ok(names.includes("./tic-online.js?v=35"),"online tic cached");
@@ -313,17 +313,19 @@ test("Damas and Galo use one mobile options/history panel implementation",()=>{
  assert.ok(css.includes('[data-game-panel-open="history"]'));
 });
 
-test("EDGY v36: all library tiles have equal geometry and a readable footer",()=>{
+test("Home and Biblioteca render exactly the same reusable game cards",()=>{
  const css=read("edgy-game-layout.css"),app=read("app.js"),html=read("index.html");
- assert.ok(app.includes('screen.classList.toggle("edgyLibraryPage",page==="games"&&!game)'));
- assert.ok(app.includes('function openGame(id){screen.classList.remove("edgyLibraryPage")'));
- assert.ok(app.includes('nav("games");screen.classList.remove("edgyLibraryPage");game=name'));
- assert.ok(css.includes('#screen.edgyLibraryPage .games{'));
- assert.ok(css.includes('grid-auto-rows:1fr'));
- assert.ok(css.includes('#screen.edgyLibraryPage .game .art,'));
- assert.ok(css.includes('flex:0 0 84px!important'));
- assert.ok(css.includes('.main:has(> #screen.edgyLibraryPage)>.foot'));
- assert.ok(html.includes('edgy-game-layout.css?v=37'));
+ assert.ok(app.includes('function cards(items){return \'<div class="games edgyGameCards">\''));
+ assert.ok(app.includes("'+cards(defs)"),"Home uses the common card renderer");
+ assert.ok(app.includes("'+cards(shown)"),"Biblioteca uses the common card renderer");
+ assert.ok(css.includes('#screen .edgyGameCards .game{'),"cards share one flex layout");
+ assert.ok(css.includes('#screen .edgyGameCards .game .art{'),"artwork has a fixed area");
+ assert.ok(css.includes('flex:0 0 160px!important'),"desktop artwork never shrinks for long descriptions");
+ assert.ok(css.includes('flex-basis:84px!important'),"mobile artwork uses exactly the same geometry");
+ assert.ok(css.includes('grid-auto-rows:1fr'),"all cards in the grid stretch equally");
+ assert.ok(css.includes('.main:has(> #screen.edgyLibraryPage)>.foot'),"library footer clears the navigation");
+ assert.ok(html.includes('edgy-game-layout.css?v=38'));
+ assert.ok(html.includes('app.js?v=38'));
 });
 test("EDGY v36: chess title is short and empty join notice does not reserve space",()=>{
  const chess=read("chess-online.js"),ui=read("edgy-game-ui.js"),css=read("edgy-game-layout.css");
