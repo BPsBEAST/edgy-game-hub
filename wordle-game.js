@@ -64,25 +64,71 @@ function finish(won){
  window.EDGY_recordLocalMatch?.("Wordle",won?"Vitória em "+r.guesses.length+"/6":"Derrota · "+r.answer,xp);
  message=won?"Excelente! Acertaste e ganhaste "+xp+" XP.":"A palavra era "+r.answer+". Ganhaste "+xp+" XP.";
 }
+/* The native mobile input updates the active row in place.
+   Replacing the entire screen on each keystroke would blur the input and
+   repeatedly close the phone's system keyboard. */
+function showMessage(text){
+ message=text;
+ const node=document.querySelector("#screen .wdMessage");
+ if(node){
+  node.textContent=text||"Escreve a tua palavra.";
+  node.classList.toggle("wdMessageVisible",Boolean(text));
+ }
+}
+function paintDraft(){
+ const r=round();
+ const row=document.querySelector('#screen .wdRow[data-wd-current="true"]');
+ if(!row||!r)return;
+ row.querySelectorAll(".wdTile").forEach((tile,i)=>{
+  const letter=r.draft[i]||"";
+  tile.textContent=letter;
+  tile.classList.toggle("wdFilled",Boolean(letter));
+  tile.setAttribute("aria-label",letter||"vazio");
+ });
+}
+function setNativeDraft(input){
+ if(!active||game!=="wordle"||!round()||round().finished)return;
+ const text=words().normalize(input.value).slice(0,5);
+ input.value=text;
+ round().draft=text;
+ revealRow=-1;
+ persist();
+ paintDraft();
+ if(message)showMessage("");
+}
+function focusNative(){
+ const input=document.querySelector("#screen [data-wd-native]");
+ if(input&&!input.disabled)input.focus({preventScroll:true});
+}
+function submitGuess(keepNativeFocus=false){
+ if(!active||game!=="wordle"||!round()||round().finished)return;
+ const r=round();
+ if(r.draft.length!==5){showMessage("Escreve uma palavra de cinco letras.");return}
+ if(!words().isWord(r.draft)){showMessage("Palavra não reconhecida. Experimenta outra.");return}
+ r.guesses.push(r.draft);
+ r.draft="";
+ message="";
+ revealRow=r.guesses.length-1;
+ if(r.guesses.at(-1)===r.answer)finish(true);
+ else if(r.guesses.length===MAX_GUESSES)finish(false);
+ persist();
+ render();
+ if(keepNativeFocus&&!r.finished)focusNative();
+}
 function press(key){
  if(!active||game!=="wordle"||!round()||round().finished)return;
  const r=round(),value=String(key||"").toUpperCase();
- if(value==="BACKSPACE"){
-  r.draft=r.draft.slice(0,-1);message="";revealRow=-1;persist();render();return;
+ if(value==="ENTER"){submitGuess();return}
+ if(value==="BACKSPACE")r.draft=r.draft.slice(0,-1);
+ else{
+  const letter=words().normalize(value);
+  if(letter.length!==1||r.draft.length>=5)return;
+  r.draft+=letter;
  }
- if(value==="ENTER"){
-  if(r.draft.length!==5){message="Escreve uma palavra de cinco letras.";render();return}
-  if(!words().isWord(r.draft)){message="Palavra não reconhecida. Experimenta outra.";render();return}
-  r.guesses.push(r.draft);r.draft="";message="";
-  revealRow=r.guesses.length-1;
-  if(r.guesses.at(-1)===r.answer)finish(true);
-  else if(r.guesses.length===MAX_GUESSES)finish(false);
-  persist();render();return;
- }
- const letter=words().normalize(value);
- if(letter.length===1&&r.draft.length<5){
-  r.draft+=letter;message="";revealRow=-1;persist();render();
- }
+ revealRow=-1;
+ message="";
+ persist();
+ render();
 }
 function keydown(event){
  if(!active||game!=="wordle"||event.metaKey||event.ctrlKey||event.altKey)return;
@@ -117,7 +163,7 @@ function rowHtml(i){
  const r=round(),attempt=r.guesses[i]||"",draft=!attempt&&i===r.guesses.length&&!r.finished?r.draft:"";
  const value=attempt||draft,results=attempt?rules().score(attempt,r.answer):[];
  const reveal=attempt&&revealRow===i;
- return '<div class="wdRow" role="row" aria-label="Tentativa '+(i+1)+'">'
+ return '<div class="wdRow" role="row" '+(!attempt&&i===r.guesses.length&&!r.finished?'data-wd-current="true" title="Toca para escrever a palavra"':'')+' aria-label="Tentativa '+(i+1)+'">'
  +Array.from({length:5},(_,j)=>{
   const letter=value[j]||"",state=results[j]||"",animate=reveal?" wdReveal":"";
   return '<span class="wdTile'+(state?" wd-"+state:"")+(letter?" wdFilled":"")+(animate)+"\" role=\"gridcell\" aria-label=\""+
@@ -125,18 +171,16 @@ function rowHtml(i){
     "\" style=\"--wd-order:"+j+"\">"+esc(letter)+"</span>";
  }).join("")+"</div>";
 }
-function keyboardHtml(){
- const known=rules().keyboard(round().guesses,round().answer);
- const layout=["QWERTYUIOP","ASDFGHJKL","ZXCVBNM"];
- return '<div class="wdKeyboard" aria-label="Teclado do jogo">'+layout.map((letters,row)=>{
-  const keys=row===2?["ENTER",...letters,"BACKSPACE"]:[...letters];
-  return '<div class="wdKeys" role="group">'+keys.map(key=>{
-   const special=key.length>1;
-   const text=key==="ENTER"?"ENTRAR":key==="BACKSPACE"?"⌫":key;
-   const status=known[key]||"";
-   return '<button type="button" data-wd-key="'+key+'" class="wdKey'+(special?" wdKeyWide":"")+(status?" wdKey-"+status:"")+'" aria-label="'+(key==="BACKSPACE"?"Apagar":key==="ENTER"?"Confirmar":key)+'" '+(round().finished?"disabled":"")+">"+text+"</button>";
-  }).join("")+"</div>";
- }).join("")+"</div>";
+function nativeTypingHtml(){
+ if(round().finished)return "";
+ return '<form class="wdNativeForm" data-wd-form>'
+  +'<label for="wd-native-word" class="wdNativeLabel">Toca para escrever a palavra</label>'
+  +'<div class="wdNativeControls"><input id="wd-native-word" data-wd-native type="text"'
+  +' inputmode="text" enterkeyhint="done" autocomplete="off" autocorrect="off"'
+  +' autocapitalize="characters" spellcheck="false" maxlength="12"'
+  +' aria-label="Palavra de cinco letras" placeholder="Escreve aqui…" value="'+esc(round().draft)+'">'
+  +'<button type="submit" class="wdNativeSubmit">Confirmar</button></div>'
+  +'</form>';
 }
 function resultsHtml(){
  const r=round();
@@ -171,7 +215,7 @@ function render(){
   +'<div class="wdTopline"><span class="wdRoundLabel">RONDA '+saved.number+'</span><span class="wdAttemptLabel">'+(playing?"Tentativa "+(completed+1)+" de 6":"Partida concluída")+'</span></div>'
   +'<div class="wdBoard" role="grid" aria-label="Grelha de seis tentativas para palavras de cinco letras">'+Array.from({length:6},(_,i)=>rowHtml(i)).join("")+'</div>'
   +'<p class="wdMessage'+(message?" wdMessageVisible":"")+'" role="status" aria-live="polite">'+(message?esc(message):playing?"Escreve a tua primeira palavra.":"")+'</p>'
-  +resultsHtml()+'<p class="wdDesktopHint">Escreve com o teclado do computador. Usa Enter para confirmar e Backspace para apagar.</p>'+keyboardHtml()
+  +resultsHtml()+'<p class="wdDesktopHint">Escreve com o teclado do computador. Usa Enter para confirmar e Backspace para apagar.</p>'+nativeTypingHtml()
   +'<div class="wdBottomHint"><span class="wdHintDot"></span>'+words().answerCount+' palavras para descobrir · '+words().guessCount.toLocaleString("pt-PT")+' palavras aceites</div>'
   +'</section>';
  root.innerHTML='<div class="edgyGamePage wdPage">'
@@ -179,7 +223,15 @@ function render(){
   +window.EDGY_gameUI.match({game:"wordle",stage,side:sideHtml(),layoutClass:"wdLayout",stageClass:"wdStage",sideClass:"wdSide"})
   +'</div>';
  root.querySelector("[data-back]")?.addEventListener("click",()=>nav("games"));
- root.querySelectorAll("[data-wd-key]").forEach(button=>button.addEventListener("click",()=>press(button.dataset.wdKey)));
+ const native=root.querySelector("[data-wd-native]");
+ native?.addEventListener("input",()=>setNativeDraft(native));
+ native?.addEventListener("compositionend",()=>setNativeDraft(native));
+ root.querySelector("[data-wd-form]")?.addEventListener("submit",event=>{
+  event.preventDefault();
+  if(native)setNativeDraft(native);
+  submitGuess(true);
+ });
+ root.querySelector('[data-wd-current="true"]')?.addEventListener("click",focusNative);
  root.querySelector("[data-wd-new]")?.addEventListener("click",nextRound);
  root.querySelector("[data-wd-share]")?.addEventListener("click",share);
 }
