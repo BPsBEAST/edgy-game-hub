@@ -123,6 +123,6 @@ function refreshRoomsOnPage(){
  }
 }
 window.EDGY_social={openInvite,createAndInvite,refreshInvites,openInbox,renderRooms,refreshRoomsOnPage};
-bell();setTimeout(refreshInvites,1700);
+bell();setTimeout(refreshInvites,1700);setTimeout(refreshRoomsOnPage,300);
 setInterval(()=>{if(me()?.id!==currentUser){inbox=[];currentUser="";bell()}refreshInvites()},15000);
 })();
