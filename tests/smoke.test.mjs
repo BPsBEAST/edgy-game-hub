@@ -351,7 +351,7 @@ test("Level-up notifications persist per account, share invitation bell and cele
  sandbox.testObserve(250);
  assert.equal(state.highest,3,"initial profile loads do not generate fake achievements");
  assert.equal(popups.length,0);
- sandbox.testObserve(410);
+ sandbox.testObserve(350);
  assert.deepEqual(Array.from(state.items,x=>x.level),[4]);
  assert.deepEqual(popups,[4]);
  sandbox.testNotify(3,4);
