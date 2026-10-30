@@ -4,30 +4,43 @@
 (function(){
 "use strict";
 const STORAGE="edgy_wordle_v1",MAX_GUESSES=6;
+const wordHistory=()=>window.EDGY_seenWords;
+const owner=()=>window.EDGY_auth?.getUser?.()?.id||"local";
+const storageKey=()=>owner()==="local"?STORAGE:STORAGE+"_"+owner();
+let sessionOwner="",openToken=0;
 const words=()=>window.EDGY_wordBank;
 const rules=()=>window.EDGY_wordRules;
 const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-let saved=null,active=false,message="",revealRow=-1;
+let saved=null,active=false,message="",revealRow=-1,loading=false;
 function blankStats(){return {played:0,wins:0,streak:0,best:0,distribution:[0,0,0,0,0,0]}}
 function read(){
  try{
-  const parsed=JSON.parse(localStorage.getItem(STORAGE)||"null");
+  let raw=localStorage.getItem(storageKey());
+  if(!raw&&owner()!=="local"&&localStorage.getItem("edgy_owner_id")===owner()){
+   raw=localStorage.getItem(STORAGE);
+  }
+  const parsed=JSON.parse(raw||"null");
   if(!parsed||typeof parsed!=="object")return {};
   return parsed;
  }catch{return {}}
 }
 function persist(){
- try{localStorage.setItem(STORAGE,JSON.stringify(saved))}catch{}
+ try{localStorage.setItem(storageKey(),JSON.stringify(saved))}catch{}
 }
-function newRound(previous=-1){
+async function newRound(previous=-1){
  const bank=words();
+ if(wordHistory()){
+  const chosen=await wordHistory().choose(bank.answers,"wordle");
+  if(!chosen)return {answer:"",guesses:[],draft:"",finished:true,won:false,credited:true,exhausted:true};
+  return {answer:chosen.toUpperCase(),guesses:[],draft:"",finished:false,won:false,credited:false};
+ }
  const next=rules().choose(saved?.bag,bank.answers.length,previous);
  saved.bag=next.remaining;
  return {answer:bank.answers[next.index].toUpperCase(),guesses:[],draft:"",finished:false,won:false,credited:false};
 }
-function setup(){
- if(saved)return;
- const bank=words(),data=read();
+async function setup(){
+ if(saved&&sessionOwner===owner())return;
+ const bank=words(),data=read(),ledger=wordHistory();
  saved={
   bag:Array.isArray(data.bag)?data.bag:[],
   round:null,
@@ -37,19 +50,39 @@ function setup(){
  const stats=saved.stats;
  for(const key of ["played","wins","streak","best"])stats[key]=Math.max(0,Math.floor(Number(stats[key])||0));
  stats.distribution=Array.from({length:6},(_,i)=>Math.max(0,Math.floor(Number(stats.distribution?.[i])||0)));
+ if(ledger){
+  await ledger.ready();
+  // Migrate existing Wordle history from the old shuffled-answer bag.
+  if(data.number>0&&Array.isArray(data.bag)&&data.bag.length>0){
+   const remaining=new Set(data.bag.filter(Number.isInteger));
+   const previous=bank.answers.filter((_,index)=>!remaining.has(index));
+   await ledger.importPrevious(previous,"wordle");
+  }
+ }
  const old=data.round;
  if(old&&bank.answers.includes(String(old.answer||"").toLowerCase())&&Array.isArray(old.guesses)&&old.guesses.length<=6&&old.guesses.every(x=>typeof x==="string"&&/^[A-Z]{5}$/.test(x))&&
   typeof old.draft==="string"&&/^[A-Z]{0,5}$/.test(old.draft)){
   saved.round={answer:old.answer,guesses:old.guesses,draft:old.draft,
    finished:Boolean(old.finished),won:Boolean(old.won),credited:Boolean(old.credited)};
- }else{saved.round=newRound();saved.number++}
- // Old versions cannot accidentally award XP twice on load.
+  await ledger?.importPrevious([old.answer],"wordle");
+ }else{saved.round=await newRound();saved.number++}
  if(saved.round.finished)saved.round.credited=true;
  persist();
 }
-function open(){active=true;setup();message="";revealRow=-1;render()}
+async function open(){
+ active=true;const ticket=++openToken,identity=owner();
+ message="";revealRow=-1;loading=true;
+ if(sessionOwner!==identity)saved=null;
+ sessionOwner=identity;
+ const el=document.getElementById("screen");
+ if(el)el.innerHTML='<div class="edgyGamePage wdPage"><p class="sub">A preparar o Wordle…</p></div>';
+ try{await setup()}
+ catch(error){console.warn("EDGY Wordle:",error);message="Não foi possível sincronizar todas as palavras."}
+ if(!active||ticket!==openToken||identity!==owner())return;
+ loading=false;render();
+}
 function close(){
- active=false;message="";revealRow=-1;
+ active=false;openToken++;message="";revealRow=-1;
  document.getElementById("screen")?.classList.remove("wdTyping");
 }
 function round(){return saved?.round}
@@ -163,11 +196,13 @@ function keydown(event){
  }
 }
 document.addEventListener("keydown",keydown);
-function nextRound(){
- const r=round();if(!r?.finished)return;
+async function nextRound(){
+ const r=round();if(!r?.finished||r.exhausted||loading)return;
  const previous=words().answers.indexOf(r.answer.toLowerCase());
- saved.round=newRound(previous);saved.number++;message="";revealRow=-1;
- persist();render();
+ loading=true;message="A preparar outra palavra…";render();
+ try{saved.round=await newRound(previous);saved.number++;message=saved.round.exhausted?"Esgotaste todas as respostas disponíveis, sem repetirmos palavras.":"";}
+ catch(error){message="Não foi possível preparar outra palavra.";console.warn(error)}
+ finally{loading=false;revealRow=-1;persist();render()}
 }
 function share(){
  const r=round();if(!r?.finished)return;
@@ -209,6 +244,8 @@ function nativeTypingHtml(){
 function resultsHtml(){
  const r=round();
  if(!r.finished)return "";
+ if(r.exhausted)return '<section class="wdOutcome"><div class="wdOutcomeLead">Coleção concluída!</div>'
+  +'<p>Já jogaste todas as palavras disponíveis. Não serão sorteadas novamente.</p></section>';
  return '<section class="wdOutcome '+(r.won?"wdWon":"wdLost")+'" aria-label="Resultado">'
   +'<div class="wdOutcomeLead">'+(r.won?"✦ Palavra descoberta!":"A ronda terminou")+'</div>'
   +'<p>'+(r.won?"Acertaste em "+r.guesses.length+" tentativas.":"A palavra era <strong>"+esc(r.answer)+"</strong>.")+'</p>'
@@ -222,22 +259,22 @@ function sideHtml(){
  return p.card("Estatísticas",'<div class="wdStats">'
   +[["Partidas",data.played],["Vitórias",pct+"%"],["Sequência",data.streak],["Recorde",data.best]].map(([label,value])=>
    '<div class="wdStat"><strong>'+value+'</strong><span>'+label+'</span></div>').join("")+'</div>'
-  +'<p class="wdSavedNotice">Progresso guardado neste dispositivo.</p>')
+  +'<p class="wdSavedNotice">As respostas já utilizadas ficam registadas por jogador, também na conta online quando disponível.</p>')
   +p.card("Como jogar",'<p>Descobre a palavra de <strong>cinco letras</strong> em até <strong>seis tentativas</strong>.</p>'
   +'<div class="wdLegend"><span class="wdExample wd-correct">A</span><span>Letra certa, no lugar certo</span></div>'
   +'<div class="wdLegend"><span class="wdExample wd-present">E</span><span>Letra certa, noutra posição</span></div>'
   +'<div class="wdLegend"><span class="wdExample wd-absent">R</span><span>Letra que não aparece</span></div>'
-  +'<p class="wdHelpLast">Acentos e cedilhas são ignorados. Podes jogar quantas rondas quiseres — sem repetir respostas até percorreres a coleção.</p>');
+  +'<p class="wdHelpLast">Acentos e cedilhas são ignorados. Podes jogar livremente. As respostas já usadas não voltam a sair.</p>');
 }
 function render(){
  if(!active||game!=="wordle"||!saved)return;
  const root=document.getElementById("screen");if(!root)return;
  root.classList.remove("edgyLobby","wdTyping");
  const r=round(),completed=r.guesses.length;
- const playing=!r.finished;
+ const playing=!r.finished&&!r.exhausted;
  const stage='<section class="wdPlay" aria-label="Jogo Wordle">'
-  +'<div class="wdTopline"><span class="wdRoundLabel">RONDA '+saved.number+'</span><span class="wdAttemptLabel">'+(playing?"Tentativa "+(completed+1)+" de 6":"Partida concluída")+'</span></div>'
-  +'<div class="wdBoard" role="grid" aria-label="Grelha de seis tentativas para palavras de cinco letras">'+Array.from({length:6},(_,i)=>rowHtml(i)).join("")+'</div>'
+  +'<div class="wdTopline"><span class="wdRoundLabel">RONDA '+saved.number+'</span><span class="wdAttemptLabel">'+(r.exhausted?"Sem novas palavras":playing?"Tentativa "+(completed+1)+" de 6":"Partida concluída")+'</span></div>'
+  +(r.exhausted?"":'<div class="wdBoard" role="grid" aria-label="Grelha de seis tentativas para palavras de cinco letras">'+Array.from({length:6},(_,i)=>rowHtml(i)).join("")+'</div>')
   +'<p class="wdMessage'+(message?" wdMessageVisible":"")+'" role="status" aria-live="polite">'+(message?esc(message):"")+'</p>'
   +resultsHtml()+'<p class="wdDesktopHint">Escreve com o teclado do computador. Usa Enter para confirmar e Backspace para apagar.</p>'+nativeTypingHtml()
   +'</section>';
