@@ -66,3 +66,112 @@
 .chessBoard,.ckBoard,.edgyReplayBoard{border-radius:3px!important;border-width:2px!important}
 .chessResultBox,.ckResultCard,.ckResignDialog,.historyDetailCard,.edReplayCard,.playerModalContent{border-radius:4px!important}
 .game .art{background-image:none!important}
+
+/* EDGY v24 — grouped header actions, five-tab bottom navigation, center Home */
+.topActions{
+ display:flex;align-items:center;justify-content:flex-end;gap:10px;
+ margin-left:auto;flex-shrink:0;min-width:0;
+}
+.topActions .edgyBell{margin:0!important;flex-shrink:0;align-self:center}
+.topActions .avatar{flex:0 0 auto}
+.top{align-items:center;gap:12px}
+.top .brandButton{margin-right:auto}
+.topActions .edgyBell:hover{border-color:#e54b97;background:#3b274c}
+.topActions .edgyBell:active{transform:scale(.94)}
+.topActions .edgyBell.hasInvites{border-color:#bc4180}
+.topActions .edgyBell.hasInvites .edgyBellCount{animation:edgyBadgePulse 2.7s ease-in-out infinite}
+@keyframes edgyBadgePulse{0%,100%{transform:scale(1)}50%{transform:scale(1.12)}}
+
+/* History is deliberately nested under Profile on mobile. */
+.edgyHistoryShortcut{display:flex;align-items:center;justify-content:space-between;gap:18px}
+.edgyHistoryShortcutInfo{display:flex;align-items:center;gap:14px;min-width:0}
+.edgyHistoryShortcutIcon{
+ display:grid;place-items:center;flex-shrink:0;width:46px;height:46px;
+ color:#f1a5d4;background:#49314e;border:1px solid #6c426f;border-radius:3px
+}
+.edgyHistoryShortcut h3{margin:0 0 5px}
+.edgyHistoryShortcut p{font-size:12px;margin:0}
+.edgyHistoryShortcut .secondary{flex-shrink:0;transition:background .2s ease,border-color .2s ease,transform .2s ease}
+.edgyHistoryShortcut .secondary:hover{border-color:#d64494;background:#4b2b4a;transform:translateX(2px)}
+.edgyReturnProfile{
+ display:none;background:transparent;border:0;color:#c9b9d8;
+ font-weight:750;font-size:13px;margin:0 0 19px;padding:7px 0
+}
+@media(max-width:799px){
+ .top{display:flex;align-items:center;justify-content:space-between;margin-bottom:23px}
+ .top .brandButton{flex:0 0 auto;max-width:43%}
+ .topActions{display:flex;align-items:center;gap:10px;margin-left:auto}
+ .topActions .edgyBell{width:40px;height:40px;min-width:40px}
+ .topActions .avatar{width:40px;height:40px}
+ .edgyHistoryShortcut{align-items:stretch;flex-direction:column;gap:14px}
+ .edgyHistoryShortcut .secondary{width:100%}
+ .edgyReturnProfile{display:inline-flex;align-items:center}
+ /* Keep five equally sized actions and place Home in the middle. */
+ .nav{
+  display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr));gap:2px;
+  align-items:end;justify-content:stretch;
+  padding:9px 9px calc(8px + env(safe-area-inset-bottom));
+  min-height:74px;background:#1b152ef7;
+  border-top:1px solid #4f375b;
+  box-shadow:0 -8px 25px #10091c75;
+ }
+ .nav button{
+  display:flex;flex-direction:column;align-items:center;justify-content:flex-end;
+  gap:4px;position:relative;min-width:0!important;min-height:54px;
+  width:100%;padding:6px 2px 4px!important;
+  border:0;background:transparent;border-radius:5px!important;
+  color:#a99bb9;font-size:10px;letter-spacing:.1px;font-weight:650;
+  transition:color .22s ease,background-color .22s ease,transform .18s cubic-bezier(.2,.8,.3,1);
+ }
+ .nav button .navIcon{
+  width:22px!important;height:22px!important;flex-shrink:0;
+  transition:transform .22s cubic-bezier(.15,.8,.24,1),color .2s,filter .2s;
+ }
+ .nav button:not(.navHome):hover{background:#372845;color:#efe1f4}
+ .nav button:not(.navHome):hover .navIcon{transform:translateY(-3px)}
+ .nav button:not(.navHome):active{transform:scale(.91)}
+ .nav button.active:not(.navHome){color:#ff6db4}
+ .nav button.active:not(.navHome)::before{
+  content:"";position:absolute;top:-8px;width:21px;height:3px;
+  border-radius:1px;background:#ff1685;box-shadow:0 0 9px #fa27847d;
+  animation:edgyNavIndicator .23s ease-out both
+ }
+ .nav button.active:not(.navHome) .navIcon{transform:translateY(-2px)}
+ .nav button.navHome{
+  justify-content:flex-end;gap:5px;
+  padding:0 1px 4px!important;color:#ddd0e6;
+  min-height:65px;transform:translateY(-7px);
+ }
+ .nav button.navHome .navIcon{
+  display:block;width:45px!important;height:45px!important;
+  padding:12px;color:white;stroke:white;
+  border:1px solid #ed489f;border-radius:9px;
+  background:linear-gradient(125deg,#fa107b,#bb079a);
+  box-shadow:0 5px 14px #c0067270,0 0 0 3px #331d40;
+  transition:transform .22s cubic-bezier(.15,.8,.24,1),box-shadow .24s,filter .24s;
+ }
+ .nav button.navHome:hover .navIcon{
+  filter:brightness(1.09);transform:translateY(-3px);
+  box-shadow:0 9px 18px #cb117d80,0 0 0 3px #4d264e
+ }
+ .nav button.navHome:active .navIcon{transform:scale(.91)}
+ .nav button.navHome.active{color:#ffb0d7}
+ .nav button.navHome.active .navIcon{
+  box-shadow:0 4px 15px #e6088f9e,0 0 0 3px #65416e;
+ }
+ .nav button:focus-visible{outline:2px solid #ff64b2;outline-offset:-1px}
+ .main{padding-bottom:110px}
+}
+@media(max-width:370px){
+ .nav{gap:0;padding-left:4px;padding-right:4px}
+ .nav button{font-size:9px;letter-spacing:0}
+ .nav button .navIcon{width:19px!important;height:19px!important}
+ .nav button.navHome .navIcon{width:41px!important;height:41px!important;padding:11px}
+ .topActions{gap:6px}
+}
+@keyframes edgyNavIndicator{from{opacity:0;transform:translateY(-5px) scaleX(.65)}to{opacity:1;transform:translateY(0) scaleX(1)}}
+@media(prefers-reduced-motion:reduce){
+ .nav button,.nav button .navIcon,.nav button.navHome .navIcon,
+ .topActions .edgyBell,.edgyHistoryShortcut .secondary{transition:none!important}
+ .nav button.active:not(.navHome)::before,.topActions .edgyBell.hasInvites .edgyBellCount{animation:none!important}
+}
