@@ -79,7 +79,7 @@ test("Palavra Oculta duplicate letters, feedback priority and non-repeating shuf
 });
 test("Palavra Oculta resumes an unfinished puzzle and credits local XP exactly once",()=>{
  const storage=new Map(),records=[],listeners={},root={
-  classList:{remove(){}},innerHTML:"",
+  classList:{remove(){},toggle(){}},innerHTML:"",
   querySelector(){return null},querySelectorAll(){return []}
  };
  const document={
