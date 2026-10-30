@@ -7,7 +7,7 @@ let account=null, profile=null, authBusy=false, entryMode=localStorage.getItem("
 const css=document.createElement("style");
 css.textContent=`
 .authMask[hidden]{display:none!important}.authMask{position:fixed;inset:0;z-index:30;overflow-y:auto;background:#141126ed;backdrop-filter:blur(20px);display:grid;place-items:center;padding:20px}.authBox{width:min(100%,420px);border:1px solid #443253;border-radius:24px;padding:27px;background:#211935;box-shadow:0 25px 85px #0d0619b0}.authLogo{font-size:48px;font-weight:950;letter-spacing:-4px;text-align:center;background:linear-gradient(110deg,#ff075c,#c300a7);background-clip:text;-webkit-background-clip:text;color:transparent}.authBox h2{text-align:center;margin-top:22px}.authBox .sub{text-align:center}.authActions{display:grid;gap:9px;margin:20px 0}.authActions button{width:100%}.authNote{font-size:12px;color:#b2a6c8;line-height:1.6}.authError{font-size:12px;color:#ff9cb7;min-height:20px}.authForm label{display:block;margin:12px 0 6px;font-size:12px;color:#c2b6d6}.authForm input{background:#141126;border:1px solid #574263;border-radius:10px;padding:12px;width:100%;color:white}.authClose{border:0;background:transparent;color:#bfb1cf}.authAvatar{width:70px;height:70px;border-radius:50%;object-fit:cover;border:2px solid #ec277d}.authPhoto{margin:15px 0}.authStatus{font-size:12px;color:#c7b7d2;margin-top:10px}
-.edgyPhotoPicker{display:inline-flex;align-items:center;justify-content:center;border:1px solid #805279;background:#36284b;border-radius:12px;padding:12px 14px;color:#fff;cursor:pointer;font-size:13px;font-weight:700;position:relative}.edgyPhotoPicker:focus-within{outline:2px solid #ff4698;outline-offset:3px}.edgyPhotoPicker input{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden}\n`;document.head.appendChild(css);
+.edgyPhotoPicker{display:inline-flex;align-items:center;justify-content:center;border:1px solid #805279;background:#36284b;border-radius:12px;padding:12px 14px;color:#fff;cursor:pointer;font-size:13px;font-weight:700;position:relative}.edgyPhotoPicker:focus-within{outline:2px solid #ff4698;outline-offset:3px}.edgyPhotoPicker input{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden}\n`;css.textContent+=".playersVisibility{display:flex;align-items:center;gap:9px;padding:13px;margin-top:16px;background:#2b2242;border:1px solid #514062;border-radius:12px;color:#e9dceb;font-size:13px}.playersVisibility input{accent-color:#f32891;width:18px;height:18px;flex-shrink:0}";document.head.appendChild(css);
 const modal=document.createElement("div");modal.className="authMask";modal.id="edgy-auth";modal.hidden=true;modal.style.display="none";document.body.appendChild(modal);
 function show(html){modal.hidden=false;modal.style.display="grid";modal.innerHTML='<div class="authBox">'+html+'</div>';const close=modal.querySelector("[data-close]");if(close)close.onclick=hide;}
 function hide(){modal.hidden=true;modal.style.display="none"}
@@ -130,7 +130,17 @@ if(account&&!account.is_anonymous){
  const idPanel=document.createElement("section");
  idPanel.className="section panel";
  idPanel.innerHTML='<h3>Identidade de jogador</h3><p class="sub">O nome visível pode repetir-se. O username é único na EDGY.</p><label class="formLabel" for="edgy-handle">Username único</label><div class="row"><span class="sub">@</span><input id="edgy-handle" class="field" maxlength="20" autocomplete="off" spellcheck="false" placeholder="ex: buedaedgy" style="flex:1;min-width:140px"><button class="secondary" type="button" id="edgy-handle-save">Guardar ID</button></div><p class="sub" id="edgy-handle-message" role="status">3 a 20 caracteres: letras, números ou _</p>';
+ idPanel.innerHTML+='<label class="playersVisibility"><input id="edgy-public-visible" type="checkbox"> Mostrar o meu perfil aos outros jogadores</label><div class="actionrow"><button class="secondary" type="button" id="edgy-see-me">Ver o meu perfil público</button></div><p class="sub" id="edgy-visibility-msg" role="status"></p>';
  host.appendChild(idPanel);
+ const toggle=idPanel.querySelector("#edgy-public-visible");
+ toggle.checked=profile?.public_visible!==false;
+ toggle.onchange=async()=>{
+  const {data,error}=await sb.from("profiles").update({public_visible:toggle.checked}).eq("id",account.id).select("public_visible").single();
+  if(error){toggle.checked=!toggle.checked;idPanel.querySelector("#edgy-visibility-msg").textContent=error.message;return}
+  profile={...profile,public_visible:data.public_visible};
+  idPanel.querySelector("#edgy-visibility-msg").textContent=data.public_visible?"O perfil aparece na área Jogadores.":"O teu perfil está oculto da comunidade.";
+ };
+ idPanel.querySelector("#edgy-see-me").onclick=()=>window.EDGY_players?.openById(account.id);
  const input=idPanel.querySelector("#edgy-handle"),message=idPanel.querySelector("#edgy-handle-message");
  input.value=profile?.username||"";
  idPanel.querySelector("#edgy-handle-save").onclick=async()=>{
