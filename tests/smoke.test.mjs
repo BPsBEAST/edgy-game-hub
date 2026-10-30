@@ -22,10 +22,11 @@ test("Every local asset referenced by the bootstrap exists",()=>{
  assert.ok(assets);
  const names=[...assets.matchAll(/"([^"]+)"/g)].map(m=>m[1]);
  for(const name of names)assert.ok(fs.existsSync(path.join(dir,name.split("?")[0])),name);
- assert.ok(names.includes("./edgy-platform.js?v=30"),"shared platform cached");
- assert.ok(names.includes("./app.js?v=30"),"bootstrap cached");
+ assert.ok(names.includes("./edgy-platform.js?v=31"),"shared platform cached");
+ assert.ok(names.includes("./app.js?v=31"),"bootstrap cached");
  assert.ok(names.includes("./base.css?v=29"),"base stylesheet cached");
- assert.ok(names.includes("./edgy-theme.css?v=30"),"design cached");
+ assert.ok(names.includes("./edgy-theme.css?v=31"),"design cached");
+ assert.ok(names.includes("./tic-online.js?v=31"),"online tic cached");
 });
 test("Navigation keeps Histórico only inside Perfil",()=>{
  const sidebar=html.split('<aside class="sidebar">')[1].split("</aside>")[0];
@@ -158,4 +159,16 @@ test("Stable footer, profile replay links and chess mobile actions",()=>{
  assert.ok(css.includes("main.chess-viewport #screen .chessSide"));
  assert.ok(!damas.includes("data-refresh"));
  assert.ok(!damas.includes(">Atualizar</button>"));
+});
+
+test("Game library uses a single registry loaded before bootstrap",()=>{
+ const scripts=[...html.matchAll(/<script[^>]*src="([^"]+)"/g)].map(m=>m[1]);
+ const platform=scripts.indexOf("./edgy-platform.js?v=31");
+ const bootstrap=scripts.indexOf("./app.js?v=31");
+ assert.ok(platform>=0&&bootstrap>=0&&platform<bootstrap);
+ const app=read("app.js"),defs=read("edgy-platform.js");
+ assert.ok(app.includes("Object.values(window.EDGY_platform.games).map("));
+ assert.ok(app.includes("defs.length"));
+ for(const game of ["chess","checkers","tic","reaction"])assert.ok(defs.includes(game+":Object.freeze("));
+ assert.ok(app.includes('filter==="Multiplayer"?window.EDGY_platform.games[g.id].online'));
 });
