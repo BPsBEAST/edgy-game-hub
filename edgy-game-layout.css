@@ -228,3 +228,28 @@
   color:#a89bb8!important;
  }
 }
+
+/* v37: compact, uniformly sized library cards; footer stays above mobile tabs. */
+@media(max-width:799px){
+ #screen.edgyLibraryPage .game .art,
+ #screen.edgyLibraryPage .game:nth-child(even) .art{
+  flex:0 0 84px!important;height:84px!important;min-height:84px!important;
+ }
+ #screen.edgyLibraryPage .gameBody{
+  flex:1 1 auto;min-height:75px!important;padding:9px 10px!important;
+ }
+ #screen.edgyLibraryPage .game .edgyGameIcon{transform:scale(.77)}
+ .main:has(> #screen.edgyLibraryPage)>.foot{
+  margin-top:14px!important;min-height:0!important;
+  padding:7px 0 5px!important;font-size:10px!important;text-align:center;
+ }
+ /* Only the chess waiting room gets a strict, even panel rhythm. */
+ #screen.edgyLobby .chessWrap.edgyGamePage{
+  display:grid;grid-template-columns:minmax(0,1fr);gap:12px;align-content:start;
+ }
+ #screen.edgyLobby .chessWrap>.edgyGameHeader,
+ #screen.edgyLobby .chessWrap>.edgyGamePanel{margin:0!important;min-width:0}
+ #screen.edgyLobby .chessWrap .chessLobbyNotice:empty{
+  display:none!important;margin:0!important;padding:0!important;min-height:0!important;
+ }
+}
