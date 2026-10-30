@@ -60,3 +60,9 @@
 .edgyGameIconReflexos svg{width:50px;height:50px}
 .chessWrap .panel,.ckWrap .ckPanel{border-radius:3px!important}
 @media(max-width:430px){.edgyRoomActions{width:100%}.edgyRoomActions button{flex:1}.edgySocialDialog{padding:15px}.edgyGameIcon{width:43px;height:43px}.edgyGameIcon svg{width:40px;height:40px}}
+
+/* Crisp, almost square controls — preserve circular avatars and game discs. */
+.shell button:not(.avatar):not(.chessSq):not(.ckSquare):not(.damasCell):not(.edgyBellCount){border-radius:3px!important}
+.chessBoard,.ckBoard,.edgyReplayBoard{border-radius:3px!important;border-width:2px!important}
+.chessResultBox,.ckResultCard,.ckResignDialog,.historyDetailCard,.edReplayCard,.playerModalContent{border-radius:4px!important}
+.game .art{background-image:none!important}
