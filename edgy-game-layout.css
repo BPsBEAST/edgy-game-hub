@@ -318,3 +318,46 @@
   display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))
  }
 }
+
+/* v44: the 5-game library has an odd final tile on narrow screens.
+   Preserve exactly the same card component and dimensions on Home and Jogos:
+   the unmatched final tile is centered instead of leaving a lopsided empty cell. */
+@media(max-width:799px){
+ #screen .edgyGameCards{
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:11px;
+  min-width:0;
+  width:100%;
+ }
+ #screen .edgyGameCards>.game:last-child:nth-child(odd){
+  grid-column:1 / -1;
+  justify-self:center;
+  width:calc((100% - 11px)/2)!important;
+  max-width:none;
+ }
+ #screen .edgyGameCards>.game:only-child{
+  width:min(100%,250px)!important;
+ }
+ #screen .edgyGameCards .gameBody{
+  overflow-wrap:anywhere;
+ }
+ #screen.edgyLibraryPage .filters{
+  display:flex;
+  flex-wrap:wrap;
+  gap:7px;
+  min-width:0;
+  max-width:100%;
+  margin-bottom:15px;
+  overflow:visible;
+ }
+ #screen.edgyLibraryPage .filters button{
+  min-width:0;
+  flex:0 1 auto;
+  white-space:nowrap;
+  padding-inline:12px;
+ }
+ /* Keep the final row and page footer above the five-tab navigation. */
+ .main:has(> #screen.edgyLibraryPage){
+  padding-bottom:calc(105px + env(safe-area-inset-bottom))!important;
+ }
+}
