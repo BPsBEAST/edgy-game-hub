@@ -42,7 +42,7 @@ function inboxDraw(){
 async function respond(id,accept){
  if(working)return;working=true;msg(accept?"A entrar na partida…":"A recusar convite…");
  try{
-  const {data,error}=await db().rpc("edgy_invite_respond",{p_invite_id:id,p_accept:accept});
+  const {data,error}=await window.EDGY_platform.rooms.respond(id,accept);
   if(error)throw error;
   inbox=inbox.filter(i=>i.id!==id);bell();
   if(accept&&data?.accepted){close();window.EDGY_openRoom?.(data.game,data.code)}
@@ -68,7 +68,7 @@ async function picker(term=""){
 }
 async function send(playerId){
  if(working)return;working=true;msg("A enviar convite…");
- try{const {error}=await db().rpc("edgy_invite_send",{p_game:roomGame,p_code:roomCode,p_recipient:playerId});if(error)throw error;
+ try{const {error}=await window.EDGY_platform.rooms.invite(roomGame,roomCode,playerId);if(error)throw error;
   msg("Convite enviado! O jogador recebe-o no sino da EDGY.");setTimeout(()=>{if(modalMode==="picker")close()},950)
  }catch(e){msg(e.message||"Não foi possível enviar convite")}
  finally{working=false}
@@ -82,10 +82,7 @@ function openInvite(game,code){
 
 /* Only games with a working online invite backend appear here.
    New multiplayer games can be added to this registry without changing public profiles. */
-const CHALLENGE_GAMES=Object.freeze([
- {id:"chess",name:"Xadrez",description:"Estratégia · 2 jogadores · 10+0",icon:"♞"},
- {id:"checkers",name:"Damas",description:"Estratégia · 2 jogadores · 8×8",icon:"◎"}
-]);
+const CHALLENGE_GAMES=Object.values(window.EDGY_platform.games).filter(g=>g.online).map(g=>({...g,name:g.title,description:g.id==="chess"?"Estratégia · 2 jogadores · 10+0":"Estratégia · 2 jogadores · 8×8"}));
 function openChallenge(playerId,playerName="jogador"){
  if(!me()||me().is_anonymous){openModal("Desafiar jogador","Entra numa conta para desafiar jogadores.","info");msg("Os convites internos requerem uma conta registada.");return}
  if(!playerId||playerId===me().id)return;
@@ -124,10 +121,9 @@ async function createAndInvite(game,playerId){
  $("#edgy-social-body").innerHTML='<div class="edgyChallengeLoading" role="status"><span class="edgyChallengeSpinner" aria-hidden="true"></span><span>A preparar a tua sala privada…</span></div>';
  msg("A criar a sala…");
  try{
-  const fn=game==="chess"?"edgy_create_chess_room_timed":"edgy_checkers_create";
-  const {data:code,error:roomError}=await db().rpc(fn,game==="chess"?{p_base:600,p_increment:0}:undefined);
+  const {data:code,error:roomError}=await window.EDGY_platform.rooms.create(game,{base:600,increment:0});
   if(roomError)throw roomError;
-  const {error}=await db().rpc("edgy_invite_send",{p_game:game,p_code:code,p_recipient:playerId});
+  const {error}=await window.EDGY_platform.rooms.invite(game,code,playerId);
   if(error){msg("Sala "+code+" criada, mas o convite falhou: "+error.message);return}
   close();window.EDGY_players?.closeProfile?.();window.EDGY_openRoom?.(game,code);
  }catch(e){msg(e.message||"Não foi possível criar o desafio")}
@@ -143,7 +139,7 @@ async function renderRooms(id,game=null){
  if(!me()){host.innerHTML='<p class="edgyRoomsEmpty">Inicia sessão para veres as tuas salas.</p>';return}
  host.innerHTML='<p class="sub">A carregar salas…</p>';
  try{
-  const {data,error}=await db().rpc("edgy_my_rooms",{p_limit:80});if(error)throw error;
+  const {data,error}=await window.EDGY_platform.rooms.list(80);if(error)throw error;
   if(!host.isConnected)return;
   const rooms=(Array.isArray(data)?data:[]).filter(r=>(r.status==="waiting"||r.status==="active")&&(!game||r.game===game));
   const visible=id==="edgy-home-rooms"?rooms.slice(0,3):rooms;
@@ -152,8 +148,7 @@ async function renderRooms(id,game=null){
   host.querySelectorAll("[data-invite]").forEach(b=>b.onclick=()=>{const [g,c]=b.dataset.invite.split("|");openInvite(g,c)});
   host.querySelectorAll("[data-cancel]").forEach(b=>b.onclick=async()=>{
    const [g,c]=b.dataset.cancel.split("|");b.disabled=true;
-   const method=g==="chess"?"edgy_cancel_waiting_chess_room":"edgy_checkers_cancel";
-   const {data:ok,error}=await db().rpc(method,{p_code:c});
+   const {data:ok,error}=await window.EDGY_platform.rooms.cancel(g,c);
    if(error||!ok){b.disabled=false;host.insertAdjacentHTML("beforeend",'<p class="sub">Não foi possível fechar a sala.</p>');return}
    renderRooms(id,game);
   });
