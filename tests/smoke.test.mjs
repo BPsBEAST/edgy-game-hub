@@ -106,7 +106,7 @@ test("Palavra Oculta resumes an unfinished puzzle and credits local XP exactly o
  const controller=fakeWindow.EDGY_wordle,stored=()=>JSON.parse(storage.get("edgy_wordle_v1"));
  controller.open();
  assert.ok(root.innerHTML.includes('class="wdBoard"'));
- assert.ok(root.innerHTML.includes('class="wdKeyboard"'));
+ assert.ok(root.innerHTML.includes('class="wdNativeForm"'));
  const answer=stored().round.answer;
  // A desktop physical keystroke must enter the same shared game state.
  let prevented=false;
@@ -127,7 +127,7 @@ test("Palavra Oculta resumes an unfinished puzzle and credits local XP exactly o
  assert.equal(records.length,1,"completed puzzle must never award XP twice");
  assert.ok(read("wordle-game.js").includes("Native buttons must still activate"));
 });
-test("Palavra Oculta keeps the shared EDGY layout, local XP and accessible mobile controls",()=>{
+test("Wordle keeps the shared EDGY layout, local XP and accessible native mobile input",()=>{
  const app=read("app.js"),game=read("wordle-game.js"),ui=read("edgy-game-ui.js"),skin=read("wordle.css");
  assert.ok(app.includes('window.EDGY_recordLocalMatch=complete'));
  assert.ok(app.includes('window.EDGY_wordle?.close()'));
@@ -139,7 +139,8 @@ test("Palavra Oculta keeps the shared EDGY layout, local XP and accessible mobil
  assert.ok(game.includes('window.EDGY_gameUI.header("wordle"'));
  assert.ok(game.includes('window.EDGY_recordLocalMatch?.('));
  assert.ok(game.includes('localStorage.setItem(STORAGE,JSON.stringify(saved))'));
- assert.ok(game.includes('data-wd-key='));
+ assert.ok(game.includes('data-wd-native'));
+ assert.ok(game.includes('data-wd-form'));
  assert.ok(game.includes('data-wd-new'));
  assert.ok(game.includes('data-wd-share'));
  assert.ok(game.includes('role="grid"'));
@@ -161,17 +162,102 @@ test("Wordle title and accessible keyboard layout differ correctly between deskt
  assert.ok(game.includes('EDGY · Wordle #'));
  assert.ok(game.includes('aria-label="Jogo Wordle"'));
  assert.ok(game.includes('class="wdDesktopHint"'));
- // Desktop layout: virtual keys are not displayed.
+ // Desktop: the field for the mobile system keyboard stays hidden.
  const desktop=css.slice(0,css.indexOf('@media(max-width:799px)'));
- assert.match(desktop,/#screen \.wdKeyboard\{display:none;/);
- assert.match(desktop,/#screen \.wdDesktopHint\{display:block;/);
- // Mobile layout: the game reuses the very same keyboard, no second copy.
+ assert.match(desktop,/#screen \.wdNativeForm\{display:none/);
+ assert.match(desktop,/#screen \.wdDesktopHint\{display:block/);
+ // Mobile: a real text input launches the operating system keyboard.
  const mobile=css.slice(css.indexOf('@media(max-width:799px)'),css.indexOf('@media(max-width:370px)'));
- assert.match(mobile,/#screen \.wdKeyboard\{display:grid;/);
+ assert.match(mobile,/#screen \.wdNativeForm\{display:block/);
  assert.match(mobile,/#screen \.wdDesktopHint\{display:none/);
- assert.equal((game.match(/function keyboardHtml\(/g)||[]).length,1);
+ assert.ok(game.includes('inputmode="text"'));
+ assert.ok(game.includes('enterkeyhint="done"'));
+ assert.ok(game.includes('autocorrect="off"'));
+ assert.ok(game.includes('data-wd-native'));
+ assert.ok(game.includes('data-wd-form'));
+ assert.ok(game.includes('function setNativeDraft(input)'));
+ assert.ok(game.includes('function paintDraft()'));
+ assert.ok(!game.includes('function keyboardHtml('),"do not render a second, virtual keyboard");
+ assert.ok(!css.includes('.wdKeyboard'),"remove old virtual-keyboard styles");
  // Previously completed games keep their saved stats and display the new label.
  assert.ok(app.includes('h?.title==="Palavra Oculta"?{...h,title:"Wordle"}:h'));
+});
+test("Wordle native typing does not rebuild the screen, keeps focus and submits exactly once",()=>{
+ const state=new Map(),records=[],handlers={};
+ let redraws=0,current={input:null,form:null,row:null,status:null};
+ function makeNode(){
+  const events={};
+  return {value:"",disabled:false,events,
+   addEventListener(name,handler){events[name]=handler},
+   focus(){this.focused=true},
+   classList:{toggle(){}},
+   setAttribute(){},textContent:""};
+ }
+ const root={
+  classList:{remove(){}},
+  get innerHTML(){return this._html||""},
+  set innerHTML(html){
+   this._html=html;redraws++;
+   current.input=html.includes('data-wd-native')?makeNode():null;
+   current.form=html.includes('data-wd-form')?makeNode():null;
+   current.status=makeNode();
+   const tiles=Array.from({length:5},()=>makeNode());
+   current.row=html.includes('data-wd-current="true"')?makeNode():null;
+   if(current.row){current.row.querySelectorAll=()=>tiles;current.row.tiles=tiles}
+  },
+  querySelector(sel){
+   if(sel==="[data-wd-native]")return current.input;
+   if(sel==="[data-wd-form]")return current.form;
+   if(sel==='[data-wd-current="true"]')return current.row;
+   return null;
+  },
+  querySelectorAll(){return []}
+ };
+ const doc={
+  getElementById:id=>id==="screen"?root:null,
+  querySelector(sel){
+   if(sel==="#screen .wdMessage")return current.status;
+   if(sel==='#screen .wdRow[data-wd-current="true"]')return current.row;
+   if(sel==="#screen [data-wd-native]")return current.input;
+   return null;
+  },
+  addEventListener(name,handler){handlers[name]=handler}
+ };
+ const win={
+  EDGY_gameUI:{
+   header:()=>"",match:({stage,side})=>stage+side,
+   card:(name,body)=>body
+  },
+  EDGY_recordLocalMatch:(...args)=>records.push(args)
+ };
+ const sandbox={window:win,document:doc,
+  localStorage:{getItem:k=>state.get(k)||null,setItem:(k,v)=>state.set(k,v)},
+  navigator:{},game:"wordle",nav(){},console};
+ vm.runInNewContext(read("wordle-data.js")+"\n"+read("wordle-rules.js")+"\n"+read("wordle-game.js"),sandbox);
+ win.EDGY_wordle.open();
+ let input=current.input;
+ assert.ok(input&&current.form&&current.row);
+ assert.ok(root.innerHTML.includes('inputmode="text"'));
+ const before=redraws;
+ input.value="pá";
+ input.events.input();
+ assert.equal(JSON.parse(state.get("edgy_wordle_v1")).round.draft,"PA");
+ assert.equal(input.value,"PA");
+ assert.equal(current.row.tiles[0].textContent,"P");
+ assert.equal(current.row.tiles[1].textContent,"A");
+ assert.equal(redraws,before,"native typing must never destroy the focused input");
+ let stopped=false;
+ current.form.events.submit({preventDefault(){stopped=true}});
+ assert.ok(stopped);
+ assert.equal(redraws,before,"invalid submission keeps the native keyboard active");
+ assert.equal(current.status.textContent,"Escreve uma palavra de cinco letras.");
+ const answer=JSON.parse(state.get("edgy_wordle_v1")).round.answer;
+ input.value=answer;input.events.input();
+ current.form.events.submit({preventDefault(){}});
+ assert.equal(records.length,1);
+ assert.equal(records[0][0],"Wordle");
+ assert.equal(JSON.parse(state.get("edgy_wordle_v1")).round.finished,true);
+ assert.equal(current.input,null,"finished games no longer show a typing field");
 });
 test("Navigation keeps Histórico only inside Perfil",()=>{
  const sidebar=html.split('<aside class="sidebar">')[1].split("</aside>")[0];
