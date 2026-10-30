@@ -50,23 +50,19 @@ document.addEventListener("keydown",event=>{
 
 
 
-const resultModal=document.createElement("div");
-resultModal.className="ckResultMask";resultModal.hidden=true;
-resultModal.innerHTML='<section class="ckResultCard" role="dialog" aria-modal="true" aria-labelledby="ck-result-title"><div class="ckResultIcon" id="ck-result-icon" aria-hidden="true">🏆</div><h2 id="ck-result-title">Venceste!</h2><p id="ck-result-reason"></p><button type="button" class="ckResultContinue" data-result-close>Continuar</button><button type="button" class="ckResultReplay" data-result-replay>Rever partida</button></section>';
-document.body.append(resultModal);
-function closeResult(){resultModal.hidden=true}
-resultModal.querySelector("[data-result-close]").onclick=closeResult;
-resultModal.querySelector("[data-result-replay]").onclick=()=>{closeResult();historyJump(0)};
-resultModal.addEventListener("click",event=>{if(event.target===resultModal)closeResult()});
-document.addEventListener("keydown",event=>{if(event.key==="Escape"&&!resultModal.hidden)closeResult()});
+const resultUI=window.EDGY_platform.createResult({
+ game:"checkers",primaryLabel:"Continuar",secondaryLabel:"Rever partida",
+ onSecondary:()=>historyJump(0)
+});
+const closeResult=()=>resultUI.hide();
 function showResult(){
  if(!room?.black_id||!seat()||!["white_win","black_win","draw"].includes(room.status)||resultSeen.has(room.id))return;
  resultSeen.add(room.id);
  const drawn=room.status==="draw",winner=!drawn&&room.status===(seat()==="w"?"white_win":"black_win");
- resultModal.querySelector("#ck-result-title").textContent=drawn?"Empate!":winner?"Venceste!":"Perdeste!";
- resultModal.querySelector("#ck-result-icon").textContent=drawn?"🤝":winner?"🏆":"♟";
- resultModal.querySelector("#ck-result-reason").textContent=room.finish_reason==="resignation"?"Partida terminada por desistência.":room.finish_reason==="no_progress"?"Empate por ausência de progresso.":room.finish_reason==="no_moves"?"O adversário ficou sem peças ou sem movimentos.":"A partida terminou.";
- resultModal.hidden=false;resultModal.querySelector("[data-result-close]").focus();
+ const reason=room.finish_reason==="resignation"?"Partida terminada por desistência."
+  :room.finish_reason==="no_progress"?"Empate por ausência de progresso."
+  :room.finish_reason==="no_moves"?"O adversário ficou sem peças ou sem movimentos.":"A partida terminou.";
+ resultUI.show({outcome:drawn?"draw":winner?"win":"loss",reason});
 }
 
 /* Motion based exclusively on the server-confirmed turn/path. */
@@ -136,9 +132,9 @@ function clear(){closeResult();closeResign();stopPieceFlight();reviewStep=null;i
 function close(){clear();const u=new URL(location.href);u.searchParams.delete("checkers");history.replaceState(null,"",u.pathname+u.search+u.hash)}
 function open(code=""){clear();pending=String(code).toUpperCase();joined=false;rooms=[];draw();loadRooms()}
 async function loadRooms(){if(!user()||!db())return;const uid=user().id;const {data}=await db().from("checkers_rooms").select("code,status,white_id").or("white_id.eq."+uid+",black_id.eq."+uid).in("status",["waiting","active","white_win","black_win","draw"]).order("created_at",{ascending:false}).limit(20);rooms=data||[];if(!room)draw()}
-async function create(){if(busy)return;busy=true;const {data,error}=await db().rpc("edgy_checkers_create");busy=false;if(error){info=error.message;draw();return}await load(data)}
-async function join(code){pending=String(code||"").trim().toUpperCase();if(!/^[A-F0-9]{8}$/.test(pending)){info="Código inválido";draw();return}if(busy)return;busy=true;const {data,error}=await db().rpc("edgy_checkers_join",{p_code:pending});busy=false;if(error){info=error.message;draw();return}await load(data)}
-async function load(code){const {data,error}=await db().from("checkers_rooms").select("*").eq("code",code).maybeSingle();if(error||!data){info=error?.message||"Sala não encontrada";draw();return}room=data;selected=[];reviewStep=null;history.replaceState(null,"",invitation());await loadPlayers();subscribe();draw();showResult()}
+async function create(){if(busy)return;busy=true;const {data,error}=await window.EDGY_platform.rooms.create("checkers");busy=false;if(error){info=error.message;draw();return}await load(data)}
+async function join(code){pending=String(code||"").trim().toUpperCase();if(!/^[A-F0-9]{8}$/.test(pending)){info="Código inválido";draw();return}if(busy)return;busy=true;const {data,error}=await window.EDGY_platform.rooms.join("checkers",pending);busy=false;if(error){info=error.message;draw();return}await load(data)}
+async function load(code){const {data,error}=await window.EDGY_platform.rooms.load("checkers",code);if(error||!data){info=error?.message||"Sala não encontrada";draw();return}room=data;selected=[];reviewStep=null;history.replaceState(null,"",invitation());await loadPlayers();subscribe();draw();showResult()}
 async function loadPlayers(){const {data}=await db().rpc("edgy_checkers_players",{p_code:room.code});players=data}
 function subscribe(){if(channel)db().removeChannel(channel);if(poll)clearInterval(poll);channel=db().channel("checkers-"+room.id).on("postgres_changes",{event:"UPDATE",schema:"public",table:"checkers_rooms",filter:"id=eq."+room.id},()=>refresh()).subscribe();poll=setInterval(()=>{if(room&&game==="checkers")refresh()},3000)}
 async function refresh(){if(!room||busy)return;const old=room,{data}=await db().from("checkers_rooms").select("*").eq("id",room.id).maybeSingle();if(!data)return;if(data.ply!==old.ply||data.status!==old.status||data.black_id!==old.black_id){room=data;selected=[];if(data.black_id!==old.black_id)await loadPlayers();draw();
@@ -220,7 +216,7 @@ function board(){const mine=seat(),flip=mine==="b",rr=flip?[7,6,5,4,3,2,1,0]:[0,
 function choose(i){if(reviewStep!==null||busy||room.status!=="active"||seat()!==room.turn)return;const moves=rules.legalMoves(state());if(!selected.length){if(moves.some(m=>m.path[0]===i)){selected=[i];draw()}return}if(selected.length===1&&selected[0]===i){selected=[];draw();return}const candidates=moves.filter(m=>selected.every((p,j)=>m.path[j]===p)&&m.path[selected.length]===i);if(candidates.length){selected.push(i);if(candidates.some(m=>m.path.length===selected.length)){const path=selected.slice();selected=[];send(path)}else draw();return}if(selected.length===1&&room.board[i]?.toLowerCase()===seat()&&moves.some(m=>m.path[0]===i)){selected=[i];draw()}}
 async function action(action,path){if(busy)return;busy=true;info="A confirmar…";draw();try{const {data,error}=await db().functions.invoke("checkers-action",{body:{action,code:room.code,...(path?{path}:{})}});if(error||!data?.ok){info=data?.error||error?.message||"Não foi possível guardar a jogada";if(error?.context?.json)try{info=(await error.context.json()).error||info}catch{}}else info=""}catch{info="Falha de ligação"}finally{busy=false;const beforePly=room?.ply;await refresh();if(room?.ply===beforePly)draw()}}
 const send=path=>action("move",path);
-async function cancel(code){const {data,error}=await db().rpc("edgy_checkers_cancel",{p_code:code});info=error?.message||(!data?"A sala já foi iniciada":"Sala fechada");await loadRooms()}
+async function cancel(code){const {data,error}=await window.EDGY_platform.rooms.cancel("checkers",code);info=error?.message||(!data?"A sala já foi iniciada":"Sala fechada");await loadRooms()}
 function player(color){const p=color==="w"?players?.white:players?.black;return '<div class="ckP '+(room.turn===color&&room.status==="active"?"turn":"")+'"><strong>'+(color==="w"?"🔴 ":"⚫ ")+esc(p?.name||(color==="w"?"Rosas":"À espera de adversário"))+'</strong><small>'+(shownBoard().filter(v=>v?.toLowerCase()===color).length)+' peças</small></div>'}
 function draw(){const el=document.getElementById("screen");if(!el||game!=="checkers")return;stopPieceFlight();if(!rules){el.innerHTML='<h2>Damas</h2><p class="sub">A carregar regras…</p>';return}if(!user()){el.innerHTML='<button class="back" data-back>← Jogos</button><h1>Damas</h1><p>Entra para jogar online.</p><button class="ckBtn" data-login>Entrar</button>';el.querySelector("[data-back]").onclick=()=>nav("games");el.querySelector("[data-login]").onclick=()=>window.EDGY_auth?.showEntry();return}if(!room&&pending&&!joined){joined=true;queueMicrotask(()=>join(pending))}const head='<div class="ckHead"><button class="ckAlt" data-back>← Jogos</button><h1><span aria-hidden="true" style="color:#fff">◎</span> Damas</h1>'+(room?'<span class="pill">'+esc(room.code)+'</span>':"")+'</div>';if(!room){el.innerHTML='<div class="ckWrap">'+head+'<p class="sub">8×8 · Captura só para a frente · Dama voadora · Captura obrigatória</p><div class="ckPanel"><h3>Criar partida online</h3><p>Cria uma sala privada para jogares com um amigo.</p><button class="ckBtn" data-create>Criar sala</button></div><div class="ckPanel"><h3>Entrar numa sala</h3><input class="ckInput" id="ck-code" maxlength="8" placeholder="CÓDIGO" value="'+esc(pending)+'"><button class="ckAlt" data-join style="margin-top:9px">Entrar</button></div><div class="ckPanel"><h3>As tuas salas</h3><div id="edgy-checkers-rooms"></div></div><p class="ckMessage">'+esc(info)+'</p></div>';el.querySelector("[data-back]").onclick=()=>nav("games");el.querySelector("[data-create]").onclick=create;el.querySelector("[data-join]").onclick=()=>join(el.querySelector("#ck-code").value);window.EDGY_social?.renderRooms("edgy-checkers-rooms","checkers");el.querySelectorAll("[data-resume]").forEach(b=>b.onclick=()=>load(b.dataset.resume));el.querySelectorAll("[data-cancel]").forEach(b=>b.onclick=()=>cancel(b.dataset.cancel));return}
 const mine=seat(),top=mine==="b"?"w":"b",bottom=mine==="b"?"b":"w";let status=room.status==="waiting"?"À espera do adversário. Partilha o convite.":room.status==="active"?(mine===room.turn?"A tua vez":"Vez do adversário"):room.status==="draw"?"Empate!":room.status===(mine==="w"?"white_win":"black_win")?"Venceste!":"Perdeste!";
