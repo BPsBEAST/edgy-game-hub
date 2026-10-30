@@ -266,7 +266,7 @@ function board(){
  return out+'</div>';
 }
 function draw(){
- const root=document.getElementById("screen");if(!root||game!=="chess")return;
+ const root=document.getElementById("screen");if(!root||game!=="chess")return;root.classList.toggle("edgyLobby",!room);
  root.classList.toggle("chess-drawer-open",drawerOpen&&Boolean(room));document.querySelector(".main")?.classList.toggle("chess-viewport",Boolean(room));
  if(!room&&pending&&user()&&!busy&&!autoTried&&/^[A-F0-9]{8}$/.test(pending)){autoTried=true;queueMicrotask(()=>join(pending))}
  if(!Chess){root.innerHTML='<div class="chessWrap"><button class="back" data-back>← Jogos</button><h1>Xadrez online</h1><p class="sub">'+x(engineError||"A carregar as regras...")+'</p></div>';root.querySelector("[data-back]").onclick=()=>nav("games");return}
