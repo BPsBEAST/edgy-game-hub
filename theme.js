@@ -1,1 +1,1 @@
-(function(){"use strict";const link=document.createElement("link");link.rel="stylesheet";link.href="./edgy-theme.css?v=24";document.head.append(link)})();
+(function(){"use strict";const link=document.createElement("link");link.rel="stylesheet";link.href="./edgy-theme.css?v=25";document.head.append(link)})();
