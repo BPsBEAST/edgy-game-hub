@@ -26,17 +26,30 @@
 #screen .wdTile.wd-correct,#screen .wdExample.wd-correct{background:var(--wd-green,#247e6b);border-color:#5cbaa0;color:white}
 #screen .wdTile.wd-present,#screen .wdExample.wd-present{background:var(--wd-yellow,#ae8043);border-color:#d9b477;color:white}
 #screen .wdTile.wd-absent,#screen .wdExample.wd-absent{background:var(--wd-grey,#534a63);border-color:#675b73;color:#f8efff}
+/* Colours are revealed at the middle of each flip, one tile at a time. */
+#screen .wdTile.wd-correct{--wd-reveal-bg:#247e6b;--wd-reveal-border:#5cbaa0}
+#screen .wdTile.wd-present{--wd-reveal-bg:#ae8043;--wd-reveal-border:#d9b477}
+#screen .wdTile.wd-absent{--wd-reveal-bg:#534a63;--wd-reveal-border:#675b73}
 #screen .wdTile.wdReveal{
- animation:wdFlip .43s cubic-bezier(.22,.68,.25,1.05) both;
- animation-delay:calc(var(--wd-order) * 65ms);
+ backface-visibility:hidden;
+ animation:wdRevealColor .56s cubic-bezier(.2,.68,.26,1.03) both;
+ animation-delay:calc(var(--wd-order) * 105ms);
 }
-@keyframes wdFlip{
- 0%{opacity:.8;transform:perspective(280px) rotateX(-70deg) scale(.94)}
- 60%{transform:perspective(280px) rotateX(9deg) scale(1.02);opacity:1}
- 100%{transform:perspective(280px) rotateX(0) scale(1);opacity:1}
+@keyframes wdRevealColor{
+ 0%{transform:perspective(300px) rotateX(0);background:#30213f;border-color:#ad6f9a}
+ 48%{transform:perspective(300px) rotateX(-90deg);background:#30213f;border-color:#ad6f9a}
+ 50%{transform:perspective(300px) rotateX(-90deg);background:var(--wd-reveal-bg);border-color:var(--wd-reveal-border)}
+ 86%{transform:perspective(300px) rotateX(11deg);background:var(--wd-reveal-bg);border-color:var(--wd-reveal-border)}
+ 100%{transform:perspective(300px) rotateX(0);background:var(--wd-reveal-bg);border-color:var(--wd-reveal-border)}
 }
 #screen .wdMessage{min-height:26px;margin:8px 0 8px;text-align:center;color:#b8a9c9;font-size:12px;font-weight:650}
 #screen .wdMessage.wdMessageVisible{color:#ffb9dd}
+#screen .wdMessage:not(.wdMessageVisible){min-height:0;margin:5px 0 3px}
+#screen .wdRow[data-wd-current="true"] .wdTile{
+ border-color:#98618b;box-shadow:inset 0 0 0 1px #e14a9660;
+ transition:border-color .16s ease,box-shadow .16s ease;
+}
+#screen .wdRow[data-wd-current="true"]:focus-within .wdTile{border-color:#e165a3}
 /* Desktop keeps the physical keyboard. Mobile uses the phone's native keyboard
    through one accessible input, with the same EDGY purple/pink styling. */
 #screen .wdNativeForm{display:none}
@@ -44,7 +57,7 @@
  max-width:370px;font-size:12px;line-height:1.6;color:#c5b5d1}
 #screen .wdDesktopHint::before{content:"⌨";display:block;color:#ee76af;font-size:24px;margin-bottom:4px}
 #screen .wdRow[data-wd-current="true"]{cursor:text}
-#screen .wdNativeLabel{display:block;margin:0 0 8px;color:#cabbd5;font-size:12px;text-align:center}
+#screen .wdNativeLabel{display:block;margin:0 0 6px;color:#cabbd5;font-size:12px;text-align:center;font-weight:700}
 #screen .wdNativeControls{display:flex;align-items:stretch;gap:8px;min-width:0}
 #screen .wdNativeControls input{
  min-width:0;flex:1 1 auto;width:100%;height:46px;box-sizing:border-box;
@@ -88,14 +101,34 @@
 @media(max-width:799px){
  #screen .wdPage{width:100%;max-width:100%;margin:0}
  #screen .wdLayout{display:flex!important;flex-direction:column!important;gap:12px!important}
- #screen .wdPlay{padding:12px 10px 15px}
- #screen .wdBoard{width:min(100%,315px);gap:4px}
+ /* The full six rows and the form fit before the app navigation on most phones. */
+ #screen .wdPlay{padding:10px 9px 11px}
+ #screen .wdBoard{width:min(100%,265px);gap:4px;margin-bottom:5px}
  #screen .wdRow{gap:4px}
- #screen .wdTile{font-size:clamp(18px,6vw,26px);border-radius:4px}
- #screen .wdNativeForm{display:block;width:min(100%,420px);margin:10px auto 13px}
+ #screen .wdTile{font-size:clamp(17px,5.1vw,24px);border-radius:4px}
+ #screen .wdNativeForm{display:block;width:min(100%,420px);margin:5px auto 7px}
  #screen .wdDesktopHint{display:none}
- #screen .wdTopline{margin-bottom:9px}
- #screen .wdMessage{margin:7px 0;min-height:23px}
+ #screen .wdTopline{margin-bottom:7px}
+ #screen .wdMessage{margin:5px 0;min-height:20px}
+ #screen .wdBottomHint{margin-top:8px;font-size:9px}
+ /* Focus mode: while the operating-system keyboard is open, keep the current
+    and last submitted rows visible together with the input and confirmation.
+    On submit, the keyboard closes and the complete board flips into view. */
+ #screen.wdTyping .wdPage .edgyGameIntro{display:none!important}
+ #screen.wdTyping .wdPage .edgyGameHeader{margin-bottom:5px!important}
+ #screen.wdTyping .wdPlay{padding:10px 9px}
+ #screen.wdTyping .wdTopline{margin-bottom:8px}
+ #screen.wdTyping .wdBoard{width:min(100%,240px);margin-bottom:5px}
+ #screen.wdTyping .wdRow:not([data-wd-current="true"]):not([data-wd-previous="true"]){display:none}
+ #screen.wdTyping .wdRow[data-wd-previous="true"]{opacity:.88}
+ #screen.wdTyping .wdMessage{min-height:0;margin:4px 0}
+ #screen.wdTyping .wdBottomHint,#screen.wdTyping .wdSide{display:none!important}
+ #screen.wdTyping .wdNativeForm{margin:6px auto 3px}
+ #screen.wdTyping .wdNativeLabel{margin-bottom:5px}
+ .main:has(> #screen.wdTyping .wdPage){padding-bottom:0!important}
+ .main:has(> #screen.wdTyping .wdPage)>.top,
+ .main:has(> #screen.wdTyping .wdPage)>.foot{display:none!important}
+ body:has(#screen.wdTyping) .nav{display:none!important}
  #screen .wdSide{display:grid;gap:11px;width:100%;min-width:0!important}
  #screen .wdSide .edgyGamePanel{margin:0!important}
  .main:has(> #screen .wdPage){
@@ -117,11 +150,13 @@
  .main:has(> #screen .wdPage)>#screen.edgyPageIn{animation:none!important;transform:none!important;filter:none!important}
 }
 @media(max-width:370px){
- #screen .wdPlay{padding:10px 7px 12px}
+ #screen .wdPlay{padding:9px 7px 10px}
+ #screen .wdBoard{width:min(100%,245px)}
  #screen .wdNativeControls{gap:6px}
  #screen .wdNativeSubmit{min-width:92px;padding-inline:8px}
 }
 @media(prefers-reduced-motion:reduce){
  #screen .wdTile.wdReveal{animation:none!important}
+ #screen .wdRow[data-wd-current="true"] .wdTile{transition:none!important}
  #screen .wdNativeSubmit{transition:none!important}
 }
