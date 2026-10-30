@@ -268,7 +268,7 @@ function draw(){
  const side='<div class="chessStatus">'+x(status())+'</div>'
   +proposal()+'<div class="chessRow"><button class="chessBtn" data-copy>Copiar convite</button>'
   +(room.status==="waiting"&&room.white_id===user()?.id?'<button class="secondary" data-chess-invite>Convidar jogador</button>':"")
-  +'<button class="secondary" data-refresh>Atualizar</button></div><p class="result" id="chess-info"></p>'
+  +'</div><p class="result" id="chess-info"></p>'
   +'<section class="section panel" style="padding:10px"><div class="row space"><h3 style="margin:6px">Jogadas</h3><span class="pill">'+(engine()?.history()?.length||0)+'</span></div>'
   +moveList()+(previewIndex!==null?'<button class="chessBtn" data-live>Voltar à partida</button>':"")+'</section>'
   +rivalryHtml()
@@ -292,7 +292,6 @@ function draw(){
  root.querySelector("[data-back]").onclick=()=>nav("games");
  root.querySelector("[data-chess-invite]")?.addEventListener("click",()=>window.EDGY_social?.openInvite("chess",room.code));
  root.querySelector("[data-copy]").onclick=async()=>{try{await navigator.clipboard.writeText(uri());notice("Convite copiado!")}catch{notice("Partilha "+uri())}};
- root.querySelector("[data-refresh]").onclick=async()=>{await timeSync();await refresh();notice("Sincronizado")};
  root.querySelectorAll("[data-sq]").forEach(el=>el.onclick=()=>select(el.dataset.sq));
  root.querySelectorAll("[data-player-profile]").forEach(el=>el.onclick=()=>{if(el.dataset.playerProfile)window.EDGY_players?.openById(el.dataset.playerProfile)});
  root.querySelectorAll("[data-action]").forEach(el=>el.onclick=()=>doAction(el.dataset.action));
