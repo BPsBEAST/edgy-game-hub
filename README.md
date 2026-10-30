@@ -129,3 +129,12 @@ A aplicação pública é uma versão experimental para amigos; ainda não há m
 - A barra inferior mantém-se com cinco opções e Início ao centro; o ícone central agora é uma casa branca visível dentro de um botão circular, com feedback de toque.
 - O sino e a fotografia no topo mantêm o posicionamento aprovado da v24.
 - Testes de sintaxe JavaScript, referências da PWA, navegação, modal de desafio e CSS responsive/reduced-motion concluídos; falta teste visual real em dispositivo.
+
+## EDGY v26 — perfis mais compactos e desafios animados
+
+- As estatísticas de jogador foram reorganizadas na ordem **Nível · XP · Partidas** junto do nome, antes da descrição, tanto no perfil público como no perfil pessoal. A área Os teus números, redundante com o resumo do Início, foi removida do perfil pessoal.
+- A secção Confrontos contigo apresenta um resumo **Vitórias · Empates · Derrotas** e pode ser expandida para consultar as últimas partidas. Por enquanto estes confrontos diretos referem-se ao Xadrez.
+- A introdução da página Jogadores deixou de conter a frase sobre o email.
+- O seletor de jogos para desafiar inclui entrada animada, realce de escolha, indicador de preparação da sala e bloqueio contra solicitações duplicadas; respeita preferências de movimento reduzido.
+- A barra inferior mobile e o sino de notificações mantiveram o layout da versão anterior.
+- JavaScript, referências de cache PWA e principais estados da UI verificados estaticamente. A experiência visual em dispositivos reais ainda deve ser validada.
