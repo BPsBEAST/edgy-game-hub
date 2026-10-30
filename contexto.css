@@ -1,0 +1,93 @@
+/* EDGY Contexto — palette, cards and spacing consistent with the game hub. */
+#screen .cxPage{width:min(100%,1100px);margin:auto;min-width:0}
+#screen .cxLayout{grid-template-columns:minmax(0,1fr) minmax(235px,280px)!important;gap:17px;align-items:start}
+#screen .cxStage,#screen .cxSide{min-width:0}
+#screen .cxPlay{
+ width:100%;max-width:620px;margin:auto;padding:18px;
+ border:1px solid #62466c;border-radius:7px;
+ background:linear-gradient(150deg,#2c213e,#1c172e);
+ box-shadow:0 14px 36px #0b061c55;
+}
+#screen .cxHeading{display:flex;justify-content:space-between;gap:10px;align-items:center;color:#cbbad8;font-size:11px;margin-bottom:14px}
+#screen .cxHeading span:first-child{color:#f85bad;font-weight:900;letter-spacing:1.5px;font-size:10px}
+#screen .cxForm{margin-bottom:11px}
+#screen .cxForm label{display:block;font-size:12px;font-weight:750;margin-bottom:7px;color:#e1cbe5}
+#screen .cxInputRow{display:flex;gap:7px;min-width:0}
+#screen .cxInputRow input{
+ height:46px;min-width:0;flex:1;width:100%;box-sizing:border-box;
+ background:#181127;border:1px solid #76527d;border-radius:4px;color:white;
+ padding:10px 12px;font-size:16px;font-weight:700;
+ outline:0;caret-color:#fc69b5;touch-action:manipulation
+}
+#screen .cxInputRow input:focus{border-color:#fb69b8;box-shadow:0 0 0 2px #fb69b83d}
+#screen .cxInputRow input::placeholder{font-size:13px;font-weight:400;color:#a89bb6}
+#screen .cxSubmit{min-width:91px;flex:0 0 auto;background:linear-gradient(110deg,#f30e71,#b40a8e);
+ border:0;border-radius:4px;color:white;font-weight:850;font-size:13px;padding:8px 12px}
+#screen .cxMessage{font-size:12px;line-height:1.5;color:#ffadd2;margin:8px 0}
+#screen .cxCurrentBest{background:#332543;border:1px solid #674770;
+ padding:10px 12px;display:flex;align-items:center;justify-content:space-between;
+ border-radius:5px;color:#cbbad8;font-size:12px;margin:10px 0}
+#screen .cxCurrentBest strong{color:#ff9ecf;font-size:19px}
+#screen .cxGuesses{display:flex;flex-direction:column;gap:7px;max-height:min(52dvh,515px);overflow:auto;overscroll-behavior:contain}
+#screen .cxEmpty{padding:15px;background:#271d39;border:1px dashed #61466d;border-radius:5px;
+ color:#ae9fbf;font-size:12px;line-height:1.65}
+#screen .cxGuess{position:relative;overflow:hidden;border:1px solid #5b4767;background:#30263e;
+ border-radius:5px;min-height:62px;display:flex;align-items:center;justify-content:space-between;
+ gap:12px;padding:10px 12px 14px;animation:cxAppear .26s both}
+#screen .cxGuess.best{border-color:#d15fa6;background:#402c4a}
+#screen .cxGuess.very{border-color:#4caf93}
+#screen .cxGuess.near{border-color:#8c9a6c}
+#screen .cxGuessText{min-width:0}
+#screen .cxGuessText strong{display:block;color:white;font-size:14px;letter-spacing:.5px}
+#screen .cxGuessText strong small{color:#f38cbf;font-size:10px;font-weight:600}
+#screen .cxGuessText>span{display:block;font-size:11px;color:#c2b0d0;margin-top:4px}
+#screen .cxRank{font-size:20px;font-variant-numeric:tabular-nums;color:#ead6f0}
+#screen .cxGuess.very .cxRank{color:#83e7bd}
+#screen .cxGuess.near .cxRank{color:#eac48a}
+#screen .cxProgress{position:absolute;bottom:0;left:0;right:0;height:4px;background:#251c33}
+#screen .cxProgress span{display:block;height:100%;background:linear-gradient(90deg,#a03482,#fa60a7);border-radius:4px}
+#screen .cxGuess.very .cxProgress span{background:#54c8a5}
+#screen .cxControls{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-top:13px}
+#screen .cxControls button{font-size:12px;min-height:40px;flex:1;padding:9px}
+#screen .cxControls button:disabled{opacity:.5}
+#screen .cxEnd{padding:15px;border:1px solid #d95e9e;background:#392440;border-radius:5px;text-align:center;margin-top:15px}
+#screen .cxEnd h3{margin:0 0 7px;color:#fff;font-size:17px}
+#screen .cxEnd p{font-size:12px;color:#d6bfd9;line-height:1.6;margin:0 0 12px}
+#screen .cxEndButtons{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+#screen .cxEndButtons button{min-height:41px;padding:9px 13px;border-radius:4px}
+#screen .cxStats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+#screen .cxStats>span{min-height:65px;border:1px solid #5b466d;background:#302443;
+ border-radius:4px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+#screen .cxStats strong{font-size:20px;font-weight:900;color:white}
+#screen .cxStats small{color:#bfa9cc;font-size:10px;margin-top:4px}
+#screen .cxSide p{color:#cbbbd3;line-height:1.6;font-size:12px;margin:9px 0}
+#screen .cxSide .cxDisclaimer{font-size:11px;color:#ae99b9;border-top:1px solid #5c4364;padding-top:10px}
+@keyframes cxAppear{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@media(max-width:799px){
+ #screen .cxPage{width:100%}
+ #screen .cxLayout{display:flex!important;flex-direction:column!important;gap:11px!important}
+ #screen .cxPlay{padding:13px 10px 15px}
+ #screen .cxGuesses{max-height:41dvh}
+ #screen .cxSide{width:100%;display:grid;gap:11px}
+ #screen .cxSide .edgyGamePanel{margin:0!important}
+ .main:has(> #screen .cxPage){
+  display:flex!important;flex-direction:column!important;height:100dvh!important;
+  min-height:0!important;overflow:hidden!important;
+  padding-bottom:calc(78px + env(safe-area-inset-bottom))!important;
+ }
+ .main:has(> #screen .cxPage)>.top{flex:0 0 auto!important}
+ .main:has(> #screen .cxPage)>#screen{
+  flex:1 1 auto!important;height:auto!important;min-height:0!important;
+  overflow-y:auto!important;overflow-x:hidden!important;
+  -webkit-overflow-scrolling:touch!important;touch-action:pan-y pinch-zoom!important;
+  padding-bottom:23px!important;overscroll-behavior:contain!important;
+ }
+ .main:has(> #screen .cxPage)>.foot{display:block!important;flex:0 0 auto!important;font-size:10px!important;padding:9px 0 5px!important;margin:0!important}
+ .main:has(> #screen .cxPage)>#screen.edgyPageIn{animation:none!important;transform:none!important}
+}
+@media(max-width:370px){
+ #screen .cxPlay{padding:11px 7px}
+ #screen .cxSubmit{min-width:76px;padding:7px 8px;font-size:11px}
+ #screen .cxRank{font-size:18px}
+}
+@media(prefers-reduced-motion:reduce){#screen .cxGuess{animation:none!important}}
