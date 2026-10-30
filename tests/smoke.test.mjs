@@ -9,7 +9,7 @@ const dir=path.resolve(path.dirname(fileURLToPath(import.meta.url)),"..");
 const read=file=>fs.readFileSync(path.join(dir,file),"utf8");
 const html=read("index.html");
 const app=read("app.js");
-const gameFiles=["app.js","edgy-platform.js","edgy-game-ui.js","players.js","social.js","history.js","chess-online.js","checkers-replay.js","checkers-online.js","tic-online.js","auth.js","sw.js"];
+const gameFiles=["app.js","edgy-platform.js","edgy-game-ui.js","players.js","social.js","history.js","chess-online.js","checkers-replay.js","checkers-online.js","tic-online.js","barricade-online.js","auth.js","sw.js"];
 test("All app scripts and inline bootstrap parse successfully",()=>{
  for(const file of gameFiles)assert.doesNotThrow(()=>new vm.Script(read(file),{filename:file}),file);
  const scripts=[...html.matchAll(/<script([^>]*)>([\s\S]*?)<\/script>/g)];
@@ -22,8 +22,8 @@ test("Every local asset referenced by the bootstrap exists",()=>{
  assert.ok(assets);
  const names=[...assets.matchAll(/"([^"]+)"/g)].map(m=>m[1]);
  for(const name of names)assert.ok(fs.existsSync(path.join(dir,name.split("?")[0])),name);
- assert.ok(names.includes("./edgy-platform.js?v=32"),"shared platform cached");
- assert.ok(names.includes("./app.js?v=42"),"bootstrap cached");
+ assert.ok(names.includes("./edgy-platform.js?v=43"),"shared platform cached");
+ assert.ok(names.includes("./app.js?v=43"),"bootstrap cached");
  assert.ok(names.includes("./base.css?v=29"),"base stylesheet cached");
  assert.ok(names.includes("./edgy-theme.css?v=34"),"design cached");
  assert.ok(names.includes("./tic-online.js?v=40"),"online tic cached");
@@ -51,24 +51,66 @@ function platformFixture(){
 }
 test("Single registry serves all online games and rejects invalid codes",async()=>{
  const {platform,calls}=platformFixture();
- assert.deepEqual(Object.keys(platform.games).sort(),["checkers","chess","reaction","tic"]);
+ assert.deepEqual(Object.keys(platform.games).sort(),["barricade","checkers","chess","reaction","tic"]);
  assert.equal(platform.code(" aB41cD23 "),"AB41CD23");
  assert.throws(()=>platform.code("oops"),/8 caracteres/);
  assert.throws(()=>platform.rooms.create("reaction"),/não suporta/);
  await platform.rooms.create("chess",{base:600,increment:0});
  await platform.rooms.create("checkers");
  await platform.rooms.create("tic");
+ await platform.rooms.create("barricade");
  await platform.rooms.join("chess","aB41cD23");
  await platform.rooms.join("checkers","aB41cD23");
  await platform.rooms.join("tic","aB41cD23");
+ await platform.rooms.join("barricade","aB41cD23");
  await platform.rooms.cancel("chess","aB41cD23");
+ await platform.rooms.cancel("barricade","aB41cD23");
  await platform.rooms.invite("checkers","aB41cD23","some-user-id");
  await platform.rooms.invite("tic","aB41cD23","some-user-id");
+ await platform.rooms.invite("barricade","aB41cD23","some-user-id");
  await platform.rooms.respond("some-invite",true);
  await platform.rooms.list(200);
- assert.deepEqual(calls.map(c=>c.name),["edgy_create_chess_room_timed","edgy_checkers_create","edgy_tic_create","edgy_join_chess_room","edgy_checkers_join","edgy_tic_join","edgy_cancel_waiting_chess_room","edgy_invite_send","edgy_invite_send","edgy_invite_respond","edgy_my_rooms"]);
+ assert.deepEqual(calls.map(c=>c.name),["edgy_create_chess_room_timed","edgy_checkers_create","edgy_tic_create","edgy_barricade_create","edgy_join_chess_room","edgy_checkers_join","edgy_tic_join","edgy_barricade_join","edgy_cancel_waiting_chess_room","edgy_barricade_cancel","edgy_invite_send","edgy_invite_send","edgy_invite_send","edgy_invite_respond","edgy_my_rooms"]);
  assert.deepEqual(JSON.parse(JSON.stringify(calls[0].args)),{p_base:600,p_increment:0});
  assert.deepEqual(JSON.parse(JSON.stringify(calls.at(-1).args)),{p_limit:100});
+});
+test("Barricade 9x9 move, walls, blocked paths and jumping are server-shared",()=>{
+ const client=read("barricade-rules.js"),server=read("supabase/functions/barricade-action/rules.js");
+ assert.equal(client,server,"client and server must enforce the same rules");
+ const ctx={};vm.runInNewContext(client.replace(/\bexport\s+/g,"")+";globalThis.br={initialState,legalMoves,canPlaceWall,applyAction,blocked,hasPath};",ctx);
+ const br=ctx.br,initial=br.initialState();
+ assert.equal(initial.red_pos,76);assert.equal(initial.blue_pos,4);
+ assert.equal(initial.red_walls,10);assert.equal(initial.blue_walls,10);
+ assert.ok(br.legalMoves(initial).includes(67),"red advances toward its goal");
+ assert.throws(()=>br.applyAction(initial,{type:"move",to:0}),/ilegal/);
+ const after=br.applyAction(initial,{type:"wall",r:6,c:3,o:"h"});
+ assert.equal(after.red_walls,9);
+ assert.equal(after.walls.length,1);
+ assert.ok(!br.canPlaceWall(after,{r:6,c:3,o:"v"}),"wall crossing is illegal");
+ assert.ok(!br.canPlaceWall(after,{r:6,c:4,o:"h"}),"wall overlap is illegal");
+ assert.ok(br.canPlaceWall(after,{r:3,c:3,o:"h"}),"separated walls remain legal");
+ const jump={...initial,red_pos:40,blue_pos:31,turn:"r"};
+ assert.ok(br.legalMoves(jump).includes(22),"a pawn may jump over an adjacent rival");
+ const blockedJump={...jump,walls:[{r:2,c:4,o:"h"}]};
+ assert.ok(br.legalMoves(blockedJump).includes(30)||br.legalMoves(blockedJump).includes(32),"blocked straight jump opens side steps");
+ const trapped={...initial,walls:[{r:7,c:3,o:"h"},{r:7,c:5,o:"h"},{r:6,c:4,o:"v"}]};
+ assert.equal(typeof br.hasPath(trapped.walls,trapped.red_pos,0),"boolean");
+});
+test("Barricade uses private 2-player rooms, invitations, shared UI and history",()=>{
+ const platform=read("edgy-platform.js"),app=read("app.js"),social=read("social.js");
+ const client=read("barricade-online.js"),layout=read("barricade.css"),history=read("history.js"),html=read("index.html"),sw=read("sw.js");
+ assert.ok(platform.includes('barricade:Object.freeze('));
+ assert.ok(app.includes('window.EDGY_barricade?.open('));
+ assert.ok(app.includes('window.EDGY_barricade?.close()'));
+ assert.ok(client.includes('window.EDGY_gameUI.bindMobilePanel(')||client.includes('ui().bindMobilePanel('));
+ assert.ok(client.includes('functions.invoke("barricade-action"'));
+ assert.ok(client.includes('data-br-wall='));
+ assert.ok(client.includes('data-br-step='));
+ assert.ok(layout.includes('.brBoard{')&&layout.includes('.brWall-h'));
+ assert.ok(history.includes('barricadeCloud='));
+ assert.ok(history.includes('isBarricade'));
+ assert.ok(social.includes('["edgy-barricade-rooms","barricade"]'));
+ for(const file of ["barricade-online.js?v=43","barricade.css?v=43"])assert.ok(html.includes(file)&&sw.includes(file));
 });
 test("Common result dialog handles win, loss, draw and closing",()=>{
  const {platform,document}=platformFixture();
@@ -202,13 +244,13 @@ test("Stable footer, profile replay links and chess mobile actions",()=>{
 
 test("Game library uses a single registry loaded before bootstrap",()=>{
  const scripts=[...html.matchAll(/<script[^>]*src="([^"]+)"/g)].map(m=>m[1]);
- const platform=scripts.indexOf("./edgy-platform.js?v=32");
- const bootstrap=scripts.indexOf("./app.js?v=42");
+ const platform=scripts.indexOf("./edgy-platform.js?v=43");
+ const bootstrap=scripts.indexOf("./app.js?v=43");
  assert.ok(platform>=0&&bootstrap>=0&&platform<bootstrap);
  const app=read("app.js"),defs=read("edgy-platform.js");
  assert.ok(app.includes("Object.values(window.EDGY_platform.games).map("));
  assert.ok(app.includes("defs.length"));
- for(const game of ["chess","checkers","tic","reaction"])assert.ok(defs.includes(game+":Object.freeze("));
+ for(const game of ["chess","checkers","tic","reaction","barricade"]assert.ok(defs.includes(game+":Object.freeze("));
  assert.ok(app.includes('filter==="Multiplayer"?window.EDGY_platform.games[g.id].online'));
 });
 
@@ -326,15 +368,15 @@ test("Chess shares the match shell, drawer binder and move controls",()=>{
 });
 test("All games share one header, lobby cards and match presentation",()=>{
  const html=read("index.html"),ui=read("edgy-game-ui.js"),css=read("edgy-game-layout.css");
- assert.ok(html.includes('edgy-game-ui.js?v=39'));
+ assert.ok(html.includes('edgy-game-ui.js?v=43'));
  assert.ok(html.includes('edgy-game-layout.css?v=42'));
- for(const game of ["chess","checkers","tic","reaction"])assert.ok(ui.includes(game+':{title:'));
- for(const file of ["chess-online.js","checkers-online.js","tic-online.js","app.js"]){
+ for(const game of ["chess","checkers","tic","reaction","barricade"]assert.ok(ui.includes(game+':{title:'));
+ for(const file of ["chess-online.js","checkers-online.js","tic-online.js","barricade-online.js","app.js"]){
   const src=read(file);
   assert.ok(src.includes('window.EDGY_gameUI.header('),file);
   assert.ok(src.includes('window.EDGY_gameUI.match('),file);
  }
- for(const file of ["chess-online.js","checkers-online.js","tic-online.js"]){
+ for(const file of ["chess-online.js","checkers-online.js","tic-online.js","barricade-online.js"]){
   assert.ok(read(file).includes('window.EDGY_gameUI.card('),file);
  }
  assert.ok(css.includes('#screen .edgyGameHeaderRow'));
@@ -356,7 +398,7 @@ test("Universal renderer escapes user text and keeps consistent structure",()=>{
 });
 test("Xadrez, Damas and Galo use one mobile options/history panel implementation",()=>{
  const ui=read("edgy-game-ui.js"),css=read("edgy-game-layout.css");
- for(const file of ["chess-online.js","checkers-online.js","tic-online.js"])assert.ok(read(file).includes('window.EDGY_gameUI.bindMobilePanel('));
+ for(const file of ["chess-online.js","checkers-online.js","tic-online.js","barricade-online.js"])assert.ok(read(file).includes('window.EDGY_gameUI.bindMobilePanel('));
  assert.ok(read("checkers-online.js").includes('clearMobilePanel("checkers")'));
  assert.ok(read("tic-online.js").includes('clearMobilePanel("tic")'));
  assert.ok(read("checkers-online.js").includes('document.visibilityState!=="hidden"'));
@@ -377,7 +419,7 @@ test("Home and Biblioteca render exactly the same reusable game cards",()=>{
  assert.ok(css.includes('grid-auto-rows:1fr'),"all cards in the grid stretch equally");
  assert.ok(css.includes('.main:has(> #screen.edgyLibraryPage)>.foot'),"library footer clears the navigation");
  assert.ok(html.includes('edgy-game-layout.css?v=42'));
- assert.ok(html.includes('app.js?v=42'));
+ assert.ok(html.includes('app.js?v=43'));
 });
 test("EDGY v36: chess title is short and empty join notice does not reserve space",()=>{
  const chess=read("chess-online.js"),ui=read("edgy-game-ui.js"),css=read("edgy-game-layout.css");
