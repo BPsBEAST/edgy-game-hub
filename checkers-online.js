@@ -72,11 +72,12 @@ function showResult(){
 /* Motion based exclusively on the server-confirmed turn/path. */
 let pieceFlight=null;
 function stopPieceFlight(){
- if(!pieceFlight)return;
- try{pieceFlight.animation?.cancel()}catch{}
- pieceFlight.ghost?.remove();
- if(pieceFlight.landed?.isConnected)pieceFlight.landed.style.visibility="";
+ const flight=pieceFlight;
+ if(!flight)return;
  pieceFlight=null;
+ try{flight.animation?.cancel()}catch{}
+ flight.ghost?.remove();
+ if(flight.landed?.isConnected)flight.landed.style.visibility="";
 }
 function animateMove(previous,current){
  stopPieceFlight();
