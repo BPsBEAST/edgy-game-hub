@@ -23,10 +23,10 @@ test("Every local asset referenced by the bootstrap exists",()=>{
  const names=[...assets.matchAll(/"([^"]+)"/g)].map(m=>m[1]);
  for(const name of names)assert.ok(fs.existsSync(path.join(dir,name.split("?")[0])),name);
  assert.ok(names.includes("./edgy-platform.js?v=32"),"shared platform cached");
- assert.ok(names.includes("./app.js?v=33"),"bootstrap cached");
+ assert.ok(names.includes("./app.js?v=34"),"bootstrap cached");
  assert.ok(names.includes("./base.css?v=29"),"base stylesheet cached");
- assert.ok(names.includes("./edgy-theme.css?v=33"),"design cached");
- assert.ok(names.includes("./tic-online.js?v=32"),"online tic cached");
+ assert.ok(names.includes("./edgy-theme.css?v=34"),"design cached");
+ assert.ok(names.includes("./tic-online.js?v=34"),"online tic cached");
  assert.ok(names.includes("./checkers-replay.js?v=33"),"checkers replay cached");
 });
 test("Navigation keeps Histórico only inside Perfil",()=>{
@@ -165,7 +165,7 @@ test("Stable footer, profile replay links and chess mobile actions",()=>{
 test("Game library uses a single registry loaded before bootstrap",()=>{
  const scripts=[...html.matchAll(/<script[^>]*src="([^"]+)"/g)].map(m=>m[1]);
  const platform=scripts.indexOf("./edgy-platform.js?v=32");
- const bootstrap=scripts.indexOf("./app.js?v=33");
+ const bootstrap=scripts.indexOf("./app.js?v=34");
  assert.ok(platform>=0&&bootstrap>=0&&platform<bootstrap);
  const app=read("app.js"),defs=read("edgy-platform.js");
  assert.ok(app.includes("Object.values(window.EDGY_platform.games).map("));
@@ -183,7 +183,7 @@ test("Chess mobile sections are independently usable and promotion opens actions
  assert.ok(chess.includes('promo={from:selected,to:sq};drawerSection="actions";drawerOpen=true;draw()'));
  assert.ok(css.includes('.chessSide[data-active-sheet="history"]'));
  assert.ok(css.includes('.chessSide[data-active-sheet="actions"]'));
- assert.ok(css.includes("bottom:calc(64px + env(safe-area-inset-bottom))"));
+ assert.ok(css.includes("bottom:calc(74px + env(safe-area-inset-bottom))"));
 });
 test("Profile match replays stay accessible across chess and other online games",()=>{
  const players=read("players.js"),css=read("edgy-theme.css");
@@ -223,8 +223,8 @@ test("Mobile chess has scroll access and persistent options above the bottom nav
  assert.ok(css.includes('.main.chess-viewport #screen{'));
  assert.ok(css.includes('overflow-y:auto!important;overflow-x:hidden!important'));
  assert.ok(css.includes('.main.chess-viewport #screen .chessMobileTools{'));
- assert.ok(css.includes('position:fixed!important;left:9px;right:9px;'));
- assert.ok(css.includes('bottom:calc(75px + env(safe-area-inset-bottom))'));
+ assert.ok(css.includes('position:static!important;display:grid!important;'));
+ assert.ok(css.includes('position:relative!important;inset:auto!important;'));
 });
 test("Public profile opens at the top and routes all three game replays",()=>{
  const src=read("players.js"),h=read("history.js");
@@ -233,4 +233,31 @@ test("Public profile opens at the top and routes all three game replays",()=>{
  assert.ok(src.includes('window.EDGY_history?.openByCode("tic",code)'));
  assert.ok(src.includes('window.EDGY_checkersReplay?.open(code)'));
  assert.ok(h.includes('async function openTicByCode(code)'));
+});
+
+
+test("Jogo do Galo uses common online game lobby and the room registry",()=>{
+ const tic=read("tic-online.js"),css=read("edgy-theme.css"),social=read("social.js");
+ assert.ok(tic.includes('class="panel edgyTicLobby"'));
+ assert.ok(tic.includes("<h3>Criar partida online</h3>"));
+ assert.ok(tic.includes("<h3>Entrar numa sala</h3>"));
+ assert.ok(tic.includes('id="edgy-tic-rooms"'));
+ assert.ok(tic.includes('window.EDGY_social?.renderRooms?.("edgy-tic-rooms","tic")'));
+ assert.ok(tic.includes('window.EDGY_ticLocal?.()'));
+ assert.ok(social.includes('["edgy-tic-rooms","tic"]'));
+ assert.ok(css.includes('#screen.edgyLobby .edgyTicLobby{'));
+ assert.ok(css.includes('#screen.edgyLobby .edgyTicCode{'));
+});
+test("Chess mobile game menu is above the board and never fixed over review buttons",()=>{
+ const chess=read("chess-online.js"),css=read("edgy-theme.css");
+ const markup=chess.slice(chess.indexOf('root.innerHTML=\\'<div class="chessWrap"><div class="chessMatchHeader"'));
+ assert.ok(markup.includes('<div class="chessMatchHeader"'));
+ assert.ok(markup.indexOf('class="chessMobileTools"') < markup.indexOf('class="chessMainGrid"'));
+ assert.ok(markup.indexOf('class="chessMobileTools"') >= 0);
+ assert.ok(markup.indexOf('class="chessMainGrid"') >= 0);
+ assert.equal(chess.split('<div class="chessMobileTools">').length-1,1);
+ assert.ok(css.includes('position:static!important;display:grid!important;'));
+ assert.ok(css.includes('.main.chess-viewport #screen .chessReviewControls{'));
+ assert.ok(css.includes('.main.chess-viewport .top{'));
+ assert.ok(!css.includes('position:fixed!important;left:9px;right:9px;'));
 });
