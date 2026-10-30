@@ -62,7 +62,7 @@ function finish(won){
  const xp=won?Math.max(12,66-r.guesses.length*8):4;
  r.credited=true;persist();
  window.EDGY_recordLocalMatch?.("Palavra Oculta",won?"Vitória em "+r.guesses.length+"/6":"Derrota · "+r.answer,xp);
- message=won?"Excelente! Acertaste e ganhaste "+xp+" XP.":"A palavra era "+r.answer+". Ganhastes "+xp+" XP.";
+ message=won?"Excelente! Acertaste e ganhaste "+xp+" XP.":"A palavra era "+r.answer+". Ganhaste "+xp+" XP.";
 }
 function press(key){
  if(!active||game!=="wordle"||!round()||round().finished)return;
