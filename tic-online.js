@@ -142,18 +142,17 @@ function player(mark){
 function render(){
  const root=document.getElementById("screen");if(!root||game!=="tic")return;
  root.classList.toggle("edgyLobby",!room);
- const top='<div class="edgyTicTitle"><button type="button" class="back" data-back>← Jogos</button><h1><span class="edgyTicGlyph" aria-hidden="true">⊗</span> Jogo do Galo</h1></div>';
+ const top=window.EDGY_gameUI.header("tic",{room:room?.code||"",intro:room?"":"3×3 · 2 jogadores · Online ou local"});
  if(!api()||!me()){
   root.innerHTML=top+'<section class="panel"><p>Inicia sessão, mesmo como convidado, para jogar online.</p><button class="primary" data-auth>Entrar</button></section>';
   root.querySelector("[data-auth]").onclick=()=>window.EDGY_auth?.showEntry();root.querySelector("[data-back]").onclick=()=>nav("games");return;
  }
  if(!room){
-  root.innerHTML='<div class="edgyTicWrap">'+top
-   +'<p class="sub edgyTicSummary">3×3 · 2 jogadores · Online ou local</p>'
-   +'<section class="panel edgyTicLobby"><h3>Criar partida online</h3><p>Cria uma sala privada para jogares com um amigo.</p><button class="primary" data-create '+(busy?"disabled":"")+'>Criar sala</button></section>'
-   +'<section class="panel edgyTicLobby"><h3>Entrar numa sala</h3><input class="field edgyTicCode" id="tic-code" maxlength="8" placeholder="CÓDIGO" autocomplete="off" aria-label="Código da sala" value="'+esc(pending)+'"><button class="secondary" data-join '+(busy?"disabled":"")+'>Entrar</button></section>'
-   +'<section class="panel edgyTicLobby"><h3>As tuas salas</h3><div id="edgy-tic-rooms"></div></section>'
-   +'<section class="panel edgyTicLobby edgyTicLocal"><div><h3>Modo local</h3><p>Contra o computador ou com duas pessoas no mesmo ecrã.</p></div><button class="secondary" data-local>Jogar neste dispositivo</button></section>'
+  root.innerHTML='<div class="edgyTicWrap edgyGamePage">'+top
+   +window.EDGY_gameUI.card("Criar partida online",'<button class="primary" data-create '+(busy?"disabled":"")+'>Criar sala</button>',{description:"Cria uma sala privada para jogares com um amigo."})
+   +window.EDGY_gameUI.card("Entrar numa sala",'<input class="field edgyTicCode" id="tic-code" maxlength="8" placeholder="CÓDIGO" autocomplete="off" aria-label="Código da sala" value="'+esc(pending)+'"><button class="secondary" data-join '+(busy?"disabled":"")+'>Entrar</button>')
+   +window.EDGY_gameUI.card("As tuas salas",'<div id="edgy-tic-rooms"></div>')
+   +window.EDGY_gameUI.card("Modo local",'<button class="secondary" data-local>Jogar neste dispositivo</button>',{description:"Contra o computador ou com duas pessoas no mesmo ecrã.",className:"edgyTicLocal"})
    +(notice?'<p class="edgyTicNotice" role="status">'+esc(notice)+'</p>':'')+'</div>';
   root.querySelector("[data-create]").onclick=create;
   root.querySelector("[data-join]").onclick=()=>join(root.querySelector("#tic-code").value);
@@ -169,19 +168,20 @@ function render(){
   return '<button type="button" class="edgyTicCell '+(v!=="-"?"marked "+v.toLowerCase():"")+'" data-cell="'+i+'" aria-label="'+label+'" '+(!canMove||v!=="-"?"disabled":"")+'>'+ (v==="-"?"":'<span>'+v+'</span>')+'</button>';
  }).join("");
  const moves=Array.isArray(room.moves)?room.moves:[];
- root.innerHTML='<div class="edgyTicWrap">'+top
- +'<div class="edgyTicGame"><div class="edgyTicLeft">'+player("O")
- +'<div class="edgyTicBoard" role="group" aria-label="Tabuleiro de jogo do galo">'+cells+'</div>'
- +player("X")+'</div><aside class="edgyTicSide"><div class="panel"><span class="pill">'+esc(room.code)+'</span><h3>'+esc(stateText())+'</h3>'
- +'<p class="sub">'+(review!==null?"A rever os movimentos.":room.status==="active"?"Símbolo: "+esc(seat()||"—"):"")+'</p>'
+ const stage=player("O")+'<div class="edgyTicBoard" role="group" aria-label="Tabuleiro de jogo do galo">'+cells+'</div>'+player("X");
+ const side=window.EDGY_gameUI.card("Partida & opções",'<p class="edgyTicMatchStatus" role="status">'+esc(stateText())+'</p>'
  +'<div class="edgyTicActions"><button type="button" class="primary" data-copy>Copiar convite</button>'
  +(room.status==="waiting"&&room.white_id===me()?.id?'<button type="button" class="secondary" data-invite>Convidar jogador</button><button type="button" class="secondary" data-cancel>Fechar sala</button>':"")
  +(room.status==="active"?'<button type="button" class="secondary" data-resign>Desistir</button>':"")
- +'<button type="button" class="secondary" data-refresh>Atualizar</button></div></div>'
- +'<div class="panel"><h3>Movimentos</h3><div class="edgyTicReview"><button data-step="0" aria-label="Início">⏮</button><button data-step="back" aria-label="Anterior">◀</button><button data-step="next" aria-label="Próximo">▶</button><button data-step="live" aria-label="Ao vivo">⏭</button></div>'
+ +'<button type="button" class="secondary" data-refresh>Atualizar</button></div>'
+ +'<p class="sub">'+(review!==null?"A rever movimentos.":room.status==="active"?"Símbolo: "+esc(seat()||"—"):"")+'</p>')
+ +window.EDGY_gameUI.card("Jogadas & histórico",'<div class="edgyTicReview"><button data-step="0" aria-label="Início">⏮</button><button data-step="back" aria-label="Anterior">◀</button><button data-step="next" aria-label="Próximo">▶</button><button data-step="live" aria-label="Ao vivo">⏭</button></div>'
  +'<p class="sub">'+(review===null?"Ao vivo":"Jogada "+review+" de "+moves.length)+'</p>'
- +'<ol class="edgyTicMoves">'+(moves.length?moves.map((m,i)=>'<li>'+(i+1)+'. '+esc(m.mark)+' → '+(m.cell+1)+'</li>').join(""):'<li>Sem jogadas.</li>')+'</ol></div></aside></div>'
+ +'<ol class="edgyTicMoves">'+(moves.length?moves.map((m,i)=>'<li>'+(i+1)+'. '+esc(m.mark)+' → '+(m.cell+1)+'</li>').join(""):'<li>Sem jogadas.</li>')+'</ol>');
+ root.innerHTML='<div class="edgyTicWrap edgyGamePage">'+top
+ +window.EDGY_gameUI.match({game:"tic",stage,side,layoutClass:"edgyTicGame",stageClass:"edgyTicLeft",sideClass:"edgyTicSide"})
  +(notice?'<p class="edgyTicNotice" role="status">'+esc(notice)+'</p>':'')+'</div>';
+ window.EDGY_gameUI.bindMobilePanel(root,{game:"tic",sideSelector:".edgyTicSide",optionSelector:".edgyGamePanel:first-child",historySelector:".edgyGamePanel:nth-child(2)",placementSelector:".edgyGameHeader"});
  root.querySelector("[data-back]").onclick=()=>nav("games");
  root.querySelectorAll("[data-cell]").forEach(b=>b.onclick=()=>move(Number(b.dataset.cell)));
  root.querySelector("[data-copy]").onclick=async()=>{
