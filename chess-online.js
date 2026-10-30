@@ -247,10 +247,14 @@ function draw(){
  const root=document.getElementById("screen");if(!root||game!=="chess")return;root.classList.toggle("edgyLobby",!room);
  root.classList.toggle("chess-drawer-open",drawerOpen&&Boolean(room));document.querySelector(".main")?.classList.toggle("chess-viewport",Boolean(room));
  if(!room&&pending&&user()&&!busy&&!autoTried&&/^[A-F0-9]{8}$/.test(pending)){autoTried=true;queueMicrotask(()=>join(pending))}
- if(!Chess){root.innerHTML='<div class="chessWrap"><button class="back" data-back>← Jogos</button><h1>Xadrez online</h1><p class="sub">'+x(engineError||"A carregar as regras...")+'</p></div>';root.querySelector("[data-back]").onclick=()=>nav("games");return}
- if(!user()){root.innerHTML='<div class="chessWrap"><button class="back" data-back>← Jogos</button><h1>Xadrez online</h1><div class="panel">Entra como convidado ou com conta para jogar. <button class="chessBtn" data-auth>Entrar</button></div></div>';root.querySelector("[data-back]").onclick=()=>nav("games");root.querySelector("[data-auth]").onclick=()=>auth()?.showEntry();return}
+ if(!Chess){root.innerHTML='<div class="chessWrap edgyGamePage">'+window.EDGY_gameUI.header("chess")+'<p class="sub">'+x(engineError||"A carregar as regras...")+'</p></div>';root.querySelector("[data-back]").onclick=()=>nav("games");return}
+ if(!user()){root.innerHTML='<div class="chessWrap edgyGamePage">'+window.EDGY_gameUI.header("chess")+window.EDGY_gameUI.card("Iniciar sessão",'<p class="sub">Entra como convidado ou com conta para jogar.</p><button class="chessBtn" data-auth>Entrar</button>')+'</div>';root.querySelector("[data-back]").onclick=()=>nav("games");root.querySelector("[data-auth]").onclick=()=>auth()?.showEntry();return}
  if(!room){
-  root.innerHTML='<div class="chessWrap"><button class="back" data-back>← Jogos</button><h1>♞ Xadrez online</h1><p class="sub">Relógio por jogador, movimentos animados e partidas entre dois dispositivos.</p><div class="panel"><h3>Escolhe o ritmo</h3><div class="chessControlSelect"><button data-time="180,2">3+2</button><button data-time="300,0">5+0</button><button data-time="600,0" class="active">10+0</button><button data-time="900,10">15+10</button></div><button class="chessBtn" data-create>Criar sala privada</button></div><div class="section panel"><h3>Entrar numa sala</h3><input id="chessCode" class="chessInput" maxlength="8" placeholder="CÓDIGO" value="'+x(pending)+'"><button class="secondary" data-join style="margin-top:10px">Entrar na partida</button></div><p class="result" id="chess-info"></p>'+roomsHtml()+'</div>';
+  root.innerHTML='<div class="chessWrap edgyGamePage">'+window.EDGY_gameUI.header("chess",{intro:"Relógio por jogador · Partidas online · Histórico e revisão"})
+   +window.EDGY_gameUI.card("Criar partida online",'<div class="chessControlSelect"><button data-time="180,2">3+2</button><button data-time="300,0">5+0</button><button data-time="600,0" class="active">10+0</button><button data-time="900,10">15+10</button></div><button class="chessBtn" data-create>Criar sala</button>',{description:"Escolhe o ritmo e cria uma sala privada."})
+   +window.EDGY_gameUI.card("Entrar numa sala",'<input id="chessCode" class="chessInput" maxlength="8" placeholder="CÓDIGO" value="'+x(pending)+'"><button class="secondary" data-join>Entrar</button>')
+   +'<p class="result" id="chess-info"></p>'
+   +window.EDGY_gameUI.card("As tuas salas",'<div id="edgy-chess-rooms"></div>',{description:"Retoma uma partida aberta ou consulta os jogadores."})+'</div>';
   let base=600,inc=0;
   root.querySelectorAll("[data-time]").forEach(b=>b.onclick=()=>{root.querySelectorAll("[data-time]").forEach(n=>n.classList.toggle("active",n===b));[base,inc]=b.dataset.time.split(",").map(Number)});
   root.querySelector("[data-create]").onclick=()=>create(base,inc);
@@ -260,7 +264,21 @@ function draw(){
   root.querySelector("[data-back]").onclick=()=>nav("games");window.EDGY_social?.renderRooms("edgy-chess-rooms","chess");return;
  }
  const black=user()?.id===room.black_id,upper=black?"w":"b",lower=black?"b":"w",control=(room.base_ms/60000)+"+"+(room.increment_ms/1000);
- root.innerHTML='<div class="chessWrap"><div class="chessMatchHeader"><button type="button" class="chessBackMini" data-back aria-label="Voltar aos jogos">← Jogos</button><div class="chessHeaderTitle"><span class="chessHeaderKnight">♞</span><h1>Xadrez</h1></div><span class="pill">'+x(control)+' · '+x(room.code)+'</span></div><div class="chessMobileTools"><button type="button" data-chess-panel="actions">Partida &amp; opções</button><button type="button" data-chess-panel="history">Jogadas &amp; confrontos</button></div><div class="chessMainGrid"><div class="chessBoardArea">'+'<p class="chessMobileStatus">'+x(status())+'</p>'+clockRow(upper)+board()+clockRow(lower)+reviewControls()+(previewIndex!==null?'<div class="chessReview">A rever lance '+previewIndex+' <button class="chessBtn" data-live>Voltar ao jogo</button></div>':"")+'</div><div class="chessMobileScrim" data-close-panel></div><aside class="chessSide"><button type="button" class="chessDrawerClose" data-close-panel>✕ Fechar</button><div class="chessStatus">'+x(status())+'</div>'+proposal()+'<div class="chessRow"><button class="chessBtn" data-copy>Copiar convite</button>'+(room.status==="waiting"&&room.white_id===user()?.id?'<button class="secondary" data-chess-invite>Convidar jogador</button>':"")+'<button class="secondary" data-refresh>Atualizar</button></div><p class="result" id="chess-info"></p><section class="section panel" style="padding:10px"><div class="row space"><h3 style="margin:6px">Jogadas</h3><span class="pill">'+(engine()?.history()?.length||0)+'</span></div>'+moveList()+(previewIndex!==null?'<button class="chessBtn" data-live>Voltar à partida</button>':"")+'</section>'+rivalryHtml()+(promo?'<div class="chessDecision"><p>Escolhe a promoção:</p><div class="chessPromotion">'+["q","r","b","n"].map(p=>'<button data-promotion="'+p+'">'+glyph[room.turn+p]+'</button>').join("")+'</div><button class="secondary" data-cancel-promo>Cancelar</button></div>':"")+'</aside></div></div>';
+ const stage='<p class="chessMobileStatus">'+x(status())+'</p>'+clockRow(upper)+board()+clockRow(lower)+reviewControls()
+  +(previewIndex!==null?'<div class="chessReview">A rever lance '+previewIndex+' <button class="chessBtn" data-live>Voltar ao jogo</button></div>':"");
+ const side='<button type="button" class="chessDrawerClose" data-close-panel>✕ Fechar</button><div class="chessStatus">'+x(status())+'</div>'
+  +proposal()+'<div class="chessRow"><button class="chessBtn" data-copy>Copiar convite</button>'
+  +(room.status==="waiting"&&room.white_id===user()?.id?'<button class="secondary" data-chess-invite>Convidar jogador</button>':"")
+  +'<button class="secondary" data-refresh>Atualizar</button></div><p class="result" id="chess-info"></p>'
+  +'<section class="section panel" style="padding:10px"><div class="row space"><h3 style="margin:6px">Jogadas</h3><span class="pill">'+(engine()?.history()?.length||0)+'</span></div>'
+  +moveList()+(previewIndex!==null?'<button class="chessBtn" data-live>Voltar à partida</button>':"")+'</section>'
+  +rivalryHtml()
+  +(promo?'<div class="chessDecision"><p>Escolhe a promoção:</p><div class="chessPromotion">'+["q","r","b","n"].map(p=>'<button data-promotion="'+p+'">'+glyph[room.turn+p]+'</button>').join("")+'</div><button class="secondary" data-cancel-promo>Cancelar</button></div>':"");
+ root.innerHTML='<div class="chessWrap edgyGamePage">'
+  +window.EDGY_gameUI.header("chess",{room:control+" · "+room.code,intro:""})
+  +'<div class="chessMobileTools"><button type="button" data-chess-panel="actions">Partida &amp; opções</button><button type="button" data-chess-panel="history">Jogadas &amp; confrontos</button></div>'
+  +window.EDGY_gameUI.match({game:"chess",stage,side,layoutClass:"chessMainGrid",stageClass:"chessBoardArea",sideClass:"chessSide",between:'<div class="chessMobileScrim" data-close-panel></div>'})
+  +'</div>';
  const sheet=root.querySelector(".chessSide");
  if(sheet){
   sheet.dataset.activeSheet=drawerSection;
