@@ -250,7 +250,7 @@ test("Jogo do Galo uses common online game lobby and the room registry",()=>{
 });
 test("Chess mobile game menu is above the board and never fixed over review buttons",()=>{
  const chess=read("chess-online.js"),css=read("edgy-theme.css");
- const markup=chess.slice(chess.indexOf('root.innerHTML=\\'<div class="chessWrap"><div class="chessMatchHeader"'));
+ const markup=chess.slice(chess.indexOf("root.innerHTML=\u0027<div class=\"chessWrap\"><div class=\"chessMatchHeader\""));
  assert.ok(markup.includes('<div class="chessMatchHeader"'));
  assert.ok(markup.indexOf('class="chessMobileTools"') < markup.indexOf('class="chessMainGrid"'));
  assert.ok(markup.indexOf('class="chessMobileTools"') >= 0);
