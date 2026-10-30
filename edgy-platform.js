@@ -5,6 +5,7 @@
 const GAMES=Object.freeze({
  chess:Object.freeze({id:"chess",title:"Xadrez",display:"Xadrez online",category:"Multiplayer",mode:"2 jogadores · Online",icon:"♞",online:true,create:"edgy_create_chess_room_timed",join:"edgy_join_chess_room",cancel:"edgy_cancel_waiting_chess_room",table:"chess_rooms",param:"room",defaultTime:600,increment:0}),
  checkers:Object.freeze({id:"checkers",title:"Damas",display:"Damas online",category:"Multiplayer",mode:"2 jogadores · Online",icon:"◎",online:true,create:"edgy_checkers_create",join:"edgy_checkers_join",cancel:"edgy_checkers_cancel",table:"checkers_rooms",param:"checkers"}),
+ barricade:Object.freeze({id:"barricade",title:"Barricade",display:"Barricade online",category:"Estratégia",mode:"2 jogadores · Online",icon:"▦",online:true,create:"edgy_barricade_create",join:"edgy_barricade_join",cancel:"edgy_barricade_cancel",table:"barricade_rooms",param:"barricade"}),
  tic:Object.freeze({id:"tic",title:"Jogo do Galo",display:"Jogo do Galo online",category:"Estratégia",mode:"1–2 jogadores · Online/local",icon:"✕",online:true,create:"edgy_tic_create",join:"edgy_tic_join",cancel:"edgy_tic_cancel",table:"tic_rooms",param:"tic"}),
  reaction:Object.freeze({id:"reaction",title:"Reflexos",display:"Reflexos",category:"Arcade",mode:"1 jogador",icon:"◴",online:false})
 });
@@ -28,7 +29,7 @@ const rooms={
  cancel(id,roomCode){const game=online(id);return call(game.cancel,{p_code:code(roomCode)})},
  load(id,roomCode){const game=online(id);return db().from(game.table).select("*").eq("code",code(roomCode)).maybeSingle()},
  list(limit=80){return call("edgy_my_rooms",{p_limit:Math.max(1,Math.min(100,Number(limit)||80))})},
- players(id,roomCode){online(id);const fn={chess:"edgy_chess_players",checkers:"edgy_checkers_players",tic:"edgy_tic_players"}[id];if(!fn)throw new Error("Jogadores indisponíveis");return call(fn,{p_code:code(roomCode)})},
+ players(id,roomCode){online(id);const fn={chess:"edgy_chess_players",checkers:"edgy_checkers_players",tic:"edgy_tic_players",barricade:"edgy_barricade_players"}[id];if(!fn)throw new Error("Jogadores indisponíveis");return call(fn,{p_code:code(roomCode)})},
  invite(id,roomCode,recipient){online(id);return call("edgy_invite_send",{p_game:id,p_code:code(roomCode),p_recipient:recipient})},
  respond(inviteId,accept){return call("edgy_invite_respond",{p_invite_id:inviteId,p_accept:Boolean(accept)})}
 };
