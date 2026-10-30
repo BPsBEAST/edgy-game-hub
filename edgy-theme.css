@@ -979,14 +979,12 @@
   aspect-ratio:1!important;margin:5px auto!important;
  }
  .main.chess-viewport #screen .chessMobileTools{
-  position:fixed!important;left:9px;right:9px;
-  bottom:calc(75px + env(safe-area-inset-bottom))!important;
-  z-index:35!important;
-  padding:7px!important;margin:0!important;
-  background:#201931f5!important;
-  border:1px solid #564064!important;
-  box-shadow:0 -7px 18px #0d081e90;
-  border-radius:4px!important;
+  position:relative!important;inset:auto!important;
+  width:100%!important;max-width:100%!important;
+  z-index:1!important;
+  padding:0!important;margin:6px 0 12px!important;
+  background:transparent!important;border:0!important;
+  box-shadow:none!important;
  }
  .main.chess-viewport #screen .chessMobileTools button{
   font-size:12px!important;line-height:1.25;min-height:46px!important
@@ -1019,4 +1017,80 @@
  .main.chess-viewport #screen.edgyPageIn{
   animation:none!important;transform:none!important;filter:none!important
  }
+}
+
+
+/* EDGY v34: shared compact online-game lobby surface; consistent across game types. */
+#screen.edgyLobby .edgyTicWrap{
+ width:100%;max-width:940px;margin:0 auto;padding-top:4px;
+}
+#screen.edgyLobby .edgyTicTitle{
+ display:flex;align-items:center;flex-wrap:wrap;gap:12px;
+ min-height:45px;margin:0 0 10px;
+}
+#screen.edgyLobby .edgyTicTitle h1{
+ margin:0;font-size:27px;letter-spacing:-1px;line-height:1.15;
+ display:flex;align-items:center;gap:9px;
+}
+#screen.edgyLobby .edgyTicGlyph{color:#fff;font-size:25px;font-weight:600}
+#screen.edgyLobby .edgyTicSummary{font-size:12px;margin-bottom:15px!important}
+#screen.edgyLobby .edgyTicLobby{
+ padding:18px!important;margin:0 0 12px!important;
+ background:var(--edgy-surface,#211a35)!important;
+ border:1px solid var(--edgy-stroke,#463751)!important;
+ border-radius:3px!important;
+}
+#screen.edgyLobby .edgyTicLobby h3{font-size:16px;margin:0 0 12px!important}
+#screen.edgyLobby .edgyTicLobby p{font-size:12px;line-height:1.55;margin:0 0 13px;color:var(--edgy-muted,#bfb1ce)}
+#screen.edgyLobby .edgyTicCode{
+ width:100%!important;max-width:none!important;min-height:47px;
+ margin:0 0 9px!important;letter-spacing:1.5px;
+}
+#screen.edgyLobby .edgyTicLocal{display:flex;justify-content:space-between;align-items:center;gap:15px}
+#screen.edgyLobby .edgyTicLocal>div{min-width:0}
+#screen.edgyLobby .edgyTicLocal p{margin-bottom:0!important}
+#screen.edgyLobby .edgyTicLocal button{flex-shrink:0}
+@media(max-width:540px){
+ #screen.edgyLobby .edgyTicLocal{align-items:stretch;flex-direction:column;gap:10px}
+ #screen.edgyLobby .edgyTicLocal button{align-self:flex-start}
+}
+
+/* Chess v34: retain scrolling, show all history buttons, without bottom controls covering them. */
+@media(max-width:799px){
+ .main.chess-viewport .top{
+  height:auto!important;min-height:50px!important;
+  margin:0 0 10px!important;flex-shrink:0!important;
+ }
+ .main.chess-viewport #screen .chessMatchHeader{
+  margin:0 0 4px!important;min-height:42px!important;
+  display:flex!important;align-items:center!important;flex-wrap:wrap!important;
+  column-gap:10px;row-gap:6px;
+ }
+ .main.chess-viewport #screen .chessMobileTools{
+  position:static!important;display:grid!important;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  align-items:stretch!important;min-height:0!important;
+ }
+ .main.chess-viewport #screen .chessMobileTools button{
+  min-height:46px!important;line-height:1.25!important;
+ }
+ .main.chess-viewport #screen .chessReviewControls,
+ .main.chess-viewport #screen .chessHistoryNote{
+  position:relative!important;z-index:auto!important;
+ }
+ .main.chess-viewport #screen .chessReviewControls{
+  display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  gap:6px!important;min-width:0!important;
+  margin:10px 0 5px!important;
+ }
+ .main.chess-viewport #screen .chessReviewControls button{
+  display:grid!important;place-items:center!important;
+  min-height:46px!important;touch-action:manipulation!important;
+ }
+ .main.chess-viewport #screen{padding-bottom:calc(108px + env(safe-area-inset-bottom))!important}
+ .main.chess-viewport #screen .chessSide{
+  height:min(75dvh,630px)!important;
+  max-height:calc(100dvh - 90px - env(safe-area-inset-bottom))!important;
+ }
+ .main.chess-viewport #screen.chess-drawer-open .chessMobileTools{pointer-events:none}
 }
