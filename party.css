@@ -1,0 +1,76 @@
+/* EDGY party game — original 3–8 player social cards, matching EDGY's panels. */
+#screen .ptPage{width:min(100%,1120px);margin:0 auto;min-width:0}
+#screen .ptLayout{grid-template-columns:minmax(0,1fr) minmax(240px,280px)!important;align-items:start;gap:18px}
+#screen .ptStage,#screen .ptSide,#screen .ptBoard{min-width:0;width:100%}
+#screen .ptStage{border:1px solid #62486f;border-radius:7px;background:#241b35;padding:16px}
+#screen .ptRoundBar{display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:11px;color:#cdb3d5;margin-bottom:11px}
+#screen .ptRoundBar span:first-child{color:#ff65ac;font-size:10px;font-weight:900;letter-spacing:1.6px}
+#screen .ptPrompt{position:relative;overflow:hidden;padding:22px 20px 34px;border-radius:8px;min-height:153px;
+ border:1px solid #bb3f83;background:linear-gradient(145deg,#a92b74,#6e2f69 65%,#493155);
+ display:flex;flex-direction:column;justify-content:flex-start;box-shadow:0 9px 25px #10092180}
+#screen .ptPromptTop{font-weight:850;letter-spacing:1.7px;font-size:10px;color:#ffe0ef}
+#screen .ptPrompt p{font-weight:850;line-height:1.4;font-size:clamp(17px,2.7vw,23px);color:#fff;margin:14px 0;max-width:95%}
+#screen .ptPromptCorner{position:absolute;bottom:11px;right:16px;font-size:27px;font-weight:900;color:#fff8}
+#screen .ptPhase{font-size:12px;line-height:1.5;color:#ccbcdb;padding:12px 0}
+#screen .ptSectionHead{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:14px 0 9px}
+#screen .ptSectionHead h3{margin:0;font-size:15px;color:#fff}
+#screen .ptSectionHead>span{font-size:11px;color:#c4b2d0}
+#screen .ptCardGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+#screen .ptAnswer{
+ min-width:0;min-height:116px;display:flex;flex-direction:column;justify-content:space-between;gap:14px;text-align:left;
+ color:#f5ecfa;font-family:inherit;font-size:13px;font-weight:750;line-height:1.43;
+ background:#392a4a;border:1px solid #6b4c77;padding:14px;border-radius:7px;
+ transition:transform .15s ease,background-color .17s ease,border-color .17s ease,box-shadow .17s ease;
+ animation:ptCardArrive .25s ease both;touch-action:manipulation;overflow-wrap:anywhere
+}
+#screen .ptAnswer:not(:disabled):hover{background:#4f3157;border-color:#fa7ab6;transform:translateY(-2px);box-shadow:0 8px 22px #14072062}
+#screen .ptAnswer:not(:disabled):active{transform:scale(.98)}
+#screen .ptAnswer:focus-visible{outline:2px solid #ff81c5;outline-offset:2px}
+#screen .ptAnswer:disabled{opacity:.76;cursor:default}
+#screen .ptCardGlyph{align-self:flex-end;font-size:17px;color:#f87bae}
+#screen .ptAnswer.ptWinner{border-color:#80d9ab;background:#24423f;box-shadow:0 0 24px #60d5b332}
+#screen .ptAnswer.ptWinner .ptCardGlyph{color:#9af4ca}
+#screen .ptEmpty,.ptWaiting,.ptNote{font-size:12px;color:#bca9ca;line-height:1.65}
+#screen .ptEmpty{padding:17px;border:1px dashed #5d486b;border-radius:6px}
+#screen .ptWaiting{margin-top:12px;display:flex;align-items:center;gap:8px}
+#screen .ptPulse{width:8px;height:8px;border-radius:50%;background:#ff469d;box-shadow:0 0 12px #f85fa0;animation:ptPulse 1.4s ease-in-out infinite}
+#screen .ptPlayers{display:grid;gap:8px}
+#screen .ptPlayer{display:flex;align-items:center;gap:10px;border-radius:7px;border:1px solid #5b4569;background:#312640;padding:9px}
+#screen .ptPlayer.isJudge{border-color:#dc69a0;background:#472c4d}
+#screen .ptPlayer.isMe{box-shadow:inset 3px 0 0 #ee4d9c}
+#screen .ptPlayerAvatar{flex:0 0 32px;width:32px;height:32px;border-radius:50%;display:grid;place-items:center;background:#703759;color:white;font-weight:850}
+#screen .ptPlayer>div{min-width:0;flex:1}
+#screen .ptPlayer strong{display:block;overflow:hidden;text-overflow:ellipsis;font-size:12px;white-space:nowrap}
+#screen .ptPlayer small{font-size:10px;color:#c6b6d2}
+#screen .ptPlayer>b{font-variant-numeric:tabular-nums;font-size:12px;color:#fac0dd;white-space:nowrap}
+#screen .ptLobbyText>strong{font-size:25px;font-weight:900;letter-spacing:3px;color:#fff}
+#screen .ptLobbyText p{font-size:12px;color:#c5b8d0;line-height:1.6}
+#screen .ptJoin,.ptActions,.ptEndActions{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:12px}
+#screen .ptJoin input{min-width:135px;flex:1;font-size:16px}
+#screen .ptActions button,#screen .ptJoin button{min-height:41px;padding:9px 13px;font-size:12px}
+#screen .ptActions button:disabled{opacity:.5}
+#screen .ptConclusion{padding:19px 14px;margin:13px 0;text-align:center;border:1px solid #bd538f;border-radius:7px;background:#38253f}
+#screen .ptConclusion>span{font-size:10px;letter-spacing:1.5px;color:#ff8ebf;font-weight:800}
+#screen .ptConclusion h2{font-size:19px;color:#fff;line-height:1.35;margin:7px 0}
+#screen .ptConclusion p{font-size:12px;line-height:1.6;color:#d2beda}
+#screen .ptFeedback{font-size:12px;color:#ffb3d5;border:1px solid #a5518b;background:#3c2843;padding:11px 13px;border-radius:6px;margin-top:12px;overflow-wrap:anywhere}
+#screen .ptSide .edgyGamePanel p{font-size:12px;line-height:1.6}
+@keyframes ptCardArrive{from{opacity:.65;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes ptPulse{50%{opacity:.45;transform:scale(.8)}}
+@media(max-width:799px){
+ #screen .ptPage{width:100%;padding-bottom:10px}
+ #screen .ptLayout{display:flex!important;flex-direction:column!important;gap:13px!important}
+ #screen .ptStage{padding:12px}
+ #screen .ptPrompt{min-height:129px;padding:17px 15px 27px}
+ #screen .ptPrompt p{font-size:18px}
+ #screen .ptCardGrid{gap:7px}
+ #screen .ptAnswer{min-height:105px;padding:11px;font-size:12px}
+ #screen .ptSide{width:100%;display:grid;gap:12px}
+ #screen .ptSide .edgyGamePanel{margin:0!important}
+ .main:has(> #screen .ptPage){display:flex!important;flex-direction:column!important;height:100dvh!important;min-height:0!important;overflow:hidden!important;padding-bottom:calc(78px + env(safe-area-inset-bottom))!important}
+ .main:has(> #screen .ptPage)>.top{flex:0 0 auto!important}
+ .main:has(> #screen .ptPage)>#screen{flex:1 1 auto!important;min-height:0!important;height:auto!important;overflow-y:auto!important;overflow-x:hidden!important;-webkit-overflow-scrolling:touch!important;touch-action:pan-y pinch-zoom!important;padding-bottom:20px!important}
+ .main:has(> #screen .ptPage)>.foot{display:block!important;flex:0 0 auto!important;margin:0!important;padding:10px 0 5px!important;font-size:10px!important}
+ .main:has(> #screen .ptPage)>#screen.edgyPageIn{animation:none!important;transform:none!important}
+}
+@media(prefers-reduced-motion:reduce){#screen .ptAnswer,#screen .ptPulse{animation:none!important;transition:none!important}}
