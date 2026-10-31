@@ -18,13 +18,16 @@ function get(id=scope()){
  // collection could not have been legitimately completed. Existing individual
  // reservations remain protected by the server and are merged during ready().
  const answers=window.EDGY_wordBank?.answers||[];
- if(answers.length>=900&&value.seen.size>=answers.length-4){
+ // The corrupted v55 import contains the original 917-word snapshot even
+ // after new Wordle solutions have been appended to the dictionary.
+ const original=answers.slice(0,917);
+ if(original.length===917&&value.seen.size>=original.length-4){
   try{
    const record=JSON.parse(localStorage.getItem("edgy_wordle_v1"+(id==="local"?"":"_"+id))||"null");
    const number=Math.max(0,Number(record?.number)||0);
-   const corpus=new Set(answers);
-   const overlap=answers.reduce((count,w)=>count+(value.seen.has(w)?1:0),0);
-   if(record&&number<Math.floor(answers.length/4)&&overlap>=answers.length-4){
+   const corpus=new Set(original);
+   const overlap=original.reduce((count,w)=>count+(value.seen.has(w)?1:0),0);
+   if(record&&number<Math.floor(original.length/4)&&overlap>=original.length-4){
     const keep=normalize(record.round?.answer);
     for(const word of corpus)if(word!==keep)value.seen.delete(word);
     try{localStorage.setItem(KEY+id,JSON.stringify([...value.seen]))}catch{}
