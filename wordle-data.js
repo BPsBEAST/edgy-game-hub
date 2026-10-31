@@ -14,6 +14,7 @@ Object.freeze(ANSWERS);Object.freeze(GUESSES);
 window.EDGY_wordBank=Object.freeze({
  answers:ANSWERS,
  answerCount:ANSWERS.length,
+ guesses:GUESSES,
  guessCount:GUESSES.length,
  normalize,
  isWord:value=>allowed.has(normalize(value).toLowerCase())
