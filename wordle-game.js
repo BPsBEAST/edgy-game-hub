@@ -53,7 +53,7 @@ async function setup(){
  if(ledger){
   await ledger.ready();
   // Migrate existing Wordle history from the old shuffled-answer bag.
-  if(data.number>0&&Array.isArray(data.bag)&&data.bag.length>0){
+  if(data.number>0&&Array.isArray(data.bag)){
    const remaining=new Set(data.bag.filter(Number.isInteger));
    const previous=bank.answers.filter((_,index)=>!remaining.has(index));
    await ledger.importPrevious(previous,"wordle");
