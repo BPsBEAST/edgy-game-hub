@@ -425,7 +425,7 @@ test("Wordle and Contexto share RLS cloud history and never silently recycle ans
  assert.ok(skin.includes('prefers-reduced-motion:reduce'));
  const scripts=[...html.matchAll(/<script[^>]+src="([^"]+)"/g)].map(m=>m[1]);
  for(const p of ["edgy-seen-words.js","contexto-data.js","contexto-rules.js","contexto-game.js"]){
-  const version=p==="contexto-rules.js"?"55":p==="edgy-seen-words.js"?"56":"54";
+  const version=p==="contexto-rules.js"?"55":p==="contexto-game.js"?"54":"58";
   assert.ok(scripts.includes("./"+p+"?v="+version));assert.ok(read("sw.js").includes(p+"?v="+version));
  }
  assert.ok(scripts.indexOf("./edgy-seen-words.js?v=58")<scripts.indexOf("./wordle-game.js?v=58"));
