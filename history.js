@@ -121,7 +121,7 @@ function renderTicReplay(){
  host.querySelectorAll("[data-tic-jump]").forEach(b=>b.onclick=()=>{ticStep=Number(b.dataset.ticJump);renderTicReplay()});
 }
 async function open(g){
- if(g.isTic){openTic(g);return}if(g.isCheckers){window.EDGY_checkersReplay?.open(g.code);return}if(g.isBarricade){window.EDGY_openRoom?.("barricade",g.code);return}if(!g.isChess){basic(g);return}
+ if(g.isTic){openTic(g);return}if(g.isCheckers){window.EDGY_checkersReplay?.open(g.code);return}if(g.isBarricade){basic(g);return}if(!g.isChess){basic(g);return}
  selected=g;detail=null;moves=[];step=0;mask.hidden=false;
  const host=mask.querySelector("#edgy-replay-content");host.innerHTML='<p class="edReplayInfo">A carregar replay da partida…</p>';
  try{
