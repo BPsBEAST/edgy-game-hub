@@ -16,7 +16,9 @@ mask.addEventListener("click",e=>{if(e.target===mask)close()});
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!mask.hidden)close()});
 function allGames(){
  const server=cloud.map(p=>({...p,key:p.id,game:"Xadrez",isChess:true,when:p.date})).concat(ticCloud,checkersCloud,barricadeCloud);
- const others=local.filter(h=>!(h.title==="Xadrez"&&cloud.some(c=>c.id===h.client_id))&&!(h.title==="Jogo do Galo"&&ticCloud.some(c=>c.id===h.client_id))).map(h=>({...h,key:h.client_id||h.date,game:h.title,isChess:false,when:h.date,outcome:resultType(h.result)}));
+ // Server-backed match cards already include their XP history rows.
+ const onlineIds=new Set([...cloud,...ticCloud,...checkersCloud,...barricadeCloud].map(g=>String(g.id)));
+ const others=local.filter(h=>!onlineIds.has(String(h.client_id||""))).map(h=>({...h,key:h.client_id||h.date,game:h.title,isChess:false,when:h.date,outcome:resultType(h.result)}));
  return [...server,...others].sort((a,b)=>Date.parse(b.when||0)-Date.parse(a.when||0));
 }
 function draw(){
@@ -67,13 +69,15 @@ async function sync(){
    const color=r.white_id===uid?"white":"black";
    const outcome=r.status==="draw"?"draw":r.status===(color==="white"?"white_win":"black_win")?"win":"loss";
    return {id:r.id,key:"checkers-"+r.id,game:"Damas",isCheckers:true,when:r.updated_at,
-    code:r.code,color,outcome,reason:r.finish_reason,result:labels[outcome],xp:null};
+    code:r.code,color,outcome,reason:r.finish_reason,result:labels[outcome],
+    xp:local.find(h=>String(h.client_id)===String(r.id))?.xp??(outcome==="win"?40:outcome==="draw"?15:5)};
   });
   barricadeCloud=(barricade.error?[]:barricade.data||[]).map(r=>{
    const color=r.white_id===uid?"white":"black";
    const outcome=r.status==="draw"?"draw":r.status===(color==="white"?"white_win":"black_win")?"win":"loss";
    return {id:r.id,key:"barricade-"+r.id,game:"Barricade",isBarricade:true,when:r.updated_at,
-    code:r.code,color,outcome,reason:r.finish_reason,result:labels[outcome],xp:null};
+    code:r.code,color,outcome,reason:r.finish_reason,result:labels[outcome],
+    xp:local.find(h=>String(h.client_id)===String(r.id))?.xp??(outcome==="win"?40:outcome==="draw"?15:5)};
   });
   const unavailable=[chess.error&&"Xadrez",tic.error&&"Jogo do Galo",checkers.error&&"Damas",barricade.error&&"Barricade"].filter(Boolean);
   if(info)info.textContent=unavailable.length?"Alguns históricos não estão disponíveis: "+unavailable.join(", ")+".":"Histórico online sincronizado entre dispositivos.";
@@ -92,7 +96,7 @@ function mount(list){
 }
 function basic(g){
  mask.hidden=false;const host=mask.querySelector("#edgy-replay-content");
- host.innerHTML='<div class="edReplayHead"><h2>'+esc(g.game||"Jogo")+'</h2><button type="button" class="edReplayClose" data-close>Fechar</button></div><p class="edReplayInfo">'+date(g.when)+' · '+esc(g.result||"Partida terminada")+' · +'+Number(g.xp||0)+' XP</p><p class="edReplayInfo">Este jogo não tem um replay guardado.</p>';
+ host.innerHTML='<div class="edReplayHead"><h2>'+esc(g.game||"Jogo")+'</h2><button type="button" class="edReplayClose" data-close>Fechar</button></div><p class="edReplayInfo">'+date(g.when)+' · '+esc(g.result||"Partida terminada")+' · +'+Number(g.xp||0)+' XP</p><p class="edReplayInfo">O resultado e o XP ficaram guardados no histórico. Este jogo não precisa de replay.</p>';
  host.querySelector("[data-close]").onclick=close;
 }
 let ticStep=0;
