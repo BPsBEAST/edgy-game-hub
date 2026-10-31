@@ -25,7 +25,7 @@ function get(id=scope()){
   try{
    const record=JSON.parse(localStorage.getItem("edgy_wordle_v1"+(id==="local"?"":"_"+id))||"null");
    const number=Math.max(0,Number(record?.number)||0);
-   const corpus=new Set(original);
+   const corpus=new Set(value.seen.size>=answers.length-4?answers:original);
    const overlap=original.reduce((count,w)=>count+(value.seen.has(w)?1:0),0);
    if(record&&number<Math.floor(original.length/4)&&overlap>=original.length-4){
     const keep=normalize(record.round?.answer);
