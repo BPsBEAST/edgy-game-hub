@@ -53,11 +53,17 @@ async function setup(){
  if(ledger){
   await ledger.ready();
   // Migrate existing Wordle history from the old shuffled-answer bag.
-  if(data.number>0&&Array.isArray(data.bag)){
-   const remaining=new Set(data.bag.filter(Number.isInteger));
-   const previous=bank.answers.filter((_,index)=>!remaining.has(index));
-   await ledger.importPrevious(previous,"wordle");
+  // Only restore old shuffled-bag answers if its size agrees with the
+  // recorded number of rounds. An empty bag after the v55 upgrade is NOT
+  // evidence that all 917 answers were played.
+  const remaining=Array.isArray(data.bag)?data.bag.filter(i=>Number.isInteger(i)&&i>=0&&i<bank.answers.length):[];
+  const consumed=bank.answers.length-remaining.length;
+  if(data.number>0&&remaining.length>0&&remaining.length<bank.answers.length
+    &&new Set(remaining).size===remaining.length&&consumed<=data.number
+    &&!data.wordBankMigrated){
+   await ledger.importPrevious(bank.answers.filter((_,index)=>!new Set(remaining).has(index)),"wordle");
   }
+  saved.wordBankMigrated=true;
  }
  const old=data.round;
  if(old&&bank.answers.includes(String(old.answer||"").toLowerCase())&&Array.isArray(old.guesses)&&old.guesses.length<=6&&old.guesses.every(x=>typeof x==="string"&&/^[A-Z]{5}$/.test(x))&&
