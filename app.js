@@ -109,7 +109,7 @@ function drawReaction(){
  $("#tap").onclick=()=>{
   if(reactPhase==="idle"){reactPhase="waiting";drawReaction();reactTimeout=setTimeout(()=>{if(game==="reaction"&&reactPhase==="waiting"){reactPhase="ready";reactStart=performance.now();drawReaction()}},900+Math.random()*2300)}
   else if(reactPhase==="waiting"){clearTimeout(reactTimeout);reactPhase="idle";drawReaction();$("#reactMsg").textContent="Cedo demais! Tenta outra vez."}
-  else if(reactPhase==="ready"){reactTimes.push(Math.round(performance.now()-reactStart));if(reactTimes.length===3){reactPhase="done";const avg=Math.round(reactTimes.reduce((a,b)=>a+b,0)/3);complete("Reflexos","Média "+avg+" ms",Math.max(10,Math.round(30000/avg)));drawReaction()}else{reactPhase="idle";drawReaction()}}
+  else if(reactPhase==="ready"){reactTimes.push(Math.round(performance.now()-reactStart));if(reactTimes.length===3){reactPhase="done";const avg=Math.round(reactTimes.reduce((a,b)=>a+b,0)/3);complete("Reflexos","Média "+avg+" ms",Math.min(100,Math.max(10,Math.round(30000/avg))));drawReaction()}else{reactPhase="idle";drawReaction()}}
   else{reactTimes=[];reactPhase="idle";drawReaction()}
  };
 }
