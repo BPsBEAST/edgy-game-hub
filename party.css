@@ -74,3 +74,20 @@
  .main:has(> #screen .ptPage)>#screen.edgyPageIn{animation:none!important;transform:none!important}
 }
 @media(prefers-reduced-motion:reduce){#screen .ptAnswer,#screen .ptPulse{animation:none!important;transition:none!important}}
+
+/* EDGY adult/dark deck selector — available to the host before starting. */
+#screen .ptDeckPanel{margin:14px 0 16px;padding:13px;border:1px solid #75517c;border-radius:7px;background:#241a34}
+#screen .ptDeckPanel h3{font-size:13px;margin:0 0 10px;color:#f9effe}
+#screen .ptDeckOptions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+#screen .ptDeckChoice{min-height:69px;min-width:0;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:4px;
+ text-align:left;border-radius:6px;border:1px solid #6b4e76;background:#342640;color:#fff;padding:11px;cursor:pointer;
+ transition:transform .14s ease,background-color .18s ease,border-color .18s ease}
+#screen .ptDeckChoice strong{font-size:12px;line-height:1.3}
+#screen .ptDeckChoice small{font-size:10px;color:#c8b3d0;line-height:1.5}
+#screen .ptDeckChoice.active{border-color:#ee69ae;background:#573253;box-shadow:inset 0 0 0 1px #ed7db275}
+#screen .ptDeckChoice:disabled:not(.active){opacity:.65;cursor:default}
+#screen .ptDeckChoice:not(:disabled):hover{border-color:#f680c0;background:#59345c;transform:translateY(-1px)}
+#screen .ptDeckChoice:focus-visible{outline:2px solid #ffb0d8;outline-offset:2px}
+#screen .ptMatureNotice{font-size:11px;color:#e7b4d2;margin:10px 0 0;line-height:1.6}
+@media(max-width:370px){#screen .ptDeckOptions{gap:6px}#screen .ptDeckChoice{padding:9px}#screen .ptDeckChoice strong{font-size:11px}}
+@media(prefers-reduced-motion:reduce){#screen .ptDeckChoice{transition:none!important}}
