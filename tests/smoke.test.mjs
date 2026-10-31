@@ -9,7 +9,7 @@ const dir=path.resolve(path.dirname(fileURLToPath(import.meta.url)),"..");
 const read=file=>fs.readFileSync(path.join(dir,file),"utf8");
 const html=read("index.html");
 const app=read("app.js");
-const gameFiles=["app.js","edgy-platform.js","edgy-game-ui.js","players.js","social.js","history.js","chess-online.js","checkers-replay.js","checkers-online.js","tic-online.js","barricade-online.js","wordle-data.js","wordle-rules.js","edgy-seen-words.js","wordle-game.js","contexto-data.js","contexto-rules.js","contexto-game.js","auth.js","sw.js"];
+const gameFiles=["app.js","edgy-platform.js","edgy-game-ui.js","players.js","social.js","history.js","chess-online.js","checkers-replay.js","checkers-online.js","tic-online.js","barricade-online.js","party-online.js","wordle-data.js","wordle-rules.js","edgy-seen-words.js","wordle-game.js","contexto-data.js","contexto-rules.js","contexto-game.js","auth.js","sw.js"];
 test("All app scripts and inline bootstrap parse successfully",()=>{
  for(const file of gameFiles)assert.doesNotThrow(()=>new vm.Script(read(file),{filename:file}),file);
  const scripts=[...html.matchAll(/<script([^>]*)>([\s\S]*?)<\/script>/g)];
@@ -22,8 +22,8 @@ test("Every local asset referenced by the bootstrap exists",()=>{
  assert.ok(assets);
  const names=[...assets.matchAll(/"([^"]+)"/g)].map(m=>m[1]);
  for(const name of names)assert.ok(fs.existsSync(path.join(dir,name.split("?")[0])),name);
- assert.ok(names.includes("./edgy-platform.js?v=54"),"shared platform cached");
- assert.ok(names.includes("./app.js?v=56"),"bootstrap cached");
+ assert.ok(names.includes("./edgy-platform.js?v=57"),"shared platform cached");
+ assert.ok(names.includes("./app.js?v=57"),"bootstrap cached");
  assert.ok(names.includes("./base.css?v=29"),"base stylesheet cached");
  assert.ok(names.includes("./edgy-theme.css?v=34"),"design cached");
  assert.ok(names.includes("./tic-online.js?v=40"),"online tic cached");
@@ -303,7 +303,7 @@ test("Home picks exactly two unique recent games and offers curated suggestions 
   window:{EDGY_auth:{getUser:()=>({id:"person-A"})}},
   localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v)},
   state:{history:[]},
-  defs:["chess","checkers","barricade","wordle","contexto","tic","reaction"].map(id=>({id,name:id})),
+  defs:["chess","checkers","barricade","party","wordle","contexto","tic","reaction"].map(id=>({id,name:id})),
  };
  vm.runInNewContext(script+"\nglobalThis.homeGamesTest=homeGames;globalThis.rememberGameTest=rememberGame;",sandbox);
  const starting=sandbox.homeGamesTest();
@@ -519,6 +519,49 @@ test("All EDGY games expose earned XP in the personal history without duplicate 
  assert.ok(auth.includes('const known=new Set(remote.map('));
  assert.ok(read("wordle-game.js").includes('EDGY_recordLocalMatch?.("Wordle"'));
  assert.ok(read("contexto-game.js").includes('EDGY_recordLocalMatch?.("Contexto"'));
+});
+
+test("Cartas Contra Tugas is a 3–8 player registered game with dedicated mobile assets",()=>{
+ const platform=read("edgy-platform.js"),app=read("app.js"),ui=read("edgy-game-ui.js");
+ const social=read("social.js"),history=read("history.js"),client=read("party-online.js"),style=read("party.css");
+ const assets=read("sw.js"),scripts=[...html.matchAll(/<script[^>]+src="([^"]+)"/g)].map(m=>m[1]);
+ assert.ok(platform.includes('party:Object.freeze({id:"party"'));
+ assert.ok(platform.includes('create:"edgy_party_create"'));
+ assert.ok(platform.includes('join:"edgy_party_join"'));
+ assert.ok(platform.includes('cancel:"edgy_party_cancel"'));
+ assert.ok(ui.includes('party:{title:"Cartas Contra Tugas"'));
+ assert.ok(app.includes('window.EDGY_party?.open()'));
+ assert.ok(app.includes('window.EDGY_party?.close()'));
+ assert.ok(app.includes('window.EDGY_party?.render()'));
+ assert.ok(app.includes('name==="party"'));
+ assert.ok(app.includes('"Cartas Contra Tugas":"party"'));
+ assert.ok(social.includes('["edgy-party-rooms","party"]'));
+ assert.ok(history.includes('g.xp===null||g.xp===undefined'));
+ assert.ok(client.includes('room.players.length<3'));
+ assert.ok(client.includes('3 a 8 amigos'));
+ assert.ok(client.includes('party="+code'));
+ assert.ok(style.includes('@media(max-width:799px)'));
+ assert.ok(style.includes('@media(prefers-reduced-motion:reduce)'));
+ for(const asset of ["party-online.js?v=57","party.css?v=57"]){
+  assert.ok(html.includes(asset)&&assets.includes(asset));
+ }
+ assert.ok(scripts.indexOf("./party-online.js?v=57")>scripts.indexOf("./app.js?v=57"));
+});
+test("Cartas Contra Tugas privacy, scoring, history and room status are owned by server RPC",()=>{
+ const party=read("party-online.js");
+ assert.ok(party.includes('rpc("edgy_party_create")'));
+ assert.ok(party.includes('rpc("edgy_party_join"'));
+ assert.ok(party.includes('rpc("edgy_party_state"'));
+ assert.ok(party.includes('rpc("edgy_party_action"'));
+ for(const action of ["start","submit","vote","next","cancel","leave"])
+  assert.ok(party.includes(action),"missing action "+action);
+ assert.ok(party.includes('room.has_submitted'));
+ assert.ok(party.includes('room.status==="judging"&&judge()'));
+ assert.ok(party.includes('room.status==="finished"'));
+ assert.ok(party.includes("window.EDGY_auth?.refreshProfile?.()"));
+ assert.ok(!party.includes('EDGY_recordLocalMatch'),"XP must only come from server match_history, never direct browser actions");
+ assert.ok(party.includes('data-pt-vote'));
+ assert.ok(party.includes('data-pt-card'));
 });
 test("Navigation keeps Histórico only inside Perfil",()=>{
  const sidebar=html.split('<aside class="sidebar">')[1].split("</aside>")[0];
@@ -736,13 +779,13 @@ test("Stable footer, profile replay links and chess mobile actions",()=>{
 
 test("Game library uses a single registry loaded before bootstrap",()=>{
  const scripts=[...html.matchAll(/<script[^>]*src="([^"]+)"/g)].map(m=>m[1]);
- const platform=scripts.indexOf("./edgy-platform.js?v=54");
- const bootstrap=scripts.indexOf("./app.js?v=56");
+ const platform=scripts.indexOf("./edgy-platform.js?v=57");
+ const bootstrap=scripts.indexOf("./app.js?v=57");
  assert.ok(platform>=0&&bootstrap>=0&&platform<bootstrap);
  const app=read("app.js"),defs=read("edgy-platform.js");
  assert.ok(app.includes("Object.values(window.EDGY_platform.games).map("));
  assert.ok(app.includes("homeGames()"),"Home uses the two-game selector");
- for(const game of ["chess","checkers","tic","reaction","barricade","wordle","contexto"])assert.ok(defs.includes(game+":Object.freeze("));
+ for(const game of ["chess","checkers","tic","reaction","barricade","party","wordle","contexto"])assert.ok(defs.includes(game+":Object.freeze("));
  assert.ok(app.includes('filter==="Multiplayer"?window.EDGY_platform.games[g.id].online'));
 });
 
@@ -860,9 +903,9 @@ test("Chess shares the match shell, drawer binder and move controls",()=>{
 });
 test("All games share one header, lobby cards and match presentation",()=>{
  const html=read("index.html"),ui=read("edgy-game-ui.js"),css=read("edgy-game-layout.css");
- assert.ok(html.includes('edgy-game-ui.js?v=54'));
+ assert.ok(html.includes('edgy-game-ui.js?v=57'));
  assert.ok(html.includes('edgy-game-layout.css?v=47'));
- for(const game of ["chess","checkers","tic","reaction","barricade","wordle","contexto"])assert.ok(ui.includes(game+':{title:'));
+ for(const game of ["chess","checkers","tic","reaction","barricade","party","wordle","contexto"])assert.ok(ui.includes(game+':{title:'));
  for(const file of ["chess-online.js","checkers-online.js","tic-online.js","barricade-online.js","app.js"]){
   const src=read(file);
   assert.ok(src.includes('window.EDGY_gameUI.header(')||src.includes('ui().header('),file);
@@ -976,7 +1019,7 @@ test("Home and Biblioteca render exactly the same reusable game cards",()=>{
  assert.ok(css.includes('grid-auto-rows:1fr'),"all cards in the grid stretch equally");
  assert.ok(css.includes('.main.edgyLibraryViewport>.foot'),"library footer follows the cards in the main scroller");
  assert.ok(html.includes('edgy-game-layout.css?v=47'));
- assert.ok(html.includes('app.js?v=56'));
+ assert.ok(html.includes('app.js?v=57'));
 });
 test("EDGY v36: chess title is short and empty join notice does not reserve space",()=>{
  const chess=read("chess-online.js"),ui=read("edgy-game-ui.js"),css=read("edgy-game-layout.css");
