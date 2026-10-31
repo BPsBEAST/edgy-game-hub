@@ -259,7 +259,7 @@ async function renderRooms(id,game=null){
  }catch(e){if(host.isConnected)host.innerHTML='<p class="edgyRoomsEmpty">Erro ao carregar salas: '+esc(e.message)+'</p>'}
 }
 function refreshRoomsOnPage(){
- for(const [id,game] of [["edgy-home-rooms",null],["edgy-all-rooms",null],["edgy-chess-rooms","chess"],["edgy-checkers-rooms","checkers"],["edgy-barricade-rooms","barricade"],["edgy-tic-rooms","tic"]]){
+ for(const [id,game] of [["edgy-home-rooms",null],["edgy-all-rooms",null],["edgy-chess-rooms","chess"],["edgy-checkers-rooms","checkers"],["edgy-barricade-rooms","barricade"],["edgy-party-rooms","party"],["edgy-tic-rooms","tic"]]){
   if(document.getElementById(id))renderRooms(id,game);
  }
 }
