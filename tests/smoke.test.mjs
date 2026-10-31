@@ -361,7 +361,7 @@ test("Level-up notifications persist per account, share invitation bell and cele
  sandbox.testNotify(4,6);
  assert.deepEqual(Array.from(state.items,x=>x.level),[6,5,4]);
  assert.deepEqual(popups,[4,6]);
- for(const name of ["edgy-levels.css?v=53","social.js?v=53","auth.js?v=56"]){
+ for(const name of ["edgy-levels.css?v=53","social.js?v=57","auth.js?v=56"]){
   assert.ok(html.includes(name));assert.ok(read("sw.js").includes(name));
  }
 });
@@ -557,7 +557,7 @@ test("Cartas Contra Tugas privacy, scoring, history and room status are owned by
   assert.ok(party.includes(action),"missing action "+action);
  assert.ok(party.includes('room.has_submitted'));
  assert.ok(party.includes('room.status==="judging"&&judge()'));
- assert.ok(party.includes('room.status==="finished"'));
+ assert.ok(party.includes('data.status==="finished"'));
  assert.ok(party.includes("window.EDGY_auth?.refreshProfile?.()"));
  assert.ok(!party.includes('EDGY_recordLocalMatch'),"XP must only come from server match_history, never direct browser actions");
  assert.ok(party.includes('data-pt-vote'));
@@ -585,7 +585,7 @@ function platformFixture(){
 }
 test("Single registry serves all online games and rejects invalid codes",async()=>{
  const {platform,calls}=platformFixture();
- assert.deepEqual(Object.keys(platform.games).sort(),["barricade","checkers","chess","contexto","reaction","tic","wordle"]);
+ assert.deepEqual(Object.keys(platform.games).sort(),["barricade","checkers","chess","contexto","party","reaction","tic","wordle"]);
  assert.equal(platform.code(" aB41cD23 "),"AB41CD23");
  assert.throws(()=>platform.code("oops"),/8 caracteres/);
  assert.throws(()=>platform.rooms.create("reaction"),/não suporta/);
