@@ -11,6 +11,13 @@ const validCode=s=>/^[0-9A-F]{8}$/.test(String(s||"").toUpperCase());
 const myself=()=>room?.players?.find(p=>p.id===me()?.id);
 const judge=()=>room?.judge===me()?.id;
 const isHost=()=>room?.host===me()?.id;
+const DECKS=Object.freeze([
+ {id:"classic",name:"Clássico",description:"Humor descontraído e situações absurdas"},
+ {id:"adult",name:"Adulto +18",description:"Sexo, encontros e piadas mais atrevidas"},
+ {id:"dark",name:"Humor negro",description:"Humor macabro, azar e situações desconfortáveis"},
+ {id:"mixed",name:"Misto +18",description:"Mistura dos três baralhos"}
+]);
+const deckName=id=>DECKS.find(x=>x.id===id)?.name||"Clássico";
 function stop(){if(timer){clearInterval(timer);timer=null}}
 function close(){epoch++;stop();room=null;code="";busy=false;info="";seenStamp=""}
 function permalink(){return new URL("?party="+code,location.href).href}
@@ -89,6 +96,16 @@ async function action(name,extra={}){
   await load(true);
  }catch(e){info=e.message||"Não foi possível completar a jogada"}finally{busy=false;draw()}
 }
+async function chooseDeck(next){
+ if(!room||!isHost()||room.status!=="waiting"||busy||!DECKS.some(x=>x.id===next))return;
+ busy=true;info="";draw();
+ try{
+  const {error}=await api().rpc("edgy_party_set_deck",{p_code:code,p_deck:next});
+  if(error)throw error;
+  await load(true);
+ }catch(e){info=e.message||"Não foi possível escolher o baralho"}
+ finally{busy=false;draw()}
+}
 async function copyInvite(){
  try{await navigator.clipboard.writeText(permalink());info="Convite copiado!"}
  catch{info=permalink()}
@@ -104,6 +121,10 @@ function players(){
 }
 function lobby(){
  return ui().card("Sala privada",'<div class="ptLobbyText"><strong>'+escape(code)+'</strong><p>Entre 3 e 8 jogadores. O júri muda a cada ronda; ganha quem chegar primeiro aos 3 pontos.</p></div>'
+  +'<section class="ptDeckPanel"><h3>Escolher baralho</h3><div class="ptDeckOptions">'
+  +DECKS.map(d=>'<button type="button" class="ptDeckChoice'+(room.deck===d.id?" active":"")+'" data-pt-deck="'+d.id+'"'
+   +(!isHost()||busy?' disabled':"")+'><strong>'+escape(d.name)+'</strong><small>'+escape(d.description)+'</small></button>').join("")
+  +'</div>'+(room.deck!=="classic"?'<p class="ptMatureNotice">Conteúdo adulto: linguagem sexual e humor negro. Recomendado apenas para maiores de 18 anos.</p>':"")+'</section>'
   +players()
   +'<div class="ptActions"><button class="primary" data-pt-copy>Copiar convite</button>'
   +(isHost()?'<button class="secondary" data-pt-invite>Convidar jogador</button>'
@@ -134,7 +155,7 @@ function judging(){
 function stage(){
  const phase=room.status,judgeName=room.players.find(p=>p.id===room.judge)?.name||"Jogador";
  const ended=phase==="finished",result=phase==="result";
- return '<div class="ptStage"><div class="ptRoundBar"><span>RONDA '+room.round+'</span><span>'+escape(judgeName)+' · Júri</span></div>'
+ return '<div class="ptStage"><div class="ptRoundBar"><span>RONDA '+room.round+' · '+escape(deckName(room.deck))+'</span><span>'+escape(judgeName)+' · Júri</span></div>'
   +'<div class="ptPrompt"><span class="ptPromptTop">CARTA DA PERGUNTA</span><p>'+escape(room.prompt||"A preparar a próxima pergunta…")+'</p><span class="ptPromptCorner">?</span></div>'
   +(ended?'<div class="ptConclusion"><span>✦ FINAL DA PARTIDA</span><h2>'+(room.winner===me()?.id?"Venceste!":"Temos vencedor!")+'</h2><p>'+escape(room.players.find(p=>p.id===room.winner)?.name||"Jogador")+' ganhou a partida. XP guardado no teu histórico.</p></div>'
    :result?'<div class="ptConclusion"><span>★ PONTO ATRIBUÍDO</span><h2>'+escape(room.players.find(p=>p.id===room.round_winner)?.name||"Jogador")+' venceu esta ronda!</h2><p>O júri escolheu a carta mais divertida.</p>'
@@ -166,6 +187,7 @@ function bind(root){
  root.querySelector("[data-pt-create]")?.addEventListener("click",create);
  root.querySelector("[data-pt-join]")?.addEventListener("click",join);
  root.querySelector("[data-pt-copy]")?.addEventListener("click",copyInvite);
+ root.querySelectorAll("[data-pt-deck]").forEach(button=>button.addEventListener("click",()=>chooseDeck(button.dataset.ptDeck)));
  root.querySelector("[data-pt-invite]")?.addEventListener("click",()=>window.EDGY_social?.openInvite?.("party",code));
  root.querySelectorAll("[data-pt-action]").forEach(button=>button.addEventListener("click",()=>{
   const name=button.dataset.ptAction;
