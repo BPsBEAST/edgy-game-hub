@@ -425,7 +425,7 @@ test("Wordle and Contexto share RLS cloud history and never silently recycle ans
  assert.ok(skin.includes('prefers-reduced-motion:reduce'));
  const scripts=[...html.matchAll(/<script[^>]+src="([^"]+)"/g)].map(m=>m[1]);
  for(const p of ["edgy-seen-words.js","contexto-data.js","contexto-rules.js","contexto-game.js"]){
-  const version=p==="contexto-rules.js"?"55":"54";
+  const version=p==="contexto-rules.js"?"55":p==="edgy-seen-words.js"?"56":"54";
   assert.ok(scripts.includes("./"+p+"?v="+version));assert.ok(read("sw.js").includes(p+"?v="+version));
  }
  assert.ok(scripts.indexOf("./edgy-seen-words.js?v=56")<scripts.indexOf("./wordle-game.js?v=56"));
@@ -790,7 +790,7 @@ test("Tic players use member-only lookup and online history avoids duplicate res
  const app=read("tic-online.js"),platform=read("edgy-platform.js"),history=read("history.js");
  assert.ok(platform.includes('players(id,roomCode)'));
  assert.ok(app.includes('rooms.players("tic",room.code)'));
- assert.ok(history.includes('ticCloud.some(c=>c.id===h.client_id)'));
+ assert.ok(history.includes('const onlineIds=new Set('));
  assert.ok(history.includes('outcome==="win"?50:outcome==="draw"?20:10'));
  assert.ok(app.includes('refreshProfile?.()'));
 });
