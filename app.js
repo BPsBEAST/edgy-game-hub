@@ -113,4 +113,4 @@ function drawReaction(){
   else{reactTimes=[];reactPhase="idle";drawReaction()}
  };
 }
-render();if("serviceWorker"in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=54").catch(()=>{}));
+render();if("serviceWorker"in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=55").catch(()=>{}));
