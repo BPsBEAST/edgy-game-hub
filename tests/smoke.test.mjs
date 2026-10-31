@@ -23,7 +23,7 @@ test("Every local asset referenced by the bootstrap exists",()=>{
  const names=[...assets.matchAll(/"([^"]+)"/g)].map(m=>m[1]);
  for(const name of names)assert.ok(fs.existsSync(path.join(dir,name.split("?")[0])),name);
  assert.ok(names.includes("./edgy-platform.js?v=57"),"shared platform cached");
- assert.ok(names.includes("./app.js?v=57"),"bootstrap cached");
+ assert.ok(names.includes("./app.js?v=58"),"bootstrap cached");
  assert.ok(names.includes("./base.css?v=29"),"base stylesheet cached");
  assert.ok(names.includes("./edgy-theme.css?v=34"),"design cached");
  assert.ok(names.includes("./tic-online.js?v=40"),"online tic cached");
@@ -33,7 +33,7 @@ test("Palavra Oculta includes a large offline Portuguese dictionary and 917 rota
  const context={window:{}};
  vm.runInNewContext(read("wordle-data.js"),context);
  const bank=context.window.EDGY_wordBank;
- assert.ok(bank.answerCount>=900,"curated pool should offer hundreds of different solutions");
+ assert.ok(bank.answerCount>=1200,"curated pool should include the new Portuguese solutions");
  assert.ok(bank.guessCount>=10000,"large dictionary should accept a wide range of attempts");
  assert.equal(new Set(Array.from(bank.answers)).size,bank.answerCount);
  for(const answer of bank.answers){
@@ -45,12 +45,12 @@ test("Palavra Oculta includes a large offline Portuguese dictionary and 917 rota
  assert.equal(bank.isWord("zzzzz"),false);
  const html=read("index.html"),sw=read("sw.js");
  const scripts=[...html.matchAll(/<script[^>]+src="([^"]+)"/g)].map(x=>x[1]);
- const data=scripts.indexOf("./wordle-data.js?v=55");
+ const data=scripts.indexOf("./wordle-data.js?v=58");
  const rules=scripts.indexOf("./wordle-rules.js?v=48");
- const ledger=scripts.indexOf("./edgy-seen-words.js?v=56");
- const engine=scripts.indexOf("./wordle-game.js?v=56");
+ const ledger=scripts.indexOf("./edgy-seen-words.js?v=58");
+ const engine=scripts.indexOf("./wordle-game.js?v=58");
  assert.ok(data>=0&&rules>data&&ledger>rules&&engine>ledger,"data and rules load before game controller");
- for(const asset of ["wordle-data.js?v=55","wordle-rules.js?v=48","wordle-game.js?v=56","wordle.css?v=53"]){
+ for(const asset of ["wordle-data.js?v=58","wordle-rules.js?v=48","wordle-game.js?v=58","wordle.css?v=53"]){
   assert.ok(html.includes(asset));
   assert.ok(sw.includes(asset));
  }
@@ -375,8 +375,8 @@ test("Contexto has broad Portuguese answers and topical ranks based on meaning, 
  const context={window:{EDGY_wordBank:{isWord:w=>w.length===5,answers:[]}}};
  vm.runInNewContext(read("contexto-data.js")+"\n"+read("contexto-rules.js"),context);
  const data=context.window.EDGY_contextoData,rules=context.window.EDGY_contextoRules;
- assert.ok(data.answers.length>=600,"hundreds of theme answers available");
- assert.ok(data.groups.length>=50,"many independent Portuguese themes");
+ assert.ok(data.answers.length>=1200,"extended semantic theme answers available");
+ assert.ok(data.groups.length>=130,"over a hundred independent Portuguese themes");
  assert.equal(new Set(Array.from(data.answers)).size,data.answers.length);
  assert.equal(rules.rank("oceano","oceano"),1);
  assert.ok(rules.rank("oceano","mar")<rules.rank("oceano","escola"),"mar is closer to oceano than escola");
@@ -428,8 +428,8 @@ test("Wordle and Contexto share RLS cloud history and never silently recycle ans
   const version=p==="contexto-rules.js"?"55":p==="edgy-seen-words.js"?"56":"54";
   assert.ok(scripts.includes("./"+p+"?v="+version));assert.ok(read("sw.js").includes(p+"?v="+version));
  }
- assert.ok(scripts.indexOf("./edgy-seen-words.js?v=56")<scripts.indexOf("./wordle-game.js?v=56"));
- assert.ok(scripts.indexOf("./contexto-data.js?v=54")<scripts.indexOf("./contexto-game.js?v=54"));
+ assert.ok(scripts.indexOf("./edgy-seen-words.js?v=58")<scripts.indexOf("./wordle-game.js?v=58"));
+ assert.ok(scripts.indexOf("./contexto-data.js?v=58")<scripts.indexOf("./contexto-game.js?v=54"));
 });
 
 test("Wordle repairs the v55 near-total false word-history import after one real round",async()=>{
@@ -542,10 +542,10 @@ test("Cartas Contra Tugas is a 3–8 player registered game with dedicated mobil
  assert.ok(client.includes('party="+code'));
  assert.ok(style.includes('@media(max-width:799px)'));
  assert.ok(style.includes('@media(prefers-reduced-motion:reduce)'));
- for(const asset of ["party-online.js?v=57","party.css?v=57"]){
+ for(const asset of ["party-online.js?v=58","party.css?v=58"]){
   assert.ok(html.includes(asset)&&assets.includes(asset));
  }
- assert.ok(scripts.indexOf("./party-online.js?v=57")>scripts.indexOf("./app.js?v=57"));
+ assert.ok(scripts.indexOf("./party-online.js?v=58")>scripts.indexOf("./app.js?v=58"));
 });
 test("Cartas Contra Tugas privacy, scoring, history and room status are owned by server RPC",()=>{
  const party=read("party-online.js");
@@ -562,6 +562,49 @@ test("Cartas Contra Tugas privacy, scoring, history and room status are owned by
  assert.ok(!party.includes('EDGY_recordLocalMatch'),"XP must only come from server match_history, never direct browser actions");
  assert.ok(party.includes('data-pt-vote'));
  assert.ok(party.includes('data-pt-card'));
+});
+test("Expanded vocabularies retain old answers and accept all new Portuguese solutions",()=>{
+ const w={window:{}};
+ vm.runInNewContext(read("wordle-data.js")+"\n"+read("contexto-data.js"),w);
+ const word=w.window.EDGY_wordBank,ctx=w.window.EDGY_contextoData;
+ assert.ok(word.answers.length>=1200);
+ assert.ok(ctx.answers.length>=1200);
+ assert.ok(ctx.groups.length>=130);
+ assert.equal(new Set(Array.from(word.answers)).size,word.answers.length);
+ assert.equal(new Set(Array.from(ctx.answers)).size,ctx.answers.length);
+ for(const a of word.answers)assert.equal(word.isWord(a),true);
+ const allTerms=new Set(ctx.groups.flatMap(x=>x));
+ for(const a of ctx.answers)assert.ok(allTerms.has(a),"semantic answer must have a topic: "+a);
+ assert.ok(ctx.answers.includes("algoritmo"));
+ assert.ok(ctx.answers.includes("fotografia"));
+ assert.ok(word.answers.includes("filme"));
+ assert.ok(word.answers.includes("tango"));
+});
+test("Old 917-word v55 corruption is repaired after the answer pool grows",()=>{
+ const data={window:{}};
+ vm.runInNewContext(read("wordle-data.js"),data);
+ const answers=Array.from(data.window.EDGY_wordBank.answers),store=new Map();
+ store.set("edgy_seen_words_v1_local",JSON.stringify(answers.slice(0,917)));
+ store.set("edgy_wordle_v1",JSON.stringify({number:2,round:{answer:"",finished:true},bag:[]}));
+ const window={EDGY_wordBank:data.window.EDGY_wordBank};
+ vm.runInNewContext(read("edgy-seen-words.js"),{
+  window,localStorage:{getItem:k=>store.get(k)||null,setItem:(k,v)=>store.set(k,v)},
+  console:{warn(){}}
+ });
+ assert.equal(window.EDGY_seenWords.count(),0,"old 917 false claims must not block new answers");
+ assert.equal(window.EDGY_seenWords.has(answers[0]),false);
+});
+test("Cartas Contra Tugas supports four original decks with selectable 18+ humour",()=>{
+ const game=read("party-online.js"),css=read("party.css");
+ const names=["classic","adult","dark","mixed"];
+ for(const id of names)assert.ok(game.includes('id:"'+id+'"'));
+ assert.ok(game.includes('rpc("edgy_party_set_deck"'));
+ assert.ok(game.includes('data-pt-deck='));
+ assert.ok(game.includes('Só o anfitrião')||game.includes('!isHost()'));
+ assert.ok(game.includes('Conteúdo adulto:'));
+ assert.ok(game.includes('maiores de 18 anos'));
+ assert.ok(css.includes(".ptDeckChoice.active"));
+ assert.ok(css.includes(".ptMatureNotice"));
 });
 test("Navigation keeps Histórico only inside Perfil",()=>{
  const sidebar=html.split('<aside class="sidebar">')[1].split("</aside>")[0];
@@ -780,7 +823,7 @@ test("Stable footer, profile replay links and chess mobile actions",()=>{
 test("Game library uses a single registry loaded before bootstrap",()=>{
  const scripts=[...html.matchAll(/<script[^>]*src="([^"]+)"/g)].map(m=>m[1]);
  const platform=scripts.indexOf("./edgy-platform.js?v=57");
- const bootstrap=scripts.indexOf("./app.js?v=57");
+ const bootstrap=scripts.indexOf("./app.js?v=58");
  assert.ok(platform>=0&&bootstrap>=0&&platform<bootstrap);
  const app=read("app.js"),defs=read("edgy-platform.js");
  assert.ok(app.includes("Object.values(window.EDGY_platform.games).map("));
@@ -1019,7 +1062,7 @@ test("Home and Biblioteca render exactly the same reusable game cards",()=>{
  assert.ok(css.includes('grid-auto-rows:1fr'),"all cards in the grid stretch equally");
  assert.ok(css.includes('.main.edgyLibraryViewport>.foot'),"library footer follows the cards in the main scroller");
  assert.ok(html.includes('edgy-game-layout.css?v=47'));
- assert.ok(html.includes('app.js?v=57'));
+ assert.ok(html.includes('app.js?v=58'));
 });
 test("EDGY v36: chess title is short and empty join notice does not reserve space",()=>{
  const chess=read("chess-online.js"),ui=read("edgy-game-ui.js"),css=read("edgy-game-layout.css");
