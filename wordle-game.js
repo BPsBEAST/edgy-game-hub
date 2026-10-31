@@ -56,12 +56,15 @@ async function setup(){
   // Only restore old shuffled-bag answers if its size agrees with the
   // recorded number of rounds. An empty bag after the v55 upgrade is NOT
   // evidence that all 917 answers were played.
-  const remaining=Array.isArray(data.bag)?data.bag.filter(i=>Number.isInteger(i)&&i>=0&&i<bank.answers.length):[];
-  const consumed=bank.answers.length-remaining.length;
-  if(data.number>0&&remaining.length>0&&remaining.length<bank.answers.length
-    &&new Set(remaining).size===remaining.length&&consumed<=data.number
+  // Earlier shuffled-bag versions had 917 entries. New solutions are appended
+  // and must never be interpreted as previously played by old index snapshots.
+  const legacySize=917;
+  const remaining=Array.isArray(data.bag)?data.bag.filter(i=>Number.isInteger(i)&&i>=0&&i<legacySize):[];
+  const remainingSet=new Set(remaining),consumed=legacySize-remainingSet.size;
+  if(data.number>0&&remaining.length>0&&remaining.length<legacySize
+    &&remainingSet.size===remaining.length&&consumed<=data.number
     &&!data.wordBankMigrated){
-   await ledger.importPrevious(bank.answers.filter((_,index)=>!new Set(remaining).has(index)),"wordle");
+   await ledger.importPrevious(bank.answers.slice(0,legacySize).filter((_,index)=>!remainingSet.has(index)),"wordle");
   }
   saved.wordBankMigrated=true;
  }
