@@ -594,14 +594,18 @@ test("Old 917-word v55 corruption is repaired after the answer pool grows",()=>{
  assert.equal(window.EDGY_seenWords.count(),0,"old 917 false claims must not block new answers");
  assert.equal(window.EDGY_seenWords.has(answers[0]),false);
 });
-test("Cartas Contra Tugas supports four original decks with selectable 18+ humour",()=>{
+test("Cartas Contra Tugas offers only Normal and Humor Negro, with host-only deck selection",()=>{
  const game=read("party-online.js"),css=read("party.css");
- const names=["classic","adult","dark","mixed"];
- for(const id of names)assert.ok(game.includes('id:"'+id+'"'));
+ const deckSection=game.slice(game.indexOf("const DECKS="),game.indexOf("const deckName="));
+ assert.ok(deckSection.includes('id:"classic",name:"Normal"'));
+ assert.ok(deckSection.includes('id:"dark",name:"Humor Negro +18"'));
+ assert.equal((deckSection.match(/id:"/g)||[]).length,2);
+ assert.ok(!deckSection.includes('id:"adult"'));
+ assert.ok(!deckSection.includes('id:"mixed"'));
  assert.ok(game.includes('rpc("edgy_party_set_deck"'));
  assert.ok(game.includes('data-pt-deck='));
- assert.ok(game.includes('Só o anfitrião')||game.includes('!isHost()'));
- assert.ok(game.includes('Conteúdo adulto:'));
+ assert.ok(game.includes('!isHost()'));
+ assert.ok(game.includes('room.deck==="dark"'));
  assert.ok(game.includes('maiores de 18 anos'));
  assert.ok(css.includes(".ptDeckChoice.active"));
  assert.ok(css.includes(".ptMatureNotice"));
