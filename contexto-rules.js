@@ -47,7 +47,9 @@ function prepare(secret){
  // The original 5-letter guesses list is exposed through wordBank.isWord,
  // but not necessarily through wordBank.guesses. The curated vocabulary alone
  // supplies all semantic ranks; other valid guesses receive a distant rank.
- ordered=[...words].sort((a,b)=>score(answer,b)-score(answer,a)||a.localeCompare(b,"pt"));
+ const scored=[...words].map(word=>({word,score:score(answer,word)}));
+ scored.sort((a,b)=>b.score-a.score||a.word.localeCompare(b.word,"pt"));
+ ordered=scored.map(item=>item.word);
  ranks=new Map(ordered.map((w,i)=>[w,i+1]));
  cachedAnswer=answer;
 }
@@ -66,10 +68,10 @@ function isWord(word){
 function hint(secret,guesses){
  prepare(secret);
  const used=new Set((guesses||[]).map(g=>norm(g.word||g)));
- const valid=ordered.filter(w=>w!==norm(secret)&&!used.has(w));
+ const valid=ordered.filter(w=>w!==norm(secret)&&!used.has(w)&&score(norm(secret),w)>50);
  const best=(guesses||[]).length?Math.min(...guesses.map(g=>Number(g.rank)||9999)):9999;
  const goal=best<=8?Math.max(2,best-1):Math.max(8,Math.min(110,Math.floor(best/2)));
- return valid.find(w=>(ranks.get(w)||99999)>=goal)||valid[0]||"";
+ return valid.find(w=>(ranks.get(w)||99999)>=goal)||valid[Math.min(valid.length-1,5)]||"";
 }
 function label(rank){
  if(rank===1)return "Encontraste!";
