@@ -13,6 +13,24 @@ function get(id=scope()){
  let words=[];
  try{const data=JSON.parse(localStorage.getItem(KEY+id)||"[]");if(Array.isArray(data))words=data.filter(w=>/^[a-z]{3,32}$/.test(w))}catch{}
  const value={seen:new Set(words),loaded:false};
+ // v55 incorrectly imported *all* 917 Wordle answers from an empty legacy
+ // shuffle bag. Recover only when the local round count proves that this
+ // collection could not have been legitimately completed. Existing individual
+ // reservations remain protected by the server and are merged during ready().
+ const answers=window.EDGY_wordBank?.answers||[];
+ if(answers.length>=900&&value.seen.size>=answers.length-4){
+  try{
+   const record=JSON.parse(localStorage.getItem("edgy_wordle_v1"+(id==="local"?"":"_"+id))||"null");
+   const number=Math.max(0,Number(record?.number)||0);
+   const corpus=new Set(answers);
+   const overlap=answers.reduce((count,w)=>count+(value.seen.has(w)?1:0),0);
+   if(record&&number<Math.floor(answers.length/4)&&overlap>=answers.length-4){
+    const keep=normalize(record.round?.answer);
+    for(const word of corpus)if(word!==keep)value.seen.delete(word);
+    try{localStorage.setItem(KEY+id,JSON.stringify([...value.seen]))}catch{}
+   }
+  }catch{}
+ }
  caches.set(id,value);return value;
 }
 function persist(id){try{localStorage.setItem(KEY+id,JSON.stringify([...get(id).seen]))}catch{}}
