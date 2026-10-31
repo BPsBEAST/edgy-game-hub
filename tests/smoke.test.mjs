@@ -23,7 +23,7 @@ test("Every local asset referenced by the bootstrap exists",()=>{
  const names=[...assets.matchAll(/"([^"]+)"/g)].map(m=>m[1]);
  for(const name of names)assert.ok(fs.existsSync(path.join(dir,name.split("?")[0])),name);
  assert.ok(names.includes("./edgy-platform.js?v=54"),"shared platform cached");
- assert.ok(names.includes("./app.js?v=54"),"bootstrap cached");
+ assert.ok(names.includes("./app.js?v=55"),"bootstrap cached");
  assert.ok(names.includes("./base.css?v=29"),"base stylesheet cached");
  assert.ok(names.includes("./edgy-theme.css?v=34"),"design cached");
  assert.ok(names.includes("./tic-online.js?v=40"),"online tic cached");
@@ -45,12 +45,12 @@ test("Palavra Oculta includes a large offline Portuguese dictionary and 917 rota
  assert.equal(bank.isWord("zzzzz"),false);
  const html=read("index.html"),sw=read("sw.js");
  const scripts=[...html.matchAll(/<script[^>]+src="([^"]+)"/g)].map(x=>x[1]);
- const data=scripts.indexOf("./wordle-data.js?v=48");
+ const data=scripts.indexOf("./wordle-data.js?v=55");
  const rules=scripts.indexOf("./wordle-rules.js?v=48");
  const ledger=scripts.indexOf("./edgy-seen-words.js?v=54");
- const engine=scripts.indexOf("./wordle-game.js?v=54");
+ const engine=scripts.indexOf("./wordle-game.js?v=55");
  assert.ok(data>=0&&rules>data&&ledger>rules&&engine>ledger,"data and rules load before game controller");
- for(const asset of ["wordle-data.js?v=48","wordle-rules.js?v=48","wordle-game.js?v=54","wordle.css?v=53"]){
+ for(const asset of ["wordle-data.js?v=55","wordle-rules.js?v=48","wordle-game.js?v=55","wordle.css?v=53"]){
   assert.ok(html.includes(asset));
   assert.ok(sw.includes(asset));
  }
@@ -427,7 +427,7 @@ test("Wordle and Contexto share RLS cloud history and never silently recycle ans
  for(const p of ["edgy-seen-words.js","contexto-data.js","contexto-rules.js","contexto-game.js"]){
   assert.ok(scripts.includes("./"+p+"?v=54"));assert.ok(read("sw.js").includes(p+"?v=54"));
  }
- assert.ok(scripts.indexOf("./edgy-seen-words.js?v=54")<scripts.indexOf("./wordle-game.js?v=54"));
+ assert.ok(scripts.indexOf("./edgy-seen-words.js?v=54")<scripts.indexOf("./wordle-game.js?v=55"));
  assert.ok(scripts.indexOf("./contexto-data.js?v=54")<scripts.indexOf("./contexto-game.js?v=54"));
 });
 test("Navigation keeps Histórico only inside Perfil",()=>{
@@ -647,7 +647,7 @@ test("Stable footer, profile replay links and chess mobile actions",()=>{
 test("Game library uses a single registry loaded before bootstrap",()=>{
  const scripts=[...html.matchAll(/<script[^>]*src="([^"]+)"/g)].map(m=>m[1]);
  const platform=scripts.indexOf("./edgy-platform.js?v=54");
- const bootstrap=scripts.indexOf("./app.js?v=54");
+ const bootstrap=scripts.indexOf("./app.js?v=55");
  assert.ok(platform>=0&&bootstrap>=0&&platform<bootstrap);
  const app=read("app.js"),defs=read("edgy-platform.js");
  assert.ok(app.includes("Object.values(window.EDGY_platform.games).map("));
@@ -886,7 +886,7 @@ test("Home and Biblioteca render exactly the same reusable game cards",()=>{
  assert.ok(css.includes('grid-auto-rows:1fr'),"all cards in the grid stretch equally");
  assert.ok(css.includes('.main.edgyLibraryViewport>.foot'),"library footer follows the cards in the main scroller");
  assert.ok(html.includes('edgy-game-layout.css?v=47'));
- assert.ok(html.includes('app.js?v=54'));
+ assert.ok(html.includes('app.js?v=55'));
 });
 test("EDGY v36: chess title is short and empty join notice does not reserve space",()=>{
  const chess=read("chess-online.js"),ui=read("edgy-game-ui.js"),css=read("edgy-game-layout.css");
