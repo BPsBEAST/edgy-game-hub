@@ -431,6 +431,95 @@ test("Wordle and Contexto share RLS cloud history and never silently recycle ans
  assert.ok(scripts.indexOf("./edgy-seen-words.js?v=54")<scripts.indexOf("./wordle-game.js?v=55"));
  assert.ok(scripts.indexOf("./contexto-data.js?v=54")<scripts.indexOf("./contexto-game.js?v=54"));
 });
+
+test("Wordle repairs the v55 near-total false word-history import after one real round",async()=>{
+ const storage=new Map(),context={window:{},console:{warn(){}}};
+ vm.runInNewContext(read("wordle-data.js"),context);
+ const answers=Array.from(context.window.EDGY_wordBank.answers);
+ storage.set("edgy_seen_words_v1_account1",JSON.stringify(answers));
+ storage.set("edgy_wordle_v1_account1",JSON.stringify({
+  number:2,bag:[],round:{answer:"",guesses:[],draft:"",finished:true,exhausted:true},stats:{played:1,wins:1}
+ }));
+ const root={classList:{remove(){}},innerHTML:"",querySelector(){return null},querySelectorAll(){return []}};
+ const doc={getElementById:()=>root,addEventListener(){}};
+ context.document=doc;context.localStorage={
+  getItem:key=>storage.get(key)||null,
+  setItem:(key,value)=>storage.set(key,value)
+ };
+ context.window.EDGY_auth={getUser:()=>({id:"account1"}),getClient:()=>null};
+ context.window.EDGY_gameUI={
+  header:()=>"HEADER",match:({stage,side})=>stage+side,card:(_title,body)=>body
+ };
+ context.navigator={};context.game="wordle";context.nav=()=>{};
+ vm.runInNewContext(read("wordle-rules.js")+"\n"+read("edgy-seen-words.js")+"\n"+read("wordle-game.js"),context);
+ const ledger=context.window.EDGY_seenWords;
+ await ledger.ready();
+ assert.equal(ledger.count(),0,"a one-round profile must not own 917 used answers");
+ await context.window.EDGY_wordle.open();
+ const repaired=JSON.parse(storage.get("edgy_wordle_v1_account1"));
+ assert.equal(repaired.number,3);
+ assert.ok(repaired.round.answer.length===5,"a new word should be available");
+ assert.equal(repaired.round.exhausted,undefined);
+ assert.equal(ledger.count(),1,"only the newly reserved answer is consumed");
+ assert.ok(!root.innerHTML.includes("Coleção concluída!"));
+ assert.ok(repaired.wordBankMigrated,"legacy bag migration is marked complete");
+});
+test("Cloud XP sync preserves failed local uploads, and prevents later double counting",async()=>{
+ const src=read("auth.js");
+ const start=src.indexOf("async function loadCloud(nickname){"),end=src.indexOf("\nconst oldComplete=",start);
+ assert.ok(start>=0&&end>start);
+ const storage=new Map([["edgy_owner_id","account1"]]),observed=[];
+ const base={client_id:"local-1",title:"Wordle",result:"Vitória em 3/6",xp:42,remote:false,date:"2026-10-31T10:00:00Z"};
+ const remote={client_id:"server-1",game:"Damas",result:"Vitória",xp:40,played_at:"2026-10-31T09:00:00Z"};
+ const state={name:"Jogador",xp:42,history:[base]};
+ let profileXp=100,rows=[remote],failed=false;
+ const dataSource={
+  from(table){
+   const value=table==="profiles"?{data:{display_name:"Jogador",xp:profileXp}}:{data:rows};
+   if(failed&&table==="match_history")value.error={message:"temporary error"};
+   const chain={
+    select(){return chain},eq(){return chain},order(){return chain},
+    maybeSingle:async()=>value,limit:async()=>value
+   };
+   return chain;
+  }
+ };
+ const sandbox={state,account:{id:"account1"},profile:null,sb:dataSource,
+  localStorage:{getItem:k=>storage.get(k)||null},save(){},
+  window:{EDGY_social:{observeLevel:xp=>observed.push(xp)}},console:{warn(){}}
+ };
+ vm.runInNewContext(src.slice(start,end)+"\nglobalThis.testCloudLoad=loadCloud;",sandbox);
+ await sandbox.testCloudLoad();
+ assert.equal(state.xp,142);
+ assert.deepEqual(Array.from(state.history,h=>h.title),["Wordle","Damas"]);
+ assert.equal(state.history[0].remote,false);
+ // The cloud confirms the same local result later: don't award it twice.
+ profileXp=142;
+ rows=[{client_id:"local-1",game:"Wordle",result:"Vitória em 3/6",xp:42,played_at:"2026-10-31T10:00:00Z"},remote];
+ await sandbox.testCloudLoad();
+ assert.equal(state.xp,142);
+ assert.equal(state.history.length,2);
+ assert.equal(state.history.filter(h=>h.title==="Wordle").length,1);
+ failed=true;
+ await sandbox.testCloudLoad();
+ assert.equal(state.history.length,2,"network error must not clear saved history");
+});
+test("All EDGY games expose earned XP in the personal history without duplicate server rows",()=>{
+ const history=read("history.js"),app=read("app.js"),auth=read("auth.js");
+ assert.ok(history.includes("const onlineIds=new Set("));
+ assert.ok(history.includes('!onlineIds.has(String(h.client_id||""))'));
+ assert.ok(history.includes('xp:local.find(h=>String(h.client_id)===String(r.id))?.xp'));
+ assert.ok(history.includes('if(g.isBarricade){basic(g);return}'));
+ assert.ok(history.includes('g.xp===null||g.xp===undefined'));
+ assert.ok(app.includes('complete("Jogo do Galo"'));
+ assert.ok(app.includes('complete("Reflexos"'));
+ assert.ok(app.includes('Math.min(100,Math.max(10,Math.round(30000/avg)))'));
+ assert.ok(auth.includes('window.EDGY_recordLocalMatch=(title,result,xp)=>complete(title,result,xp)'));
+ assert.ok(auth.includes('const unsynced=own?state.history.filter'));
+ assert.ok(auth.includes('const known=new Set(remote.map('));
+ assert.ok(read("wordle-game.js").includes('EDGY_recordLocalMatch?.("Wordle"'));
+ assert.ok(read("contexto-game.js").includes('EDGY_recordLocalMatch?.("Contexto"'));
+});
 test("Navigation keeps Histórico only inside Perfil",()=>{
  const sidebar=html.split('<aside class="sidebar">')[1].split("</aside>")[0];
  const mobile=html.split('<nav class="nav"')[1].split("</nav>")[0];
