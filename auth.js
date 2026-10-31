@@ -123,7 +123,34 @@ async function promptPasswordIfNeeded(recovery=false){
 }
 function uuid(){return crypto.randomUUID()}
 async function uploadHistory(){if(!account)return;const fresh=state.history.filter(x=>!x.remote);for(const h of fresh)h.client_id=h.client_id||uuid();save();const items=fresh.map(x=>({user_id:account.id,client_id:x.client_id,game:x.title,result:x.result,xp:Math.min(100,Math.max(0,Number(x.xp)||0))}));if(!items.length)return;const {error}=await sb.from("match_history").upsert(items,{onConflict:"user_id,client_id",ignoreDuplicates:true});if(error)console.warn("EDGY sync:",error.message);else{for(const h of fresh)h.remote=true;save()}}
-async function loadCloud(nickname){if(!account)return;try{const {data:p}=await sb.from("profiles").select("display_name,username,xp,avatar_path,public_visible,bio").eq("id",account.id).maybeSingle();profile=p;if(nickname){await sb.from("profiles").update({display_name:nickname}).eq("id",account.id)}const [pr,hi]=await Promise.all([sb.from("profiles").select("display_name,username,xp,avatar_path,public_visible,bio").eq("id",account.id).maybeSingle(),sb.from("match_history").select("client_id,game,result,xp,played_at").eq("user_id",account.id).order("played_at",{ascending:false}).limit(50)]);if(pr.data){profile=pr.data;state.name=profile.display_name;state.xp=profile.xp}if(hi.data)state.history=hi.data.map(x=>({title:x.game,result:x.result,xp:x.xp,date:x.played_at,client_id:x.client_id,remote:true}));save();window.EDGY_social?.observeLevel?.(state.xp)}catch(err){console.warn("EDGY cloud profile:",err)}}
+async function loadCloud(nickname){
+ if(!account)return;
+ const uid=account.id;
+ try{
+  if(nickname)await sb.from("profiles").update({display_name:nickname}).eq("id",uid);
+  const [pr,hi]=await Promise.all([
+   sb.from("profiles").select("display_name,username,xp,avatar_path,public_visible,bio").eq("id",uid).maybeSingle(),
+   sb.from("match_history").select("client_id,game,result,xp,played_at").eq("user_id",uid).order("played_at",{ascending:false}).limit(50)
+  ]);
+  if(account?.id!==uid)return;
+  if(pr.error)throw pr.error;
+  if(hi.error)throw hi.error;
+  const remote=Array.isArray(hi.data)?hi.data.map(x=>({
+   title:x.game,result:x.result,xp:x.xp,date:x.played_at,client_id:x.client_id,remote:true
+  })):[];
+  const known=new Set(remote.map(x=>String(x.client_id)));
+  // If a temporary server error blocks upload, keep the result and pending
+  // XP visible instead of overwriting them with an older cloud snapshot.
+  const own=localStorage.getItem("edgy_owner_id")===uid;
+  const unsynced=own?state.history.filter(h=>!h.remote&&!known.has(String(h.client_id))):[];
+  if(pr.data){profile=pr.data;state.name=profile.display_name;
+   state.xp=Math.max(0,Number(profile.xp)||0)+unsynced.reduce((sum,h)=>sum+Math.max(0,Number(h.xp)||0),0);
+  }
+  state.history=[...unsynced,...remote].sort((a,b)=>Date.parse(b.date||0)-Date.parse(a.date||0)).slice(0,50);
+  save();
+  window.EDGY_social?.observeLevel?.(state.xp);
+ }catch(err){console.warn("EDGY cloud profile:",err)}
+}
 const oldComplete=complete;complete=function(title,result,xp){oldComplete(title,result,xp);const h=state.history[0];if(h)h.client_id=uuid();save();if(account){uploadHistory().then(()=>loadCloud()).then(()=>{if(!game)render()}).catch(console.warn)}};
 // Keep all game controllers on the cloud-aware completion path (including Wordle).
 window.EDGY_recordLocalMatch=(title,result,xp)=>complete(title,result,xp);
