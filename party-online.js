@@ -12,12 +12,10 @@ const myself=()=>room?.players?.find(p=>p.id===me()?.id);
 const judge=()=>room?.judge===me()?.id;
 const isHost=()=>room?.host===me()?.id;
 const DECKS=Object.freeze([
- {id:"classic",name:"Clássico",description:"Humor descontraído e situações absurdas"},
- {id:"adult",name:"Adulto +18",description:"Sexo, encontros e piadas mais atrevidas"},
- {id:"dark",name:"Humor negro",description:"Humor macabro, azar e situações desconfortáveis"},
- {id:"mixed",name:"Misto +18",description:"Mistura dos três baralhos"}
+ {id:"classic",name:"Normal",description:"Humor português, situações caricatas e respostas absurdas"},
+ {id:"dark",name:"Humor Negro +18",description:"Piadas macabras, irreverentes e humor adulto"}
 ]);
-const deckName=id=>DECKS.find(x=>x.id===id)?.name||"Clássico";
+const deckName=id=>DECKS.find(x=>x.id===id)?.name||"Normal";
 function stop(){if(timer){clearInterval(timer);timer=null}}
 function close(){epoch++;stop();room=null;code="";busy=false;info="";seenStamp=""}
 function permalink(){return new URL("?party="+code,location.href).href}
@@ -124,7 +122,7 @@ function lobby(){
   +'<section class="ptDeckPanel"><h3>Escolher baralho</h3><div class="ptDeckOptions">'
   +DECKS.map(d=>'<button type="button" class="ptDeckChoice'+(room.deck===d.id?" active":"")+'" data-pt-deck="'+d.id+'"'
    +(!isHost()||busy?' disabled':"")+'><strong>'+escape(d.name)+'</strong><small>'+escape(d.description)+'</small></button>').join("")
-  +'</div>'+(room.deck!=="classic"?'<p class="ptMatureNotice">Conteúdo adulto: linguagem sexual e humor negro. Recomendado apenas para maiores de 18 anos.</p>':"")+'</section>'
+  +'</div>'+(room.deck==="dark"?'<p class="ptMatureNotice">Humor negro e temas adultos. Recomendado apenas para maiores de 18 anos.</p>':"")+'</section>'
   +players()
   +'<div class="ptActions"><button class="primary" data-pt-copy>Copiar convite</button>'
   +(isHost()?'<button class="secondary" data-pt-invite>Convidar jogador</button>'
