@@ -1,0 +1,78 @@
+/* EDGY Poker — original Texas Hold'em UI; virtual chips only. */
+#screen .pkPage{width:min(100%,1120px);margin:0 auto;min-width:0}
+#screen .pkLayout{grid-template-columns:minmax(0,1fr) minmax(225px,275px)!important;gap:17px;align-items:start}
+#screen .pkStage,#screen .pkSide{min-width:0;width:100%}
+#screen .pkTable{background:#231b35;border:1px solid #65466c;border-radius:9px;padding:15px}
+#screen .pkTopline{display:flex;justify-content:space-between;gap:10px;color:#e8bbd8;font-size:11px;font-weight:800;letter-spacing:.5px;margin-bottom:12px}
+#screen .pkFelt{padding:26px 16px 22px;min-height:194px;display:flex;flex-direction:column;gap:17px;justify-content:center;align-items:center;
+ background:radial-gradient(ellipse at 50% 42%,#2d745e,#194c49 76%,#113d3d);border:10px solid #573758;
+ outline:2px solid #a76389;border-radius:140px;box-shadow:inset 0 0 23px #082e3196,0 14px 35px #110b1e80}
+#screen .pkFelt>p{color:#a3d3bd;font-size:10px;margin:0}
+#screen .pkPot{font-size:11px;color:#c4efdc;letter-spacing:1px;font-weight:800}
+#screen .pkPot strong{font-size:21px;color:#fff;margin:0 3px;font-variant-numeric:tabular-nums}
+#screen .pkCommunity,#screen .pkCards{display:flex;justify-content:center;align-items:center;gap:6px;flex-wrap:nowrap}
+#screen .pkCard{height:73px;width:51px;display:flex;flex-direction:column;justify-content:space-between;align-items:flex-start;
+ padding:6px;box-sizing:border-box;border:1px solid #f6ecf1;border-radius:5px;background:#f8f3ef;color:#29223a;
+ box-shadow:0 4px 9px #0c13225c;font-size:21px;font-weight:800;font-family:Georgia,serif;flex:0 0 auto;animation:pkDeal .24s ease both}
+#screen .pkCard>strong{font-size:16px;line-height:1}
+#screen .pkCard>span{font-size:27px;line-height:1;align-self:center}
+#screen .pkCard.pkRed{color:#d33656}
+#screen .pkCard.pkBack{background:linear-gradient(135deg,#bc3e86,#532b70);color:#fbd3e7;border:2px solid #eab3d4;
+ justify-content:center;align-items:center;font-size:23px}
+#screen .pkHand{padding:14px 0 9px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+#screen .pkHand>div:first-child{display:flex;flex-direction:column;gap:5px}
+#screen .pkHand strong{font-size:13px;color:#fff}
+#screen .pkHand small{font-size:11px;color:#c3b5d0}
+#screen .pkPhase{text-align:center;color:#e8c4da;font-size:12px;line-height:1.6;padding:8px 3px}
+#screen .pkButtons{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:12px}
+#screen .pkButtons button{min-height:45px;padding:10px 7px;font-size:12px;font-weight:750}
+#screen .pkButtons button:disabled{opacity:.4}
+#screen .pkNote{font-size:11px;color:#c6afc9;text-align:center}
+#screen .pkPlayers{display:grid;gap:8px}
+#screen .pkPlayer{display:flex;gap:8px;align-items:center;border:1px solid #634a74;border-radius:6px;background:#302440;padding:9px 10px}
+#screen .pkPlayer.pkTurn{border-color:#ff73b5;box-shadow:inset 3px 0 0 #ff5dab}
+#screen .pkPlayer.pkSelf{background:#42284a}
+#screen .pkAvatar{width:32px;height:32px;flex:0 0 32px;border-radius:50%;display:grid;place-items:center;background:#753d6d;color:#fff;font-weight:800}
+#screen .pkWho{flex:1;min-width:0}
+#screen .pkWho strong{display:block;font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#screen .pkWho small{display:block;font-size:10px;color:#c3b3cc;margin-top:3px}
+#screen .pkStack{color:#ffb9d7;font-size:15px;font-weight:850;white-space:nowrap}
+#screen .pkStack small{font-size:9px;color:#caafc9;font-weight:450}
+#screen .pkCode{font-weight:950;font-size:26px;letter-spacing:4px;color:#fbbce0;margin:10px 0}
+#screen .pkActions,.pkJoin{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:15px}
+#screen .pkActions button,#screen .pkJoin button{font-size:12px;min-height:41px;padding:9px 12px}
+#screen .pkJoin input{flex:1;min-width:135px;font-size:16px}
+#screen .pkActions button:disabled{opacity:.5}
+#screen .pkResult{border:1px solid #b75393;border-radius:7px;padding:16px;background:#3b2a43;margin:16px 0 3px;text-align:center}
+#screen .pkResult h3{font-size:18px;margin:0 0 9px;color:#fff}
+#screen .pkResult p{font-size:12px;color:#dec4d7;line-height:1.6}
+#screen .pkResult>button{min-height:43px;margin-top:10px}
+#screen .pkReveal{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:10px 0;background:#2a2138;padding:8px;border-radius:5px}
+#screen .pkReveal>strong{font-size:11px;text-align:left}
+#screen .pkReveal .pkCard{width:34px;height:48px;padding:4px}
+#screen .pkReveal .pkCard strong{font-size:11px}
+#screen .pkReveal .pkCard>span{font-size:18px}
+#screen .pkNotice{margin:10px 0;color:#ffc3d9;background:#392540;border:1px solid #a65386;border-radius:5px;padding:11px 14px;font-size:12px;line-height:1.5}
+#screen .pkSide .edgyGamePanel p{font-size:12px;line-height:1.65}
+@keyframes pkDeal{from{opacity:.35;transform:translateY(9px) rotate(-4deg)}to{opacity:1;transform:none}}
+@media(max-width:799px){
+ #screen .pkPage{width:100%}
+ #screen .pkLayout{display:flex!important;flex-direction:column!important;gap:12px!important}
+ #screen .pkTable{padding:11px 9px}
+ #screen .pkFelt{min-height:162px;border-width:7px;padding:15px 8px;gap:12px}
+ #screen .pkCard{width:clamp(36px,11vw,51px);height:65px;padding:5px}
+ #screen .pkCard>span{font-size:23px}
+ #screen .pkCommunity{gap:4px}
+ #screen .pkHand{gap:9px}
+ #screen .pkButtons{gap:6px}
+ #screen .pkButtons button{font-size:11px;padding:8px 5px}
+ #screen .pkSide{width:100%;display:grid;gap:11px}
+ #screen .pkSide .edgyGamePanel{margin:0!important}
+ .main:has(> #screen .pkPage){display:flex!important;flex-direction:column!important;height:100dvh!important;min-height:0!important;overflow:hidden!important;padding-bottom:calc(78px + env(safe-area-inset-bottom))!important}
+ .main:has(> #screen .pkPage)>.top{flex:0 0 auto!important}
+ .main:has(> #screen .pkPage)>#screen{flex:1 1 auto!important;height:auto!important;min-height:0!important;overflow-y:auto!important;overflow-x:hidden!important;-webkit-overflow-scrolling:touch!important;touch-action:pan-y!important;padding-bottom:20px!important}
+ .main:has(> #screen .pkPage)>.foot{display:block!important;flex:0 0 auto!important;margin:0!important;padding:8px 0 4px!important;font-size:10px!important}
+ .main:has(> #screen .pkPage)>#screen.edgyPageIn{animation:none!important;transform:none!important}
+}
+@media(max-width:370px){#screen .pkCard{height:56px;width:34px}#screen .pkCard>strong{font-size:12px}#screen .pkCard>span{font-size:19px}#screen .pkFelt{min-height:148px}}
+@media(prefers-reduced-motion:reduce){#screen .pkCard{animation:none!important}}
