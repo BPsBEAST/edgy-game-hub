@@ -48,7 +48,10 @@
 #screen .pkResult p{font-size:12px;color:#dec4d7;line-height:1.6}
 #screen .pkResult>button{min-height:43px;margin-top:10px}
 #screen .pkReveal{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:10px 0;background:#2a2138;padding:8px;border-radius:5px}
-#screen .pkReveal>strong{font-size:11px;text-align:left}
+#screen .pkRevealWho{display:flex;flex-direction:column;gap:5px;text-align:left;min-width:0}
+#screen .pkRevealWho strong{font-size:11px;color:#fff}
+#screen .pkRevealWho small{font-size:10px;color:#efaccc}
+
 #screen .pkReveal .pkCard{width:34px;height:48px;padding:4px}
 #screen .pkReveal .pkCard strong{font-size:11px}
 #screen .pkReveal .pkCard>span{font-size:18px}
