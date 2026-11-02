@@ -115,7 +115,7 @@ function stage(){
  const hand=(room.hole||[]).map(card).join("");
  const reveal=(room.reveal||[]).map(p=>{
   const user=room.players.find(x=>x.id===p.id);
-  return '<div class="pkReveal"><strong>'+esc(user?.name||"Jogador")+'</strong><div class="pkCards">'+(p.cards||[]).map(card).join("")+'</div></div>';
+  return '<div class="pkReveal"><div class="pkRevealWho"><strong>'+esc(user?.name||"Jogador")+'</strong><small>'+esc(p.hand||"")+'</small></div><div class="pkCards">'+(p.cards||[]).map(card).join("")+'</div></div>';
  }).join("");
  return '<div class="pkTable"><div class="pkTopline"><span>MÃO '+room.hand+' / '+room.max_hands+'</span><span>'+esc(streetNames[room.street]||"Jogo")+'</span></div>'
   +'<div class="pkFelt"><div class="pkPot">POTE <strong>'+room.pot+'</strong> fichas</div>'
