@@ -235,8 +235,8 @@ async function createAndInvite(game,playerId){
 }
 function roomCard(r){
  const waiting=r.status==="waiting",owner=r.white_id===me()?.id;
- const pace=r.game==="chess"?Math.round((r.base_ms||600000)/60000)+"+"+Math.round((r.increment_ms||0)/1000):r.game==="checkers"?"8×8":r.game==="barricade"?"9×9":"3×3";
- return '<article class="edgyRoom"><div class="edgyRoomInfo"><strong>'+gameName(r.game)+' <span class="edgyRoomStatus '+esc(r.status)+'">· '+statusName(r.status)+'</span></strong><p>'+esc(r.white_name)+' <span>vs</span> '+esc(r.black_name||"À espera de jogador")+'</p><small>'+esc(r.code)+' · '+pace+'</small></div><div class="edgyRoomActions"><button class="edgySocialPrimary" data-open="'+r.game+'|'+esc(r.code)+'">'+(waiting?"Abrir":r.status==="active"?"Retomar":"Rever")+'</button>'+(waiting&&owner?'<button class="edgySocialAlt" data-invite="'+r.game+'|'+esc(r.code)+'">Convidar</button><button class="edgySocialAlt" data-cancel="'+r.game+'|'+esc(r.code)+'">Fechar</button>':"")+'</div></article>';
+ const pace=r.game==="chess"?Math.round((r.base_ms||600000)/60000)+"+"+Math.round((r.increment_ms||0)/1000):r.game==="checkers"?"8×8":r.game==="barricade"?"9×9":r.game==="poker"?"2–6 jogadores · Fichas virtuais":r.game==="party"?"3–8 jogadores · Cartas":"3×3";
+ return '<article class="edgyRoom"><div class="edgyRoomInfo"><strong>'+gameName(r.game)+' <span class="edgyRoomStatus '+esc(r.status)+'">· '+statusName(r.status)+'</span></strong><p>'+(r.game==="party"||r.game==="poker"?'Anfitrião: '+esc(r.white_name):esc(r.white_name)+' <span>vs</span> '+esc(r.black_name||"À espera de jogador"))+'</p><small>'+esc(r.code)+' · '+pace+'</small></div><div class="edgyRoomActions"><button class="edgySocialPrimary" data-open="'+r.game+'|'+esc(r.code)+'">'+(waiting?"Abrir":r.status==="active"?"Retomar":"Rever")+'</button>'+(waiting&&owner?'<button class="edgySocialAlt" data-invite="'+r.game+'|'+esc(r.code)+'">Convidar</button><button class="edgySocialAlt" data-cancel="'+r.game+'|'+esc(r.code)+'">Fechar</button>':"")+'</div></article>';
 }
 async function renderRooms(id,game=null){
  const host=document.getElementById(id);if(!host)return;
