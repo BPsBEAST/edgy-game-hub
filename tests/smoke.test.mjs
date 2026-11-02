@@ -23,7 +23,7 @@ test("Every local asset referenced by the bootstrap exists",()=>{
  const names=[...assets.matchAll(/"([^"]+)"/g)].map(m=>m[1]);
  for(const name of names)assert.ok(fs.existsSync(path.join(dir,name.split("?")[0])),name);
  assert.ok(names.includes("./edgy-platform.js?v=60"),"shared platform cached");
- assert.ok(names.includes("./app.js?v=60"),"bootstrap cached");
+ assert.ok(names.includes("./app.js?v=61"),"bootstrap cached");
  assert.ok(names.includes("./base.css?v=29"),"base stylesheet cached");
  assert.ok(names.includes("./edgy-theme.css?v=34"),"design cached");
  assert.ok(names.includes("./tic-online.js?v=40"),"online tic cached");
@@ -361,7 +361,7 @@ test("Level-up notifications persist per account, share invitation bell and cele
  sandbox.testNotify(4,6);
  assert.deepEqual(Array.from(state.items,x=>x.level),[6,5,4]);
  assert.deepEqual(popups,[4,6]);
- for(const name of ["edgy-levels.css?v=53","social.js?v=60","auth.js?v=56"]){
+ for(const name of ["edgy-levels.css?v=53","social.js?v=61","auth.js?v=56"]){
   assert.ok(html.includes(name));assert.ok(read("sw.js").includes(name));
  }
 });
@@ -545,7 +545,7 @@ test("Cartas Contra Tugas is a 3–8 player registered game with dedicated mobil
  for(const asset of ["party-online.js?v=59","party.css?v=58"]){
   assert.ok(html.includes(asset)&&assets.includes(asset));
  }
- assert.ok(scripts.indexOf("./party-online.js?v=59")>scripts.indexOf("./app.js?v=60"));
+ assert.ok(scripts.indexOf("./party-online.js?v=59")>scripts.indexOf("./app.js?v=61"));
 });
 test("Cartas Contra Tugas privacy, scoring, history and room status are owned by server RPC",()=>{
  const party=read("party-online.js");
@@ -623,7 +623,7 @@ test("Poker Texas Holdem is a consistent EDGY multiplayer game with online rooms
  assert.ok(app.includes('name==="poker"'));
  assert.ok(app.includes('"Poker":"poker"'));
  assert.ok(social.includes('["edgy-poker-rooms","poker"]'));
- for(const asset of ['poker-online.js?v=60','poker.css?v=60']){
+ for(const asset of ['poker-online.js?v=61','poker.css?v=61']){
   assert.ok(html.includes(asset),asset);
   assert.ok(sw.includes(asset),asset);
  }
@@ -867,7 +867,7 @@ test("Stable footer, profile replay links and chess mobile actions",()=>{
 test("Game library uses a single registry loaded before bootstrap",()=>{
  const scripts=[...html.matchAll(/<script[^>]*src="([^"]+)"/g)].map(m=>m[1]);
  const platform=scripts.indexOf("./edgy-platform.js?v=60");
- const bootstrap=scripts.indexOf("./app.js?v=60");
+ const bootstrap=scripts.indexOf("./app.js?v=61");
  assert.ok(platform>=0&&bootstrap>=0&&platform<bootstrap);
  const app=read("app.js"),defs=read("edgy-platform.js");
  assert.ok(app.includes("Object.values(window.EDGY_platform.games).map("));
@@ -1106,7 +1106,7 @@ test("Home and Biblioteca render exactly the same reusable game cards",()=>{
  assert.ok(css.includes('grid-auto-rows:1fr'),"all cards in the grid stretch equally");
  assert.ok(css.includes('.main.edgyLibraryViewport>.foot'),"library footer follows the cards in the main scroller");
  assert.ok(html.includes('edgy-game-layout.css?v=47'));
- assert.ok(html.includes('app.js?v=60'));
+ assert.ok(html.includes('app.js?v=61'));
 });
 test("EDGY v36: chess title is short and empty join notice does not reserve space",()=>{
  const chess=read("chess-online.js"),ui=read("edgy-game-ui.js"),css=read("edgy-game-layout.css");
