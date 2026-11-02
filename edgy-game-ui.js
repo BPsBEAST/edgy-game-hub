@@ -4,6 +4,7 @@
 const details=Object.freeze({
  chess:{title:"Xadrez",icon:"♞",intro:"Relógio por jogador · Estratégia · Online"},
  checkers:{title:"Damas",icon:"◎",intro:"8×8 · Captura obrigatória · Dama voadora"},
+ poker:{title:"Poker",icon:"♠",intro:"Texas Hold’em · Fichas virtuais · 2–6 jogadores"},
  party:{title:"Cartas Contra Tugas",icon:"▣",intro:"Cartas originais · Júri rotativo · 3–8 jogadores"},
  barricade:{title:"Barricade",icon:"▦",intro:"9×9 · Corrida estratégica · 10 barreiras"},
  tic:{title:"Jogo do Galo",icon:"⊗",intro:"3×3 · 2 jogadores · Online ou local"},
