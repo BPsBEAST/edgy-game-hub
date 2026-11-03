@@ -173,7 +173,7 @@ function outcome(){
 }
 function coinPanel(){
  const faceShown=result?.game==="coinflip"?result.result?.face:null;
- return '<div class="cxnCoinWrap"><div class="cxnCoinPerspective"><div class="cxnCoin">'
+ return '<div class="cxnCoinWrap"><div class="cxnCoinPerspective"><div class="cxnCoin"'+(faceShown==="coroa"?' style="transform:rotateY(180deg)"':'')+'>'
   +'<div class="cxnCoinFace cxnCoinFront"><span>✦</span><small>CARA</small></div>'
   +'<div class="cxnCoinFace cxnCoinBack"><span>◈</span><small>COROA</small></div>'
   +'</div></div></div>'
@@ -189,9 +189,11 @@ function roulettePanel(){
   return hex+' '+(i*360/37)+'deg '+((i+1)*360/37)+'deg';
  }).join(",") +')';
  const pockets=wheelNumbers.map((n,i)=>'<span class="cxnWheelPocket" style="--angle:'+((i+.5)*360/37)+'deg">'+n+'</span>').join("");
+ const settled=result?.game==="roulette"?wheelNumbers.indexOf(Number(result.result?.number)):-1;
+ const settledStyle=settled>=0?';transform:rotate('+(-((settled+.5)*360/37))+'deg)':'';
  return '<div class="cxnWheelWrap"><div class="cxnRouletteTable">'
   +'<div class="cxnRoulettePointer" aria-hidden="true"></div>'
-  +'<div class="cxnWheelRotor" style="background:'+gradient+'">'+pockets+'</div>'
+  +'<div class="cxnWheelRotor" style="background:'+gradient+settledStyle+'">'+pockets+'</div>'
   +'<span class="cxnWheelHub">'+(result?.game==="roulette"?esc(result.result?.number??"✦"):"✦")+'</span>'
   +'</div></div>'
   +'<p class="cxnInputLabel">Escolhe uma aposta</p><div class="cxnSelections cxnRouletteSelections">'
