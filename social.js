@@ -71,7 +71,8 @@ function notifyLevelUp(from,to){
  if(start<=next){bell();levelPopup(next)}
 }
 function observeLevel(xp){
- const level=Math.floor(Math.max(0,Number(xp)||0)/100)+1;
+ const level=typeof window!=="undefined"&&window.EDGY_levelInfo
+  ?window.EDGY_levelInfo(xp).level:Math.floor(Math.max(0,Number(xp)||0)/100)+1;
  const state=levelStore();
  if(state.highest===null){state.highest=level;saveLevels(state);bell();return}
  if(level>state.highest)notifyLevelUp(state.highest,level);
