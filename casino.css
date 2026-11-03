@@ -272,3 +272,7 @@
  #screen .cxnAutoLock button{font-size:10px}
 }
 @media(prefers-reduced-motion:reduce){#screen .cxnAutoTrack span{transition:none!important}}
+
+#screen .cxnAutoCustom{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:12px;font-size:11px;color:#e3cbdc}
+#screen .cxnAutoCustom input{min-height:40px;width:88px;max-width:42%;padding:7px 10px;background:#221a31;color:#fff;border:1px solid #9b77a6;border-radius:6px;font-size:16px;font-variant-numeric:tabular-nums}
+#screen .cxnAutoCustom input:focus-visible{outline:2px solid #fdbbdf;outline-offset:1px}
