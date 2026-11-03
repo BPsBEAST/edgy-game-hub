@@ -129,7 +129,7 @@ async function loadCloud(nickname){
  try{
   if(nickname)await sb.from("profiles").update({display_name:nickname}).eq("id",uid);
   const [pr,hi]=await Promise.all([
-   sb.from("profiles").select("display_name,username,xp,wallet_xp,avatar_path,public_visible,bio").eq("id",uid).maybeSingle(),
+   sb.from("profiles").select("display_name,username,xp,wallet_xp,avatar_path,public_visible,bio,level_anchor,level_anchor_xp").eq("id",uid).maybeSingle(),
    sb.from("match_history").select("client_id,game,result,xp,played_at").eq("user_id",uid).order("played_at",{ascending:false}).limit(50)
   ]);
   if(account?.id!==uid)return;
@@ -145,6 +145,8 @@ async function loadCloud(nickname){
   const unsynced=own?state.history.filter(h=>!h.remote&&!known.has(String(h.client_id))):[];
   if(pr.data){profile=pr.data;state.name=profile.display_name;
    state.xp=Math.max(0,Number(profile.xp)||0)+unsynced.reduce((sum,h)=>sum+Math.max(0,Number(h.xp)||0),0);
+   state.levelAnchor=Math.max(1,Math.floor(Number(profile.level_anchor)||1));
+   state.levelAnchorXP=Math.max(0,Math.floor(Number(profile.level_anchor_xp)||0));
    window.EDGY_setWallet?.(profile.wallet_xp,uid);
   }
   state.history=[...unsynced,...remote].sort((a,b)=>Date.parse(b.date||0)-Date.parse(a.date||0)).slice(0,50);
@@ -199,7 +201,7 @@ if(account&&!account.is_anonymous){
  };
 }
 box.querySelector("#edgy-account").onclick=()=>{if(account&&!account.is_anonymous)manage();else start()};
-box.querySelector("#edgy-logout")?.addEventListener("click",async()=>{await sb.auth.signOut();account=null;profile=null;localStorage.removeItem("edgy_entry_mode");localStorage.removeItem("edgy_owner_id");localStorage.removeItem(upgradeKey);entryMode="";state={name:"Jogador",xp:0,history:[]};save();render();start()});
+box.querySelector("#edgy-logout")?.addEventListener("click",async()=>{await sb.auth.signOut();account=null;profile=null;localStorage.removeItem("edgy_entry_mode");localStorage.removeItem("edgy_owner_id");localStorage.removeItem(upgradeKey);entryMode="";state={name:"Jogador",xp:0,levelAnchor:1,levelAnchorXP:0,history:[]};save();render();start()});
 box.querySelector("#edgy-photo")?.addEventListener("change",async event=>{
  const input=event.target,original=input.files?.[0],msg=box.querySelector("#edgy-photo-msg");
  if(!original)return;
