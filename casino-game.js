@@ -11,6 +11,7 @@ const fmt=x=>Number(x||0).toLocaleString("pt-PT");
 const games=Object.freeze([
  {id:"coinflip",name:"Coinflip",icon:"◒",desc:"Cara ou coroa. Acerta e recebes 2× o valor jogado."},
  {id:"roulette",name:"Roleta",icon:"◉",desc:"Aposta numa cor ou num número, entre 0 e 36."},
+ {id:"blackjack",name:"Blackjack",icon:"♠",desc:"Aproxima-te dos 21 contra o dealer ou numa mesa com amigos."},
  {id:"slots",name:"Slots",icon:"✦",desc:"Três símbolos iguais ou dois símbolos iguais."}
 ]);
 const limits=[10,25,50,100];
@@ -20,7 +21,7 @@ const acknowledgementKey=()=> "edgy_casino_18_ack_"+(me()?.id||"local");
 function accepted(){try{return localStorage.getItem(acknowledgementKey())==="yes"}catch{return false}}
 function acknowledge(){try{localStorage.setItem(acknowledgementKey(),"yes")}catch{}render()}
 function forgetAccount(){wallet=null;total=null;items=[];result=null;message="";uid=me()?.id||""}
-function close(){active=false;session++;playing=false;loading=false;result=null}
+function close(){active=false;session++;playing=false;loading=false;result=null;window.EDGY_casinoTables?.close?.()}
 function choice(){return mode==="coinflip"?face:mode==="roulette"?(roulette==="number"?"n:"+number:roulette):"spin"}
 async function refresh(silent=false){
  const identity=me()?.id||"",ticket=session;
@@ -46,7 +47,14 @@ async function open(){
 }
 function chooseMode(next){
  if(playing||!games.some(g=>g.id===next))return;
- mode=next;message="";result=null;render();
+ mode=next;window.EDGY_casinoTables?.chooseKind?.(next);message="";result=null;render();
+}
+async function openRoom(next,code){
+ if(!["blackjack","roulette","coinflip"].includes(next))return;
+ active=true;session++;mode=next;result=null;message="";
+ const identity=me()?.id||"";if(identity!==uid)forgetAccount();
+ render();if(identity)refresh(true);
+ await window.EDGY_casinoTables?.open?.(next,code);
 }
 function showMessage(text){message=text;render()}
 
@@ -152,7 +160,7 @@ async function play(){
  }
 }
 function historyItem(t){
- const kind={opening:"Saldo inicial",earned:"XP ganho",roulette:"Roleta",coinflip:"Coinflip",slots:"Slots"}[t.kind]||"Movimento";
+ const kind={opening:"Saldo inicial",earned:"XP ganho",roulette:"Roleta",coinflip:"Coinflip",slots:"Slots",blackjack:"Blackjack",blackjack_payout:"Prémio Blackjack"}[t.kind]||"Movimento";
  const date=Number.isFinite(Date.parse(t.at))?new Date(t.at).toLocaleDateString("pt-PT",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"}):"";
  const delta=Number(t.delta)||0;
  return '<div class="cxnTx"><div><strong>'+esc(kind)+'</strong><small>'+esc(date)+(t.stake?' · Jogados '+fmt(t.stake)+' XP':'')+'</small></div>'
@@ -221,17 +229,19 @@ function controls(){
   +(playing?'A rodar…':'Jogar '+stake+' XP')+'</button>';
 }
 function casinoContent(){
+ const socialGame=mode!=="slots",tables=window.EDGY_casinoTables;
+ const tablePanel=socialGame?tables?.panel?.(mode)||"":"";const tableMode=socialGame&&tables?.isTableMode?.(mode);
  return '<section class="cxnCasinoPanel"><div class="cxnPanelTitle"><h2>'+esc(games.find(g=>g.id===mode).name)+'</h2>'
   +'<span>100% XP virtual</span></div>'
-  +(mode==="coinflip"?coinPanel():mode==="roulette"?roulettePanel():slotsPanel())
-  +controls()+outcome()
+  +tablePanel
+  +(tableMode?"":(mode==="coinflip"?coinPanel():mode==="roulette"?roulettePanel():slotsPanel())+controls()+outcome())
   +'</section>';
 }
 function render(){
  if(!active||game!=="casino")return;
  const root=document.getElementById("screen");if(!root)return;
  root.classList.remove("edgyLobby");
- const head=ui().header("casino",{intro:"Roleta · Coinflip · Slots · XP virtual sem valor monetário"});
+ const head=ui().header("casino",{intro:"Blackjack · Roleta · Coinflip · Slots · Contra robô ou amigos · XP virtual"});
  let content="";
  if(!me()||me().is_anonymous){
   content=ui().card("Carteira EDGY",'<p>Para guardares o XP virtual e os resultados dos minijogos, inicia sessão numa conta EDGY.</p><button class="primary" data-cxn-login>Entrar / criar conta</button>');
@@ -265,8 +275,9 @@ function render(){
  root.querySelectorAll("[data-cxn-roulette]").forEach(b=>b.addEventListener("click",()=>{if(playing)return;roulette=b.dataset.cxnRoulette;result=null;render()}));
  root.querySelector("#cxn-number")?.addEventListener("change",e=>{number=Number(e.target.value)||0;result=null});
  root.querySelector("[data-cxn-play]")?.addEventListener("click",play);
+ window.EDGY_casinoTables?.bind?.(root,mode);
 }
-window.EDGY_casino=Object.freeze({open,close,render,refresh, syncWallet:(value,owner)=>{
+window.EDGY_casino=Object.freeze({open,openRoom,close,render,refresh, syncWallet:(value,owner)=>{
  if(owner&&owner===me()?.id){wallet=Math.max(0,Number(value)||0);if(active&&game==="casino"&&!playing)render()}
 }});
 })();
