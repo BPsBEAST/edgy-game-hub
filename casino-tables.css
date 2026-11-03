@@ -100,3 +100,9 @@
  #screen .cxtCard,#screen .cxtSharedWheel.settled,#screen .cxtSharedCoin.settled{animation:none!important}
  #screen .cxtModes button{transition:none!important}
 }
+
+#screen .cxtSharedWheel.spinning{animation:cxtSharedSpin .7s linear infinite}
+#screen .cxtSharedCoin.spinning{animation:cxtSharedCoinFlip .7s linear infinite;transform-style:preserve-3d}
+@keyframes cxtSharedSpin{to{transform:rotate(360deg)}}
+@keyframes cxtSharedCoinFlip{to{transform:rotateY(360deg)}}
+@media(prefers-reduced-motion:reduce){#screen .cxtSharedWheel.spinning,#screen .cxtSharedCoin.spinning{animation:none!important}}
