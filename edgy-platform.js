@@ -11,6 +11,7 @@ const GAMES=Object.freeze({
  tic:Object.freeze({id:"tic",title:"Jogo do Galo",display:"Jogo do Galo online",category:"Estratégia",mode:"1–2 jogadores · Online/local",icon:"✕",online:true,create:"edgy_tic_create",join:"edgy_tic_join",cancel:"edgy_tic_cancel",table:"tic_rooms",param:"tic"}),
  contexto:Object.freeze({id:"contexto",title:"Contexto",display:"Contexto",category:"Palavras",mode:"1 jogador · Ilimitado",icon:"◎",online:false}),
  wordle:Object.freeze({id:"wordle",title:"Wordle",display:"Wordle",category:"Palavras",mode:"1 jogador · Ilimitado",icon:"▦",online:false}),
+ casino:Object.freeze({id:"casino",title:"Casino EDGY",display:"Casino EDGY",category:"Arcade",mode:"Roleta · Coinflip · Slots",icon:"✦",online:false}),
  reaction:Object.freeze({id:"reaction",title:"Reflexos",display:"Reflexos",category:"Arcade",mode:"1 jogador",icon:"◴",online:false})
 });
 const client=()=>window.EDGY_auth?.getClient?.();
