@@ -123,7 +123,7 @@ async function play(){
  if(wallet<stake)return showMessage("Saldo insuficiente. Ganha XP a jogar ou a treinar.");
  const ticket=session,identity=me().id,selectedMode=mode,selectedStake=stake,selectedChoice=choice();
  playing=true;message="";result=null;render();
- const host=document.querySelector("#screen .cxnCasinoPanel");
+ const host=document.querySelector?.("#screen .cxnCasinoPanel");
  visualStart(selectedMode,host);
  let completed=false;
  try{
