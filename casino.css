@@ -8,7 +8,7 @@
 #screen .cxnBalances>div>strong{font-size:clamp(25px,3vw,35px);line-height:1.2;letter-spacing:-1px;color:white;font-variant-numeric:tabular-nums}
 #screen .cxnBalances>div>small{font-size:11px;color:#bdaaC8;line-height:1.5}
 #screen .cxnMark{color:#fc75ba;margin-right:5px}
-#screen .cxnGameTabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:14px 0 18px}
+#screen .cxnGameTabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:14px 0 18px}
 #screen .cxnGameTabs button{display:flex;flex-direction:column;align-items:flex-start;gap:5px;padding:14px 15px;
  min-width:0;min-height:118px;background:#2d233c;color:#e9d9ef;border:1px solid #5d486d;text-align:left;border-radius:7px;
  transition:background .17s ease,border-color .17s ease,transform .17s ease}
@@ -94,6 +94,7 @@
  #screen .cxnBalances>div>span{font-size:10px}
  #screen .cxnBalances>div>small{font-size:10px}
  #screen .cxnGameTabs{gap:6px}
+ #screen .cxnGameTabs{grid-template-columns:repeat(2,minmax(0,1fr))}
  #screen .cxnGameTabs button{padding:10px 8px;min-height:94px}
  #screen .cxnGameTabs button>span{font-size:21px}
  #screen .cxnGameTabs button>strong{font-size:12px}
