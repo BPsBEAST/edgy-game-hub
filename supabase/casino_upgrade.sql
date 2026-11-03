@@ -2,7 +2,7 @@
 -- Run only on a project where the EDGY wallet tables and trigger already exist.
 -- Winnings increase career XP only by net profit. Losses never decrease career XP.
 -- The XP credit trigger skips casino gains to avoid double-minting wallet XP.
--- 30 rounds per 24 hours remain; there is no five-second cooldown.
+-- No daily round limit or per-round cooldown; balances and duplicate prevention remain server-validated.
 
 begin;
 CREATE OR REPLACE FUNCTION edgy_internal.edgy_wallet_on_xp_gain()
@@ -32,7 +32,7 @@ AS $function$
 declare
  uid uuid:=(select auth.uid());v_balance integer;v_total integer;
  v_prev public.edgy_xp_transactions%rowtype;
- v_rounds integer;v_roll integer;v_color text;
+ v_roll integer;v_color text;
  v_payout integer:=0;v_delta integer;v_career_gain integer:=0;v_result jsonb:='{}'::jsonb;
  v_n integer;v_a integer;v_b integer;v_c integer;v_symbols text[]:=array['🍒','🍋','🍇','🍀','⭐','💎'];
  v_red integer[]:=array[1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36];
@@ -62,11 +62,6 @@ begin
     'xp_awarded',coalesce((v_prev.outcome->>'career_award')::integer,0),'duplicate',true);
  end if;
  if v_balance<p_stake then raise exception 'Saldo de XP insuficiente. Joga ou treina para ganhares mais XP.';end if;
- select count(*) into v_rounds
- from public.edgy_xp_transactions
- where user_id=uid and kind in('roulette','coinflip','slots')
- and created_at>=now()-interval '24 hours';
- if v_rounds>=30 then raise exception 'Atingiste o limite de 30 rondas virtuais em 24 horas';end if;
  -- Use PostgreSQL CSPRNG-backed UUIDs, never Math.random from the browser.
  v_roll:=('x'||substr(replace(gen_random_uuid()::text,'-',''),1,8))::bit(32)::bigint%37;
  if p_game='coinflip' then
