@@ -129,7 +129,7 @@ function lockAutoStake(){
  autoStake=autoStake===null?stake:null;autoSummary=null;message="";render();
 }
 function selectAutoCount(n){
- if(mode!=="slots"||autoSession?.active||![5,10,25,50,100].includes(n))return;
+ if(mode!=="slots"||autoSession?.active||!Number.isInteger(n)||n<1||n>500)return;
  autoCount=n;autoSummary=null;render();
 }
 function stopAuto(){
@@ -286,7 +286,7 @@ function autoPanel(){
   +(locked?'Desbloquear aposta':'Bloquear '+fmt(stake)+' XP')+'</button></div>'
   +'<p class="cxnInputLabel">Quantidade de giros</p><div class="cxnAutoCounts" role="group" aria-label="Escolher giros automáticos">'
   +[5,10,25,50,100].map(n=>'<button type="button" data-cxn-auto-count="'+n+'" class="'+(autoCount===n?'selected':'')+'" '+(running||playing?'disabled':'')+'>'+n+'</button>').join("")
-  +'</div>'
+  +'</div><label class="cxnAutoCustom">Número personalizado (1–500 giros) <input type="number" id="cxn-auto-custom" min="1" max="500" step="1" value="'+autoCount+'" '+(running||playing?'disabled':'')+'></label>'
   +(running
    ?'<button type="button" class="cxnAutoStop" data-cxn-auto-stop '+(autoSession.stop?'disabled':'')+'>'
      +(autoSession.stop?'A terminar o giro atual…':'Parar giros automáticos')+'</button>'
@@ -355,6 +355,7 @@ function render(){
  root.querySelector("[data-cxn-play]")?.addEventListener("click",play);
  root.querySelector("[data-cxn-auto-lock]")?.addEventListener("click",lockAutoStake);
  root.querySelectorAll("[data-cxn-auto-count]").forEach(b=>b.addEventListener("click",()=>selectAutoCount(Number(b.dataset.cxnAutoCount))));
+ root.querySelector("#cxn-auto-custom")?.addEventListener("change",e=>selectAutoCount(Number(e.target.value)));
  root.querySelector("[data-cxn-auto-start]")?.addEventListener("click",runAuto);
  root.querySelector("[data-cxn-auto-stop]")?.addEventListener("click",stopAuto);
  window.EDGY_casinoTables?.bind?.(root,mode);
