@@ -1,6 +1,6 @@
 /* EDGY Casino — virtual, non-transferable XP only.
  * All bets, outcomes, balances and transaction ids are server-authoritative.
- * XP career/level is never changed by casino plays. */
+ * Net casino winnings increase career XP; losses never reduce career XP. */
 (function(){
 "use strict";
 const me=()=>window.EDGY_auth?.getUser?.();
@@ -49,28 +49,107 @@ function chooseMode(next){
  mode=next;message="";result=null;render();
 }
 function showMessage(text){message=text;render()}
+
+const slotSymbols=["🍒","🍋","🍇","🍀","⭐","💎"];
+const wheelNumbers=[0,32,15,19,4,21,2,25,17,34,6,27,13,36,11,30,8,23,10,5,24,16,33,1,20,14,31,9,22,18,29,7,28,12,35,3,26];
+const wheelReds=new Set([1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36]);
+const reduceMotion=()=>window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches===true;
+const animationsPossible=()=>!reduceMotion()&&typeof Element!=="undefined"&&Boolean(Element.prototype.animate);
+function wheelColor(n){return n===0?"green":wheelReds.has(n)?"red":"black"}
+function slotCells(symbols){return symbols.map(s=>'<span class="cxnReelSymbol">'+esc(s)+'</span>').join("")}
+function visualStart(selectedMode,host){
+ if(!host||reduceMotion())return;
+ if(selectedMode==="slots"){
+  host.querySelector(".cxnSlotMachine")?.classList.add("is-spinning");
+  host.querySelectorAll(".cxnReelWindow").forEach((win,i)=>{
+   const track=win.querySelector(".cxnReelTrack");
+   if(!track)return;
+   track.style.setProperty("--cxn-cell",win.clientHeight+"px");
+   track.innerHTML=slotCells([...slotSymbols,...slotSymbols]);
+   track.classList.add("is-spinning");
+  });
+ }else if(selectedMode==="coinflip"){
+  host.querySelector(".cxnCoin")?.classList.add("is-spinning");
+ }else{
+  host.querySelector(".cxnWheelRotor")?.classList.add("is-spinning");
+ }
+}
+async function animateResult(selectedMode,out,host){
+ if(!host||!host.isConnected||!animationsPossible())return;
+ if(selectedMode==="slots"){
+  const windows=[...host.querySelectorAll(".cxnReelWindow")];
+  await Promise.all(windows.map(async(win,i)=>{
+   const track=win.querySelector(".cxnReelTrack");if(!track)return;
+   const size=Math.max(1,win.clientHeight),steps=19+i*5,landing=String(out.symbols?.[i]||"🍒");
+   const cells=Array.from({length:steps+1},(_,j)=>j===steps?landing:slotSymbols[(j*3+i*2+Math.floor(j/4))%slotSymbols.length]);
+   track.classList.remove("is-spinning");track.style.setProperty("--cxn-cell",size+"px");
+   track.innerHTML=slotCells(cells);track.style.transform="translateY(0)";
+   const end=-steps*size;
+   const animation=track.animate([{transform:"translateY(0px)"},{transform:"translateY("+end+"px)"}],{
+    duration:1250+i*270,easing:"cubic-bezier(.14,.72,.16,1)",fill:"forwards"
+   });
+   try{await animation.finished}catch{}
+   track.style.transform="translateY("+end+"px)";animation.cancel();
+  }));
+  host.querySelector(".cxnSlotMachine")?.classList.remove("is-spinning");
+  return;
+ }
+ if(selectedMode==="coinflip"){
+  const coin=host.querySelector(".cxnCoin");if(!coin)return;
+  coin.classList.remove("is-spinning");
+  const end=2160+(out.face==="coroa"?180:0);
+  const animation=coin.animate([{transform:"rotateY(0deg)"},{transform:"rotateY("+end+"deg)"}],{
+   duration:1450,easing:"cubic-bezier(.16,.75,.2,1)",fill:"forwards"
+  });
+  try{await animation.finished}catch{}
+  coin.style.transform="rotateY("+end+"deg)";animation.cancel();return;
+ }
+ const rotor=host.querySelector(".cxnWheelRotor");if(!rotor)return;
+ rotor.classList.remove("is-spinning");
+ const idx=wheelNumbers.indexOf(Number(out.number)),step=360/37;
+ const end=2160-((Math.max(0,idx)+.5)*step);
+ const animation=rotor.animate([{transform:"rotate(0deg)"},{transform:"rotate("+end+"deg)"}],{
+  duration:1750,easing:"cubic-bezier(.12,.76,.16,1)",fill:"forwards"
+ });
+ try{await animation.finished}catch{}
+ rotor.style.transform="rotate("+end+"deg)";animation.cancel();
+}
+
 async function play(){
  if(playing||loading||!active)return;
  if(!me()||me().is_anonymous)return showMessage("Entra numa conta EDGY registada para utilizar a carteira.");
  if(!accepted())return showMessage("Confirma primeiro que tens 18 anos ou mais.");
  if(wallet===null)return showMessage("A carteira ainda não foi carregada.");
  if(wallet<stake)return showMessage("Saldo insuficiente. Ganha XP a jogar ou a treinar.");
+ const ticket=session,identity=me().id,selectedMode=mode,selectedStake=stake,selectedChoice=choice();
  playing=true;message="";result=null;render();
- const ticket=session,identity=me().id,selectedMode=mode;
+ const host=document.querySelector("#screen .cxnCasinoPanel");
+ visualStart(selectedMode,host);
+ let completed=false;
  try{
-  const request=crypto.randomUUID();
   const {data,error}=await db().rpc("edgy_arcade_play",{
-   p_game:mode,p_choice:choice(),p_stake:stake,p_request:request
+   p_game:selectedMode,p_choice:selectedChoice,p_stake:selectedStake,p_request:crypto.randomUUID()
   });
   if(error)throw error;
   if(ticket!==session||me()?.id!==identity)return;
+  if(data?.game!==selectedMode)throw new Error("Resultado da jogada inválido.");
+  try{await animateResult(selectedMode,data.result||{},host)}catch(e){console.warn("EDGY casino animation:",e)}
+  if(ticket!==session||me()?.id!==identity)return;
   result=data;shownResult++;
-  wallet=Number(data.balance)||0;
+  wallet=Math.max(0,Number(data.balance)||0);
+  total=Math.max(0,Number(data.total_xp)||0);
   window.EDGY_setWallet?.(wallet,identity);
-  // Fetch the auditable server ledger; do not award any career XP.
-  await refresh(true);
- }catch(err){if(ticket===session)message=err?.message||"A jogada não pôde ser concluída";}
- finally{if(ticket===session){playing=false;render()}}
+  completed=true;
+ }catch(err){if(ticket===session)message=err?.message||"A jogada não pôde ser concluída.";}
+ finally{
+  if(ticket===session){
+   playing=false;render();
+   if(completed){
+    await refresh(true);
+    try{await window.EDGY_auth?.refreshProfile?.()}catch(err){console.warn("EDGY casino profile:",err)}
+   }
+  }
+ }
 }
 function historyItem(t){
  const kind={opening:"Saldo inicial",earned:"XP ganho",roulette:"Roleta",coinflip:"Coinflip",slots:"Slots"}[t.kind]||"Movimento";
@@ -79,44 +158,65 @@ function historyItem(t){
  return '<div class="cxnTx"><div><strong>'+esc(kind)+'</strong><small>'+esc(date)+(t.stake?' · Jogados '+fmt(t.stake)+' XP':'')+'</small></div>'
   +'<b class="'+(delta>0?'cxnGain':delta<0?'cxnLoss':'cxnNeutral')+'">'+(delta>0?'+':'')+fmt(delta)+' XP</b></div>';
 }
+
 function outcome(){
  if(!result)return "";
- const r=result,out=r.result||{},won=Number(r.payout)>0;
- const title=won?(Number(r.delta)>0?"Ganhaste XP!":"Recuperaste XP!"):"Sem prémio nesta ronda";
- let reveal="";
- if(r.game==="coinflip")reveal='<div class="cxnOutcomeCoin">'+(out.face==="cara"?"CARA":"COROA")+'</div>';
- if(r.game==="roulette")reveal='<div class="cxnOutcomeNumber '+esc(out.color||"")+'">'+esc(out.number)+'</div>';
- if(r.game==="slots")reveal='<div class="cxnReels cxnReelsDone">'+(out.symbols||[]).map(s=>'<span>'+esc(s)+'</span>').join("")+'</div>';
- return '<section class="cxnOutcome" role="status" aria-live="polite">'+reveal+'<h3>'+title+'</h3>'
-  +'<p>'+(won?'Prémio: '+fmt(r.payout)+' XP · ':'')+'Saldo da ronda: <strong class="'+(Number(r.delta)>=0?'cxnGain':'cxnLoss')+'">'+(Number(r.delta)>0?'+':'')+fmt(r.delta)+' XP</strong></p>'
-  +'<small>O XP Total e o nível não foram alterados.</small></section>';
+ const r=result,won=Number(r.payout)>0,net=Number(r.delta)||0,career=Math.max(0,Number(r.xp_awarded)||0);
+ const title=won?(net>0?"Ganhaste XP!":"Recuperaste XP!"):"Sem prémio nesta ronda";
+ const label=r.game==="coinflip"?(r.result?.face==="cara"?"CARA":"COROA")
+  :r.game==="roulette"?"Número "+String(r.result?.number??"—"):"Slots";
+ return '<section class="cxnOutcome '+(net>0?'cxnOutcomeWin':'')+'" role="status" aria-live="polite">'
+  +'<span class="cxnOutcomeEyebrow">'+esc(label)+'</span><h3>'+title+'</h3>'
+  +'<p>'+(won?'Prémio total: '+fmt(r.payout)+' XP · ':'')+'Lucro da ronda: <strong class="'+(net>=0?'cxnGain':'cxnLoss')+'">'+(net>0?'+':'')+fmt(net)+' XP</strong></p>'
+  +'<p class="cxnCareerReward">✦ XP para subir de nível: <strong>+'+fmt(career)+'</strong></p>'
+  +'<small>As perdas reduzem apenas o saldo disponível. O nível nunca desce.</small></section>';
 }
 function coinPanel(){
- return '<div class="cxnCoinWrap"><div class="cxnCoin'+(result?.game==="coinflip"?' cxnCoinPlayed':'')+'"><span>✦</span></div></div>'
+ const faceShown=result?.game==="coinflip"?result.result?.face:null;
+ return '<div class="cxnCoinWrap"><div class="cxnCoinPerspective"><div class="cxnCoin">'
+  +'<div class="cxnCoinFace cxnCoinFront"><span>✦</span><small>CARA</small></div>'
+  +'<div class="cxnCoinFace cxnCoinBack"><span>◈</span><small>COROA</small></div>'
+  +'</div></div></div>'
+  +(faceShown?'<p class="cxnVisualResult">'+(faceShown==="cara"?"CARA":"COROA")+'</p>':'')
   +'<p class="cxnInputLabel">Escolhe um lado</p><div class="cxnSelections">'
-  +[['cara',"Cara"],['coroa',"Coroa"]].map(([v,label])=>'<button type="button" data-cxn-face="'+v+'" class="'+(face===v?'selected':'')+'">'+label+'</button>').join("")
+  +[['cara',"Cara"],['coroa',"Coroa"]].map(([v,label])=>'<button type="button" data-cxn-face="'+v+'" class="'+(face===v?'selected':'')+'" '+(playing?'disabled':'')+'>'+label+'</button>').join("")
   +'</div><p class="cxnOdds">Probabilidade aproximada: 50% · Prémio: 2×</p>';
 }
 function roulettePanel(){
  const opts=[['red','Vermelho'],['black','Preto'],['green','Zero (0)'],['number','Número']];
- return '<div class="cxnWheelWrap"><div class="cxnWheel'+(result?.game==="roulette"?' cxnWheelPlayed':'')+'"><span>'+esc(result?.game==="roulette"?result.result?.number??"✦":"✦")+'</span></div></div>'
+ const gradient='conic-gradient('+wheelNumbers.map((n,i)=>{
+  const c=wheelColor(n),hex=c==="red"?"#c64366":c==="black"?"#1b1927":"#269573";
+  return hex+' '+(i*360/37)+'deg '+((i+1)*360/37)+'deg';
+ }).join(",") +')';
+ const pockets=wheelNumbers.map((n,i)=>'<span class="cxnWheelPocket" style="--angle:'+((i+.5)*360/37)+'deg">'+n+'</span>').join("");
+ return '<div class="cxnWheelWrap"><div class="cxnRouletteTable">'
+  +'<div class="cxnRoulettePointer" aria-hidden="true"></div>'
+  +'<div class="cxnWheelRotor" style="background:'+gradient+'">'+pockets+'</div>'
+  +'<span class="cxnWheelHub">'+(result?.game==="roulette"?esc(result.result?.number??"✦"):"✦")+'</span>'
+  +'</div></div>'
   +'<p class="cxnInputLabel">Escolhe uma aposta</p><div class="cxnSelections cxnRouletteSelections">'
-  +opts.map(([v,label])=>'<button type="button" data-cxn-roulette="'+v+'" class="'+(roulette===v?'selected '+v:'')+'">'+label+'</button>').join("")
-  +'</div>'+(roulette==='number'?'<label class="cxnNumberChoice">Número (0–36) <select id="cxn-number" aria-label="Escolher número de roleta">'
+  +opts.map(([v,label])=>'<button type="button" data-cxn-roulette="'+v+'" class="'+(roulette===v?'selected '+v:'')+'" '+(playing?'disabled':'')+'>'+label+'</button>').join("")
+  +'</div>'+(roulette==='number'?'<label class="cxnNumberChoice">Número (0–36) <select id="cxn-number" aria-label="Escolher número de roleta" '+(playing?'disabled':'')+'>'
     +Array.from({length:37},(_,i)=>'<option value="'+i+'"'+(i===number?' selected':'')+'>'+i+'</option>').join("")
     +'</select></label>':'')
   +'<p class="cxnOdds">Vermelho/preto: 2× · Zero/número exato: 36× · Roleta europeia (37 números)</p>';
 }
 function slotsPanel(){
  const symbols=result?.game==="slots"?result.result?.symbols||[]:["🍒","⭐","💎"];
- return '<div class="cxnReels'+(result?.game==="slots"?' cxnReelsPlayed':'')+'">'+symbols.map(s=>'<span>'+esc(s)+'</span>').join("")+'</div>'
-  +'<p class="cxnInputLabel">Combina três símbolos</p><p class="cxnOdds">3 iguais: 8× · 2 iguais: 1,5× · Sem correspondência: 0×</p>';
+ return '<div class="cxnSlotMachine '+(result?.game==="slots"&&Number(result.delta)>0?'is-winner':'')+'">'
+  +'<div class="cxnSlotMarquee"><span>✦</span><strong>EDGY JACKPOT</strong><span>✦</span></div>'
+  +'<div class="cxnSlotGlass"><div class="cxnReelMachine">'
+  +symbols.map(s=>'<div class="cxnReelWindow"><div class="cxnReelTrack">'+slotCells([s])+'</div></div>').join("")
+  +'</div><div class="cxnSlotPayline" aria-hidden="true"></div></div>'
+  +'<div class="cxnSlotFooter"><span>✦ ✦ ✦</span><strong>XP SLOTS</strong><span>✦ ✦ ✦</span></div>'
+  +'</div><p class="cxnInputLabel">Alinha os símbolos para ganhar</p>'
+  +'<p class="cxnOdds">3 iguais: 8× · 2 iguais: 1,5× · Sem correspondência: 0×</p>';
 }
 function controls(){
  return '<div class="cxnStakes"><p class="cxnInputLabel">Valor a jogar</p><div class="cxnSelections cxnStakeOptions">'
   +limits.map(x=>'<button type="button" data-cxn-stake="'+x+'" class="'+(stake===x?'selected':'')+'" '+(playing||loading?'disabled':'')+'>'+x+' XP</button>').join("")
   +'</div></div><button class="primary cxnPlay" data-cxn-play type="button" '+(playing||loading||wallet===null||wallet<stake?'disabled':'')+'>'
-  +(playing?'A calcular resultado…':'Jogar '+stake+' XP')+'</button>';
+  +(playing?'A rodar…':'Jogar '+stake+' XP')+'</button>';
 }
 function casinoContent(){
  return '<section class="cxnCasinoPanel"><div class="cxnPanelTitle"><h2>'+esc(games.find(g=>g.id===mode).name)+'</h2>'
@@ -136,7 +236,7 @@ function render(){
  }else if(!accepted()){
   content=ui().card("Acesso aos minijogos +18",'<p>Esta área contém simulações de jogos de casino, apenas com XP virtual.</p>'
    +'<p>O XP não pode ser comprado com dinheiro, vendido, transferido ou convertido em dinheiro ou prémios reais.</p>'
-   +'<p>Existem limites de 30 rondas em 24 horas e um intervalo mínimo entre rondas.</p>'
+   +'<p>Existem limites de 30 rondas em 24 horas. Não existe intervalo obrigatório entre jogadas.</p>'
    +'<button type="button" class="primary" data-cxn-ack>Confirmo que tenho 18 anos ou mais e quero entrar</button>');
  }else{
   const balanceText=wallet===null?"—":fmt(wallet);
@@ -147,8 +247,8 @@ function render(){
    +games.map(g=>'<button type="button" data-cxn-mode="'+g.id+'" class="'+(mode===g.id?'active':'')+'"><span>'+g.icon+'</span><strong>'+g.name+'</strong><small>'+g.desc+'</small></button>').join("")+'</div>'
    +ui().match({game:"casino",stage:casinoContent(),
     side:ui().card("Movimentos de XP",'<div class="cxnHistory">'+(items.length?items.slice(0,12).map(historyItem).join(""):'<p class="sub">Ainda não existem movimentos.</p>')+'</div>')
-     +ui().card("Regras da economia",'<p class="sub">Ganhar XP nos jogos e nos treinos aumenta o XP Total e o saldo disponível. Os minijogos alteram apenas o saldo.</p>'
-       +'<p class="sub">Não existe dinheiro real, compra de fichas ou levantamento de prémios. 30 rondas por 24 horas, com intervalo mínimo de 5 segundos.</p>'
+     +ui().card("Regras da economia",'<p class="sub">Ganhar XP nos jogos e nos treinos aumenta o XP Total e o saldo disponível. No casino, só o lucro das apostas também aumenta o XP Total. Perder nunca reduz o nível.</p>'
+       +'<p class="sub">Não existe dinheiro real, compra de fichas ou levantamento de prémios. 30 rondas por 24 horas, sem intervalo obrigatório entre jogadas.</p>'
        +'<p class="sub">As jogadas são decididas e registadas no servidor.</p>'),
     layoutClass:"cxnLayout",stageClass:"cxnStage",sideClass:"cxnSide"});
  }
