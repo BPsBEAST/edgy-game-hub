@@ -9,7 +9,7 @@ const dir=path.resolve(path.dirname(fileURLToPath(import.meta.url)),"..");
 const read=file=>fs.readFileSync(path.join(dir,file),"utf8");
 const html=read("index.html");
 const app=read("app.js");
-const gameFiles=["app.js","edgy-platform.js","edgy-game-ui.js","players.js","social.js","history.js","chess-online.js","checkers-replay.js","checkers-online.js","tic-online.js","barricade-online.js","party-online.js","poker-online.js","wordle-data.js","wordle-rules.js","edgy-seen-words.js","wordle-game.js","contexto-data.js","contexto-rules.js","contexto-game.js","auth.js","sw.js"];
+const gameFiles=["app.js","edgy-platform.js","edgy-game-ui.js","players.js","social.js","history.js","chess-online.js","checkers-replay.js","checkers-online.js","tic-online.js","barricade-online.js","party-online.js","poker-online.js","casino-game.js","wordle-data.js","wordle-rules.js","edgy-seen-words.js","wordle-game.js","contexto-data.js","contexto-rules.js","contexto-game.js","auth.js","sw.js"];
 test("All app scripts and inline bootstrap parse successfully",()=>{
  for(const file of gameFiles)assert.doesNotThrow(()=>new vm.Script(read(file),{filename:file}),file);
  const scripts=[...html.matchAll(/<script([^>]*)>([\s\S]*?)<\/script>/g)];
@@ -22,8 +22,8 @@ test("Every local asset referenced by the bootstrap exists",()=>{
  assert.ok(assets);
  const names=[...assets.matchAll(/"([^"]+)"/g)].map(m=>m[1]);
  for(const name of names)assert.ok(fs.existsSync(path.join(dir,name.split("?")[0])),name);
- assert.ok(names.includes("./edgy-platform.js?v=60"),"shared platform cached");
- assert.ok(names.includes("./app.js?v=61"),"bootstrap cached");
+ assert.ok(names.includes("./edgy-platform.js?v=62"),"shared platform cached");
+ assert.ok(names.includes("./app.js?v=62"),"bootstrap cached");
  assert.ok(names.includes("./base.css?v=29"),"base stylesheet cached");
  assert.ok(names.includes("./edgy-theme.css?v=34"),"design cached");
  assert.ok(names.includes("./tic-online.js?v=40"),"online tic cached");
@@ -303,7 +303,7 @@ test("Home picks exactly two unique recent games and offers curated suggestions 
   window:{EDGY_auth:{getUser:()=>({id:"person-A"})}},
   localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v)},
   state:{history:[]},
-  defs:["chess","checkers","barricade","party","poker","wordle","contexto","tic","reaction"].map(id=>({id,name:id})),
+  defs:["chess","checkers","barricade","party","poker","wordle","contexto","tic","reaction","casino"].map(id=>({id,name:id})),
  };
  vm.runInNewContext(script+"\nglobalThis.homeGamesTest=homeGames;globalThis.rememberGameTest=rememberGame;",sandbox);
  const starting=sandbox.homeGamesTest();
@@ -361,7 +361,7 @@ test("Level-up notifications persist per account, share invitation bell and cele
  sandbox.testNotify(4,6);
  assert.deepEqual(Array.from(state.items,x=>x.level),[6,5,4]);
  assert.deepEqual(popups,[4,6]);
- for(const name of ["edgy-levels.css?v=53","social.js?v=61","auth.js?v=56"]){
+ for(const name of ["edgy-levels.css?v=53","social.js?v=61","auth.js?v=62"]){
   assert.ok(html.includes(name));assert.ok(read("sw.js").includes(name));
  }
 });
@@ -545,7 +545,7 @@ test("Cartas Contra Tugas is a 3–8 player registered game with dedicated mobil
  for(const asset of ["party-online.js?v=59","party.css?v=58"]){
   assert.ok(html.includes(asset)&&assets.includes(asset));
  }
- assert.ok(scripts.indexOf("./party-online.js?v=59")>scripts.indexOf("./app.js?v=61"));
+ assert.ok(scripts.indexOf("./party-online.js?v=59")>scripts.indexOf("./app.js?v=62"));
 });
 test("Cartas Contra Tugas privacy, scoring, history and room status are owned by server RPC",()=>{
  const party=read("party-online.js");
@@ -650,6 +650,84 @@ test("Poker deck renders correct standard 52-card suits and keeps hidden cards c
  assert.ok(poker.includes('data-pk-act="call"'));
  assert.ok(poker.includes('data-pk-act="raise"'));
 });
+
+test("EDGY casino provides all three XP-only games with cloud wallet and controlled visual feedback",()=>{
+ const casino=read("casino-game.js"),css=read("casino.css"),auth=read("auth.js"),app=read("app.js");
+ const ui=read("edgy-game-ui.js"),registry=read("edgy-platform.js"),sw=read("sw.js");
+ for(const game of ["coinflip","roulette","slots"])assert.ok(casino.includes('id:"'+game+'"'),game);
+ assert.ok(registry.includes('casino:Object.freeze({id:"casino"'));
+ assert.ok(ui.includes('casino:{title:"Casino EDGY"'));
+ assert.ok(casino.includes('rpc("edgy_arcade_play"'));
+ assert.ok(casino.includes('rpc("edgy_wallet_status"'));
+ assert.ok(casino.includes('crypto.randomUUID()'),"one unique request per bet");
+ assert.ok(!casino.includes("Math.random"),"the outcome must never be calculated by the browser");
+ assert.ok(!casino.includes('EDGY_recordLocalMatch'),"casino payouts must not award career XP");
+ assert.ok(casino.includes('window.EDGY_setWallet?.(wallet,identity)'));
+ assert.ok(casino.includes('me().is_anonymous'));
+ assert.ok(casino.includes('acknowledgementKey()'));
+ assert.ok(casino.includes("30 rondas"));
+ assert.ok(app.includes('window.EDGY_casino?.open()'));
+ assert.ok(app.includes('window.EDGY_casino?.close()'));
+ assert.ok(app.includes('window.EDGY_casino?.render()'));
+ assert.ok(app.includes('id="homeCasino"'));
+ assert.ok(app.includes('id="profileCasino"'));
+ assert.ok(app.includes('availableXP()'));
+ assert.ok(auth.includes('xp,wallet_xp,avatar_path'));
+ assert.ok(auth.includes('window.EDGY_setWallet?.(profile.wallet_xp,uid)'));
+ assert.ok(css.includes('@media(max-width:799px)'));
+ assert.ok(css.includes('prefers-reduced-motion:reduce'));
+ for(const asset of ['casino-game.js?v=62','casino.css?v=62']){
+  assert.ok(html.includes(asset),asset);
+  assert.ok(sw.includes(asset),asset);
+ }
+});
+test("Casino keeps career XP unchanged and updates wallet only from server result",async()=>{
+ const events={},storage=new Map([['edgy_casino_18_ack_user-A','yes']]);
+ const transfers=[],calls=[];
+ const root={innerHTML:"",classList:{remove(){}},
+  querySelector(sel){
+   return {addEventListener(_name,callback){events[sel]=callback}};
+  },querySelectorAll(){return []}};
+ let current=80;
+ const user={id:"user-A",is_anonymous:false};
+ const window={EDGY_auth:{getClient:()=>({rpc:async(name,args)=>{
+  calls.push({name,args});
+  if(name==="edgy_wallet_status")return {data:{wallet_xp:current,total_xp:350,transactions:[]},error:null};
+  if(name==="edgy_arcade_play"){current=105;return{data:{game:"coinflip",stake:25,choice:"cara",payout:50,delta:25,balance:105,total_xp:350,result:{face:"cara",won:true}},error:null}}
+  throw Error(name);
+ }}),getUser:()=>user},
+ EDGY_gameUI:{header:()=>"<header>Casino</header>",card:(_name,body)=>body,match:({stage,side})=>stage+side},
+ EDGY_setWallet:(wallet,id)=>transfers.push([wallet,id])};
+ const context={window,game:"casino",document:{getElementById:()=>root,addEventListener(){}},
+  localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v)},
+  crypto:{randomUUID:()=>"11111111-1111-4111-8111-111111111111"},console};
+ vm.runInNewContext(read("casino-game.js"),context);
+ await window.EDGY_casino.open();
+ assert.ok(root.innerHTML.includes('XP Total'));
+ assert.ok(root.innerHTML.includes('XP Disponível'));
+ assert.ok(root.innerHTML.includes('350'));
+ assert.ok(root.innerHTML.includes('80'));
+ await events['[data-cxn-play]']();
+ assert.equal(calls.filter(c=>c.name==="edgy_arcade_play").length,1);
+ assert.equal(calls.find(c=>c.name==="edgy_arcade_play").args.p_stake,25);
+ assert.equal(calls.find(c=>c.name==="edgy_arcade_play").args.p_choice,"cara");
+ assert.ok(root.innerHTML.includes("105"));
+ assert.ok(root.innerHTML.includes("350"));
+ assert.ok(root.innerHTML.includes("Ganhaste XP"));
+ assert.deepEqual(transfers.map(([n,id])=>[n,id]),[[80,"user-A"],[105,"user-A"],[105,"user-A"]]);
+ window.EDGY_casino.close();
+});
+test("EDGY wallet is isolated by user and career level is computed exclusively from total XP",()=>{
+ const app=read("app.js"),auth=read("auth.js"),casino=read("casino-game.js");
+ assert.ok(app.includes('Math.floor(state.xp/100)+1'));
+ assert.ok(app.includes('state.walletOwner===owner'));
+ assert.ok(app.includes('state.walletXP=value;state.walletOwner=id;save()'));
+ assert.ok(app.includes('if(changed&&!game&&(page==="home"||page==="profile"))render()'));
+ assert.ok(!casino.includes('state.xp+='));
+ assert.ok(auth.includes('wallet_xp'));
+ assert.ok(casino.includes('p_request:request'));
+ assert.ok(casino.includes('Saldo insuficiente'));
+});
 test("Navigation keeps Histórico only inside Perfil",()=>{
  const sidebar=html.split('<aside class="sidebar">')[1].split("</aside>")[0];
  const mobile=html.split('<nav class="nav"')[1].split("</nav>")[0];
@@ -672,7 +750,7 @@ function platformFixture(){
 }
 test("Single registry serves all online games and rejects invalid codes",async()=>{
  const {platform,calls}=platformFixture();
- assert.deepEqual(Object.keys(platform.games).sort(),["barricade","checkers","chess","contexto","party","poker","reaction","tic","wordle"]);
+ assert.deepEqual(Object.keys(platform.games).sort(),["barricade","casino","checkers","chess","contexto","party","poker","reaction","tic","wordle"]);
  assert.equal(platform.code(" aB41cD23 "),"AB41CD23");
  assert.throws(()=>platform.code("oops"),/8 caracteres/);
  assert.throws(()=>platform.rooms.create("reaction"),/não suporta/);
@@ -866,13 +944,13 @@ test("Stable footer, profile replay links and chess mobile actions",()=>{
 
 test("Game library uses a single registry loaded before bootstrap",()=>{
  const scripts=[...html.matchAll(/<script[^>]*src="([^"]+)"/g)].map(m=>m[1]);
- const platform=scripts.indexOf("./edgy-platform.js?v=60");
- const bootstrap=scripts.indexOf("./app.js?v=61");
+ const platform=scripts.indexOf("./edgy-platform.js?v=62");
+ const bootstrap=scripts.indexOf("./app.js?v=62");
  assert.ok(platform>=0&&bootstrap>=0&&platform<bootstrap);
  const app=read("app.js"),defs=read("edgy-platform.js");
  assert.ok(app.includes("Object.values(window.EDGY_platform.games).map("));
  assert.ok(app.includes("homeGames()"),"Home uses the two-game selector");
- for(const game of ["chess","checkers","tic","reaction","barricade","party","poker","wordle","contexto"])assert.ok(defs.includes(game+":Object.freeze("));
+ for(const game of ["chess","checkers","tic","reaction","casino","barricade","party","poker","wordle","contexto"])assert.ok(defs.includes(game+":Object.freeze("));
  assert.ok(app.includes('filter==="Multiplayer"?window.EDGY_platform.games[g.id].online'));
 });
 
@@ -990,9 +1068,9 @@ test("Chess shares the match shell, drawer binder and move controls",()=>{
 });
 test("All games share one header, lobby cards and match presentation",()=>{
  const html=read("index.html"),ui=read("edgy-game-ui.js"),css=read("edgy-game-layout.css");
- assert.ok(html.includes('edgy-game-ui.js?v=60'));
+ assert.ok(html.includes('edgy-game-ui.js?v=62'));
  assert.ok(html.includes('edgy-game-layout.css?v=47'));
- for(const game of ["chess","checkers","tic","reaction","barricade","party","poker","wordle","contexto"])assert.ok(ui.includes(game+':{title:'));
+ for(const game of ["chess","checkers","tic","reaction","casino","barricade","party","poker","wordle","contexto"])assert.ok(ui.includes(game+':{title:'));
  for(const file of ["chess-online.js","checkers-online.js","tic-online.js","barricade-online.js","app.js"]){
   const src=read(file);
   assert.ok(src.includes('window.EDGY_gameUI.header(')||src.includes('ui().header('),file);
@@ -1106,7 +1184,7 @@ test("Home and Biblioteca render exactly the same reusable game cards",()=>{
  assert.ok(css.includes('grid-auto-rows:1fr'),"all cards in the grid stretch equally");
  assert.ok(css.includes('.main.edgyLibraryViewport>.foot'),"library footer follows the cards in the main scroller");
  assert.ok(html.includes('edgy-game-layout.css?v=47'));
- assert.ok(html.includes('app.js?v=61'));
+ assert.ok(html.includes('app.js?v=62'));
 });
 test("EDGY v36: chess title is short and empty join notice does not reserve space",()=>{
  const chess=read("chess-online.js"),ui=read("edgy-game-ui.js"),css=read("edgy-game-layout.css");
