@@ -1,0 +1,126 @@
+/* EDGY Casino — unified deep-purple UI; XP only, no fiat value. */
+#screen .cxnPage{width:min(100%,1120px);margin:0 auto;min-width:0}
+#screen .cxnBalances{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px;margin:14px 0}
+#screen .cxnBalances>div{display:flex;flex-direction:column;gap:7px;padding:18px 20px;
+ border:1px solid #685174;background:linear-gradient(155deg,#302240,#251b35);border-radius:8px;min-width:0}
+#screen .cxnBalances>div:nth-child(2){border-color:#ab4c90;background:linear-gradient(145deg,#482744,#2b1e3b)}
+#screen .cxnBalances>div>span{font-size:12px;font-weight:800;color:#d5bfd9}
+#screen .cxnBalances>div>strong{font-size:clamp(25px,3vw,35px);line-height:1.2;letter-spacing:-1px;color:white;font-variant-numeric:tabular-nums}
+#screen .cxnBalances>div>small{font-size:11px;color:#bdaaC8;line-height:1.5}
+#screen .cxnMark{color:#fc75ba;margin-right:5px}
+#screen .cxnGameTabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:14px 0 18px}
+#screen .cxnGameTabs button{display:flex;flex-direction:column;align-items:flex-start;gap:5px;padding:14px 15px;
+ min-width:0;min-height:118px;background:#2d233c;color:#e9d9ef;border:1px solid #5d486d;text-align:left;border-radius:7px;
+ transition:background .17s ease,border-color .17s ease,transform .17s ease}
+#screen .cxnGameTabs button>span{font-size:24px;color:#ea6fae;line-height:1}
+#screen .cxnGameTabs button>strong{font-size:14px;color:#fff}
+#screen .cxnGameTabs button>small{font-size:10px;line-height:1.45;color:#b9a8c8}
+#screen .cxnGameTabs button.active{border-color:#f077b6;background:#452b4d;box-shadow:inset 0 0 0 1px #ef78b533}
+#screen .cxnGameTabs button:hover{border-color:#ed7cba;transform:translateY(-1px)}
+#screen .cxnLayout{grid-template-columns:minmax(0,1fr) minmax(240px,300px)!important;align-items:start;gap:15px}
+#screen .cxnStage,#screen .cxnSide{min-width:0}
+#screen .cxnCasinoPanel{border:1px solid #6b4b78;background:linear-gradient(155deg,#2b203c,#201830);border-radius:8px;padding:18px}
+#screen .cxnPanelTitle{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:11px}
+#screen .cxnPanelTitle h2{margin:0;font-size:20px;font-weight:850}
+#screen .cxnPanelTitle>span{color:#f6b8dc;border:1px solid #9e5987;background:#482f50;padding:6px 9px;font-size:10px;border-radius:4px;white-space:nowrap}
+#screen .cxnCoinWrap{display:grid;place-items:center;min-height:198px}
+#screen .cxnCoin{display:grid;place-items:center;width:149px;height:149px;border-radius:50%;
+ border:11px double #f7afd1;background:radial-gradient(circle at 34% 28%,#f9a6d9,#d44392 62%,#893874);
+ box-shadow:inset 0 0 0 4px #f4c1d2,inset -13px -17px 18px #7420556e,0 17px 30px #10091780;
+ color:#fff0f8;font-size:79px;font-weight:900;text-shadow:0 2px 8px #6f245e}
+#screen .cxnCoinPlayed{animation:cxnCoinFlip .85s cubic-bezier(.22,.7,.25,1)}
+#screen .cxnWheelWrap{display:grid;place-items:center;padding:5px 0 17px;min-height:195px}
+#screen .cxnWheel{width:179px;height:179px;display:grid;place-items:center;border-radius:50%;
+ background:repeating-conic-gradient(#bb2348 0deg 9deg,#1f2630 9deg 18deg);
+ border:8px solid #ba92a9;outline:3px solid #633e6f;box-shadow:inset 0 0 0 3px #fff5,0 12px 24px #140e276e;position:relative}
+#screen .cxnWheel::before{content:"";position:absolute;inset:28px;border-radius:50%;background:#2e2341;border:5px solid #dba4c7}
+#screen .cxnWheel>span{position:relative;z-index:1;display:grid;place-items:center;background:#4a304d;color:#fff;border-radius:50%;
+ border:1px solid #d8a9cb;width:74px;height:74px;font-size:30px;font-weight:900;font-variant-numeric:tabular-nums}
+#screen .cxnWheelPlayed{animation:cxnWheelSpin .9s cubic-bezier(.25,.7,.2,1)}
+#screen .cxnReels{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin:20px auto;
+ width:min(100%,390px);padding:17px;background:linear-gradient(140deg,#482f4e,#281e3b);border:1px solid #a46096;border-radius:7px}
+#screen .cxnReels>span{display:grid;place-items:center;min-width:0;min-height:105px;background:#fcf2f8;color:#251a31;
+ border-radius:6px;border:3px solid #d99dbf;font-size:clamp(42px,6vw,68px);box-shadow:inset 0 0 11px #a9639e38}
+#screen .cxnReelsPlayed>span{animation:cxnSlotLand .42s both}
+#screen .cxnReelsPlayed>span:nth-child(2){animation-delay:.12s}
+#screen .cxnReelsPlayed>span:nth-child(3){animation-delay:.23s}
+#screen .cxnInputLabel{font-size:12px;font-weight:800;margin:13px 0 9px;color:#e7c9df}
+#screen .cxnSelections{display:flex;flex-wrap:wrap;gap:7px}
+#screen .cxnSelections button{min-height:44px;flex:1;min-width:0;padding:10px 9px;background:#342643;border:1px solid #6f4c78;
+ color:#d9c7df;border-radius:5px;font-size:12px;font-weight:750;transition:background .15s ease,border-color .15s ease}
+#screen .cxnSelections button.selected{border-color:#f47cb7;background:#77416c;color:white}
+#screen .cxnSelections button:focus-visible,#screen .cxnGameTabs button:focus-visible{outline:2px solid #ff91cb;outline-offset:2px}
+#screen .cxnSelections button.red{background:#97394e}
+#screen .cxnSelections button.black{background:#22212c}
+#screen .cxnSelections button.green{background:#256655}
+#screen .cxnRouletteSelections{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+#screen .cxnNumberChoice{display:flex;gap:9px;align-items:center;margin:10px 0;font-size:12px;color:#d9c5db}
+#screen .cxnNumberChoice select{height:42px;border-radius:4px;background:#2f2240;border:1px solid #784d81;color:#fff;padding:5px 12px;font-size:16px}
+#screen .cxnOdds{font-size:11px;line-height:1.5;color:#b7a2c0;margin:13px 0}
+#screen .cxnStakes{margin:17px 0 12px;padding-top:13px;border-top:1px solid #5d4466}
+#screen .cxnStakeOptions{display:grid;grid-template-columns:repeat(4,minmax(0,1fr))}
+#screen .cxnPlay{display:block;width:100%;min-height:47px;border-radius:5px;font-size:14px;font-weight:900}
+#screen .cxnPlay:disabled{opacity:.5;cursor:default}
+#screen .cxnOutcome{margin-top:16px;border:1px solid #b55b91;padding:14px;background:#3e2845;text-align:center;border-radius:6px;animation:cxnReveal .3s both}
+#screen .cxnOutcome h3{font-size:17px;margin:8px 0;color:#fff}
+#screen .cxnOutcome p{font-size:12px;color:#e4cbdc}
+#screen .cxnOutcome small{font-size:10px;color:#b5a1bd}
+#screen .cxnOutcomeCoin{display:inline-block;font-weight:950;font-size:16px;color:#ffe4f3;letter-spacing:2px;border-radius:25px;border:1px solid #ed9ccd;padding:8px 15px}
+#screen .cxnOutcomeNumber{margin:auto;display:grid;place-items:center;width:54px;height:54px;border-radius:50%;font-size:27px;font-weight:900;color:white;border:2px solid #dcb0c7;background:#972c47}
+#screen .cxnOutcomeNumber.black{background:#202331}
+#screen .cxnOutcomeNumber.green{background:#277259}
+#screen .cxnOutcome .cxnReels{padding:5px;max-width:200px;margin:6px auto 11px}
+#screen .cxnOutcome .cxnReels>span{min-height:60px;font-size:31px}
+#screen .cxnGain{color:#a0ebbb!important}
+#screen .cxnLoss{color:#ffb1bc!important}
+#screen .cxnNeutral{color:#e4c5d9!important}
+#screen .cxnHistory{display:grid;gap:7px;max-height:480px;overflow-y:auto}
+#screen .cxnTx{display:flex;justify-content:space-between;align-items:center;gap:7px;padding:9px 10px;background:#342643;border:1px solid #5b456b;border-radius:4px}
+#screen .cxnTx>div{min-width:0}
+#screen .cxnTx strong{display:block;font-size:11px;color:#fff}
+#screen .cxnTx small{display:block;font-size:9px;color:#bcacce;margin-top:3px}
+#screen .cxnTx>b{font-size:11px;white-space:nowrap;font-variant-numeric:tabular-nums}
+#screen .cxnSide .edgyGamePanel p{line-height:1.65;font-size:11px}
+#screen .cxnMessage{font-size:12px;color:#ffb5d1;background:#3e2742;border:1px solid #a45182;padding:12px;border-radius:6px;margin:12px 0}
+@keyframes cxnCoinFlip{0%{transform:rotateY(0)}50%{transform:rotateY(900deg) scale(1.05)}100%{transform:rotateY(1080deg)}}
+@keyframes cxnWheelSpin{from{transform:rotate(-980deg)}to{transform:rotate(0)}}
+@keyframes cxnSlotLand{from{opacity:.4;transform:translateY(-14px)}to{opacity:1;transform:none}}
+@keyframes cxnReveal{from{opacity:0;transform:translateY(9px)}to{opacity:1;transform:none}}
+@media(max-width:799px){
+ #screen .cxnPage{width:100%}
+ #screen .cxnBalances{gap:8px}
+ #screen .cxnBalances>div{padding:12px 10px}
+ #screen .cxnBalances>div>strong{font-size:clamp(21px,6vw,28px)}
+ #screen .cxnBalances>div>span{font-size:10px}
+ #screen .cxnBalances>div>small{font-size:10px}
+ #screen .cxnGameTabs{gap:6px}
+ #screen .cxnGameTabs button{padding:10px 8px;min-height:94px}
+ #screen .cxnGameTabs button>span{font-size:21px}
+ #screen .cxnGameTabs button>strong{font-size:12px}
+ #screen .cxnGameTabs button>small{font-size:9px;line-height:1.3}
+ #screen .cxnLayout{display:flex!important;flex-direction:column!important;gap:12px!important}
+ #screen .cxnStage{width:100%}
+ #screen .cxnSide{width:100%;display:grid;gap:12px}
+ #screen .cxnSide .edgyGamePanel{margin:0!important}
+ #screen .cxnCasinoPanel{padding:13px}
+ #screen .cxnWheelWrap,#screen .cxnCoinWrap{min-height:167px}
+ #screen .cxnWheel{width:151px;height:151px}
+ #screen .cxnCoin{width:124px;height:124px;font-size:60px}
+ #screen .cxnReels{padding:10px}
+ #screen .cxnReels>span{min-height:80px;font-size:48px}
+ .main:has(> #screen .cxnPage){display:flex!important;flex-direction:column!important;height:100dvh!important;min-height:0!important;overflow:hidden!important;padding-bottom:calc(78px + env(safe-area-inset-bottom))!important}
+ .main:has(> #screen .cxnPage)>.top{flex:0 0 auto!important}
+ .main:has(> #screen .cxnPage)>#screen{flex:1 1 auto!important;height:auto!important;min-height:0!important;overflow-y:auto!important;overflow-x:hidden!important;-webkit-overflow-scrolling:touch!important;touch-action:pan-y pinch-zoom!important;padding-bottom:22px!important}
+ .main:has(> #screen .cxnPage)>.foot{display:block!important;flex:0 0 auto!important;margin:0!important;padding:9px 0 4px!important;font-size:10px!important}
+ .main:has(> #screen .cxnPage)>#screen.edgyPageIn{animation:none!important;transform:none!important}
+}
+@media(max-width:370px){
+ #screen .cxnStakeOptions{gap:4px}
+ #screen .cxnStakeOptions button{font-size:10px;padding:8px 4px}
+ #screen .cxnGameTabs button{padding:9px 5px}
+ #screen .cxnGameTabs button>small{font-size:8px}
+}
+@media(prefers-reduced-motion:reduce){
+ #screen .cxnCoinPlayed,#screen .cxnWheelPlayed,#screen .cxnReelsPlayed>span,#screen .cxnOutcome{animation:none!important}
+ #screen .cxnGameTabs button,#screen .cxnSelections button{transition:none!important}
+}
