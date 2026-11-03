@@ -238,7 +238,7 @@ function render(){
  }else if(!accepted()){
   content=ui().card("Acesso aos minijogos +18",'<p>Esta área contém simulações de jogos de casino, apenas com XP virtual.</p>'
    +'<p>O XP não pode ser comprado com dinheiro, vendido, transferido ou convertido em dinheiro ou prémios reais.</p>'
-   +'<p>Existem limites de 30 rondas em 24 horas. Não existe intervalo obrigatório entre jogadas.</p>'
+   +'<p>Podes jogar as vezes que quiseres, sem limites diários nem tempo de espera entre jogadas.</p>'
    +'<button type="button" class="primary" data-cxn-ack>Confirmo que tenho 18 anos ou mais e quero entrar</button>');
  }else{
   const balanceText=wallet===null?"—":fmt(wallet);
@@ -250,7 +250,7 @@ function render(){
    +ui().match({game:"casino",stage:casinoContent(),
     side:ui().card("Movimentos de XP",'<div class="cxnHistory">'+(items.length?items.slice(0,12).map(historyItem).join(""):'<p class="sub">Ainda não existem movimentos.</p>')+'</div>')
      +ui().card("Regras da economia",'<p class="sub">Ganhar XP nos jogos e nos treinos aumenta o XP Total e o saldo disponível. No casino, só o lucro das apostas também aumenta o XP Total. Perder nunca reduz o nível.</p>'
-       +'<p class="sub">Não existe dinheiro real, compra de fichas ou levantamento de prémios. 30 rondas por 24 horas, sem intervalo obrigatório entre jogadas.</p>'
+       +'<p class="sub">Não existe dinheiro real, compra de fichas ou levantamento de prémios. Podes jogar sem limite de rondas, desde que tenhas XP disponível.</p>'
        +'<p class="sub">As jogadas são decididas e registadas no servidor.</p>'),
     layoutClass:"cxnLayout",stageClass:"cxnStage",sideClass:"cxnSide"});
  }
