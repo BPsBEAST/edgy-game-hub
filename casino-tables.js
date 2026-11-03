@@ -97,6 +97,7 @@ async function action(method,extra={}){
    start:["edgy_casino_room_action",{p_code:code,p_action:"start"}],
    hit:["edgy_casino_room_action",{p_code:code,p_action:"hit"}],
    stand:["edgy_casino_room_action",{p_code:code,p_action:"stand"}],
+   resolve:["edgy_casino_room_action",{p_code:code,p_action:"resolve"}],
    next:["edgy_casino_room_action",{p_code:code,p_action:"next"}]
   };
   const call=calls[method];if(!call)return;
@@ -188,7 +189,8 @@ function roomView(){
   +(waiting&&!canStart?'<p class="cxtInfo">'+(mine?.stake?'Aposta registada. ':'')+(host()?'Aguardar os restantes jogadores e as apostas.':'O anfitrião começa quando todos estiverem prontos.')+'</p>':'')
   +(playing?'<p class="cxtInfo">'+(mine?.done?'Aguarda que as outras mãos terminem.':'É a tua vez de jogar a mão.')+'</p>'
     +(!mine?.done?'<div class="cxtActions cxtTurn"><button type="button" class="primary" data-cxt-action="hit" '+(busy?'disabled':'')+'>Pedir carta</button>'
-      +'<button type="button" class="secondary" data-cxt-action="stand" '+(busy?'disabled':'')+'>Ficar</button></div>':''):'')
+      +'<button type="button" class="secondary" data-cxt-action="stand" '+(busy?'disabled':'')+'>Ficar</button></div>':'')
+    +(room.can_resolve?'<button type="button" class="secondary cxtPrimary" data-cxt-action="resolve" '+(busy?'disabled':'')+'>Resolver ronda inativa</button>':''):'')
   +(finished?'<div class="cxtRoundEnd"><h3>Ronda concluída</h3><p>As recompensas foram registadas no XP disponível e no XP Total (apenas lucros).</p>'
      +(host()?'<button type="button" class="primary cxtPrimary" data-cxt-action="next" '+(busy?'disabled':'')+'>Preparar próxima ronda</button>'
        :'<p>À espera que o anfitrião prepare a próxima ronda.</p>')+'</div>':'')
