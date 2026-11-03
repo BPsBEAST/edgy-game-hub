@@ -10,7 +10,7 @@ const details=Object.freeze({
  tic:{title:"Jogo do Galo",icon:"⊗",intro:"3×3 · 2 jogadores · Online ou local"},
  contexto:{title:"Contexto",icon:"◎",intro:"Palavras · Significado · Tentativas ilimitadas"},
  wordle:{title:"Wordle",icon:"▦",intro:"Cinco letras · Seis tentativas · Rondas ilimitadas"},
- casino:{title:"Casino EDGY",icon:"✦",intro:"Roleta · Coinflip · Slots · XP virtual"},
+ casino:{title:"Casino EDGY",icon:"✦",intro:"Blackjack · Roleta · Coinflip · Slots · XP virtual"},
  reaction:{title:"Reflexos",icon:"◴",intro:"Arcade · 1 jogador · 3 rondas"}
 });
 function escape(value){return String(value??"").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]))}
