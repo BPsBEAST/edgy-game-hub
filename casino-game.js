@@ -302,8 +302,8 @@ function autoPanel(){
 }
 function controls(){
  return '<div class="cxnStakes"><p class="cxnInputLabel">Valor a jogar</p><div class="cxnSelections cxnStakeOptions">'
-  +limits.map(x=>'<button type="button" data-cxn-stake="'+x+'" class="'+(stake===x?'selected':'')+'" '+(playing||loading?'disabled':'')+'>'+x+' XP</button>').join("")
-  +'</div></div><button class="primary cxnPlay" data-cxn-play type="button" '+(playing||loading||wallet===null||wallet<stake?'disabled':'')+'>'
+  +limits.map(x=>'<button type="button" data-cxn-stake="'+x+'" class="'+(stake===x?'selected':'')+'" '+(playing||loading||autoSession?.active||(mode==='slots'&&autoStake!==null)?'disabled':'')+'>'+x+' XP</button>').join("")
+  +'</div></div><button class="primary cxnPlay" data-cxn-play type="button" '+(playing||loading||autoSession?.active||wallet===null||wallet<stake?'disabled':'')+'>'
   +(playing?'A rodar…':'Jogar '+stake+' XP')+'</button>';
 }
 function casinoContent(){
@@ -312,7 +312,7 @@ function casinoContent(){
  return '<section class="cxnCasinoPanel"><div class="cxnPanelTitle"><h2>'+esc(games.find(g=>g.id===mode).name)+'</h2>'
   +'<span>100% XP virtual</span></div>'
   +tablePanel
-  +(tableMode?"":(mode==="coinflip"?coinPanel():mode==="roulette"?roulettePanel():slotsPanel())+controls()+outcome())
+  +(tableMode?"":(mode==="coinflip"?coinPanel():mode==="roulette"?roulettePanel():slotsPanel())+controls()+autoPanel()+outcome())
   +'</section>';
 }
 function render(){
@@ -348,11 +348,15 @@ function render(){
  root.querySelector("[data-cxn-login]")?.addEventListener("click",()=>window.EDGY_auth?.showEntry?.());
  root.querySelector("[data-cxn-ack]")?.addEventListener("click",acknowledge);
  root.querySelectorAll("[data-cxn-mode]").forEach(b=>b.addEventListener("click",()=>chooseMode(b.dataset.cxnMode)));
- root.querySelectorAll("[data-cxn-stake]").forEach(b=>b.addEventListener("click",()=>{if(playing)return;stake=Number(b.dataset.cxnStake);result=null;message="";render()}));
+ root.querySelectorAll("[data-cxn-stake]").forEach(b=>b.addEventListener("click",()=>{if(playing||autoSession?.active||(mode==='slots'&&autoStake!==null))return;stake=Number(b.dataset.cxnStake);result=null;message="";render()}));
  root.querySelectorAll("[data-cxn-face]").forEach(b=>b.addEventListener("click",()=>{if(playing)return;face=b.dataset.cxnFace;result=null;render()}));
  root.querySelectorAll("[data-cxn-roulette]").forEach(b=>b.addEventListener("click",()=>{if(playing)return;roulette=b.dataset.cxnRoulette;result=null;render()}));
  root.querySelector("#cxn-number")?.addEventListener("change",e=>{number=Number(e.target.value)||0;result=null});
  root.querySelector("[data-cxn-play]")?.addEventListener("click",play);
+ root.querySelector("[data-cxn-auto-lock]")?.addEventListener("click",lockAutoStake);
+ root.querySelectorAll("[data-cxn-auto-count]").forEach(b=>b.addEventListener("click",()=>selectAutoCount(Number(b.dataset.cxnAutoCount))));
+ root.querySelector("[data-cxn-auto-start]")?.addEventListener("click",runAuto);
+ root.querySelector("[data-cxn-auto-stop]")?.addEventListener("click",stopAuto);
  window.EDGY_casinoTables?.bind?.(root,mode);
 }
 window.EDGY_casino=Object.freeze({open,openRoom,close,render,refresh, syncWallet:(value,owner)=>{
