@@ -129,7 +129,7 @@ async function loadCloud(nickname){
  try{
   if(nickname)await sb.from("profiles").update({display_name:nickname}).eq("id",uid);
   const [pr,hi]=await Promise.all([
-   sb.from("profiles").select("display_name,username,xp,avatar_path,public_visible,bio").eq("id",uid).maybeSingle(),
+   sb.from("profiles").select("display_name,username,xp,wallet_xp,avatar_path,public_visible,bio").eq("id",uid).maybeSingle(),
    sb.from("match_history").select("client_id,game,result,xp,played_at").eq("user_id",uid).order("played_at",{ascending:false}).limit(50)
   ]);
   if(account?.id!==uid)return;
@@ -145,6 +145,7 @@ async function loadCloud(nickname){
   const unsynced=own?state.history.filter(h=>!h.remote&&!known.has(String(h.client_id))):[];
   if(pr.data){profile=pr.data;state.name=profile.display_name;
    state.xp=Math.max(0,Number(profile.xp)||0)+unsynced.reduce((sum,h)=>sum+Math.max(0,Number(h.xp)||0),0);
+   window.EDGY_setWallet?.(profile.wallet_xp,uid);
   }
   state.history=[...unsynced,...remote].sort((a,b)=>Date.parse(b.date||0)-Date.parse(a.date||0)).slice(0,50);
   save();
