@@ -196,6 +196,14 @@ begin
    end if;
    return jsonb_build_object('ok',true);
  end if;
+ if p_action='resolve' then
+   if v_room.game<>'blackjack' or v_room.status<>'playing'
+      or v_room.updated_at>clock_timestamp()-interval '120 seconds'
+   then raise exception 'A ronda ainda está ativa. Aguarda até 2 minutos sem jogadas.';end if;
+   update public.edgy_casino_seats set done=true where room_id=v_room.id and not done;
+   perform edgy_internal.edgy_casino_blackjack_finish(v_room.code);
+   return jsonb_build_object('ok',true);
+ end if;
  if v_room.game<>'blackjack' or v_room.status<>'playing' or p_action not in('hit','stand') then
    raise exception 'Ação indisponível';end if;
  if v_seat.done then raise exception 'A tua mão já terminou';end if;
@@ -339,6 +347,7 @@ begin
   'code',v_room.code,'game',v_room.game,'bot',v_room.bot,'status',v_room.status,
   'host',v_room.host_id,'my_id',v_uid,'round',v_room.round,'players',v_players,
   'dealer',v_dealer,'dealer_total',case when v_room.status='playing' then null else v_room.state->'dealer_total' end,
+  'can_resolve',v_room.game='blackjack' and v_room.status='playing' and v_room.updated_at<=now()-interval '120 seconds',
   'outcome',coalesce(v_room.state->'outcome','{}'::jsonb)
  );
 end$function$;
