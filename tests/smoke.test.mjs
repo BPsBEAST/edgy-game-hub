@@ -665,7 +665,10 @@ test("EDGY casino provides all three XP-only games with cloud wallet and control
  assert.ok(casino.includes('window.EDGY_setWallet?.(wallet,identity)'));
  assert.ok(casino.includes('me().is_anonymous'));
  assert.ok(casino.includes('acknowledgementKey()'));
- assert.ok(casino.includes("30 rondas"));
+ assert.ok(!casino.includes("30 rondas")&&!casino.includes("24 horas"),"casino must have unlimited virtual rounds");
+ const casinoSQL=read("supabase/casino_upgrade.sql");
+ assert.ok(!casinoSQL.includes("v_rounds")&&!casinoSQL.includes("30 rounds"),"SQL must not enforce daily round caps");
+ assert.ok(casinoSQL.includes("if v_balance<p_stake"),"balance check remains enforced by server");
  assert.ok(app.includes('window.EDGY_casino?.open()'));
  assert.ok(app.includes('window.EDGY_casino?.close()'));
  assert.ok(app.includes('window.EDGY_casino?.render()'));
@@ -680,7 +683,7 @@ test("EDGY casino provides all three XP-only games with cloud wallet and control
  assert.ok(casino.includes('async function animateResult('));
  assert.ok(casino.includes('xp_awarded'));
  assert.ok(!casino.includes('intervalo mínimo de 5 segundos'));
- for(const asset of ['casino-game.js?v=63','casino.css?v=63']){
+ for(const asset of ['casino-game.js?v=64','casino.css?v=63']){
   assert.ok(html.includes(asset),asset);
   assert.ok(sw.includes(asset),asset);
  }
