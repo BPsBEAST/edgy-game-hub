@@ -676,24 +676,28 @@ test("EDGY casino provides all three XP-only games with cloud wallet and control
  assert.ok(auth.includes('window.EDGY_setWallet?.(profile.wallet_xp,uid)'));
  assert.ok(css.includes('@media(max-width:799px)'));
  assert.ok(css.includes('prefers-reduced-motion:reduce'));
- for(const asset of ['casino-game.js?v=62','casino.css?v=62']){
+ assert.ok(css.includes('cxnSlotMachine')&&css.includes('cxnWheelRotor')&&css.includes('cxnCoinFace'));
+ assert.ok(casino.includes('async function animateResult('));
+ assert.ok(casino.includes('xp_awarded'));
+ assert.ok(!casino.includes('intervalo mínimo de 5 segundos'));
+ for(const asset of ['casino-game.js?v=63','casino.css?v=63']){
   assert.ok(html.includes(asset),asset);
   assert.ok(sw.includes(asset),asset);
  }
 });
-test("Casino keeps career XP unchanged and updates wallet only from server result",async()=>{
+test("Casino uses server-authoritative career gains and never lowers level after a loss",async()=>{
  const events={},storage=new Map([['edgy_casino_18_ack_user-A','yes']]);
  const transfers=[],calls=[];
  const root={innerHTML:"",classList:{remove(){}},
   querySelector(sel){
    return {addEventListener(_name,callback){events[sel]=callback}};
   },querySelectorAll(){return []}};
- let current=80;
+ let current=80,currentTotal=350,round=0;
  const user={id:"user-A",is_anonymous:false};
  const window={EDGY_auth:{getClient:()=>({rpc:async(name,args)=>{
   calls.push({name,args});
-  if(name==="edgy_wallet_status")return {data:{wallet_xp:current,total_xp:350,transactions:[]},error:null};
-  if(name==="edgy_arcade_play"){current=105;return{data:{game:"coinflip",stake:25,choice:"cara",payout:50,delta:25,balance:105,total_xp:350,result:{face:"cara",won:true}},error:null}}
+  if(name==="edgy_wallet_status")return {data:{wallet_xp:current,total_xp:currentTotal,transactions:[]},error:null};
+  if(name==="edgy_arcade_play"){round++;current=round===1?105:80;currentTotal=375;return{data:{game:"coinflip",stake:25,choice:"cara",payout:round===1?50:0,delta:round===1?25:-25,balance:current,total_xp:currentTotal,xp_awarded:round===1?25:0,result:{face:round===1?"cara":"coroa",won:round===1}},error:null}}
   throw Error(name);
  }}),getUser:()=>user},
  EDGY_gameUI:{header:()=>"<header>Casino</header>",card:(_name,body)=>body,match:({stage,side})=>stage+side},
@@ -712,9 +716,15 @@ test("Casino keeps career XP unchanged and updates wallet only from server resul
  assert.equal(calls.find(c=>c.name==="edgy_arcade_play").args.p_stake,25);
  assert.equal(calls.find(c=>c.name==="edgy_arcade_play").args.p_choice,"cara");
  assert.ok(root.innerHTML.includes("105"));
- assert.ok(root.innerHTML.includes("350"));
+ assert.ok(root.innerHTML.includes("375"));
  assert.ok(root.innerHTML.includes("Ganhaste XP"));
- assert.deepEqual(transfers.map(([n,id])=>[n,id]),[[80,"user-A"],[105,"user-A"],[105,"user-A"]]);
+ assert.ok(root.innerHTML.includes("XP para subir de nível"));
+ await events['[data-cxn-play]']();
+ assert.equal(calls.filter(c=>c.name==="edgy_arcade_play").length,2);
+ assert.ok(root.innerHTML.includes("80"));
+ assert.ok(root.innerHTML.includes("375"));
+ assert.ok(root.innerHTML.includes("Sem prémio nesta ronda"));
+ assert.deepEqual(transfers.map(([n,id])=>[n,id]),[[80,"user-A"],[105,"user-A"],[105,"user-A"],[80,"user-A"],[80,"user-A"]]);
  window.EDGY_casino.close();
 });
 test("EDGY wallet is isolated by user and career level is computed exclusively from total XP",()=>{
@@ -725,7 +735,7 @@ test("EDGY wallet is isolated by user and career level is computed exclusively f
  assert.ok(app.includes('if(changed&&!game&&(page==="home"||page==="profile"))render()'));
  assert.ok(!casino.includes('state.xp+='));
  assert.ok(auth.includes('wallet_xp'));
- assert.ok(casino.includes('p_request:request'));
+ assert.ok(casino.includes('p_request:crypto.randomUUID()'));
  assert.ok(casino.includes('Saldo insuficiente'));
 });
 test("Navigation keeps Histórico only inside Perfil",()=>{
