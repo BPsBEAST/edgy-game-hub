@@ -76,7 +76,7 @@ async function load(query){
  const {data,error}=await sb().rpc("edgy_list_players",{p_search:query.trim().slice(0,40),p_limit:40});
  if(error)throw error;if(turn!==request||!holder.isConnected)return;
  const ranked=(Array.isArray(data)?[...data]:[]).sort((a,b)=>
-  Math.floor(Math.max(0,Number(b.xp)||0)/100)-Math.floor(Math.max(0,Number(a.xp)||0)/100)
+  (Number(b.level)||1)-(Number(a.level)||1)
   ||(Number(b.xp)||0)-(Number(a.xp)||0)
   ||String(a.username||a.name||"").localeCompare(String(b.username||b.name||""),"pt"));
  holder.innerHTML=ranked.length?'<div class="playersGrid">'+ranked.map((p,i)=>'<button class="playerCard" data-player="'+esc(p.id)+'"><span class="playerRank" aria-label="Posição '+(i+1)+' na lista">'+(i+1)+'º</span>'+avatar(p)+'<span class="playerBody"><strong>'+esc(p.name)+'</strong><small>@'+esc(p.username)+'</small>'+(p.bio?'<span class="playerBioPreview">'+esc(p.bio)+'</span>':"")+'<span class="playerLevel">Nível '+Number(p.level||1)+' · '+Number(p.xp||0)+' XP</span><span>'+Number(p.matches||0)+' partidas</span></span></button>').join("")+'</div>':'<div class="playerEmpty">Não encontramos jogadores com esse nome.</div>';
