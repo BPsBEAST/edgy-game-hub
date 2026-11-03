@@ -1,0 +1,102 @@
+/* EDGY Casino shared table / Blackjack · mobile first */
+#screen .cxtPanel{width:100%;min-width:0}
+#screen .cxtModes{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:7px 0 17px}
+#screen .cxtModes button{padding:12px 8px;min-height:45px;border:1px solid #715174;background:#2c233a;color:#dcc8e0;
+ border-radius:7px;font-size:12px;font-weight:800;transition:background .16s,border-color .16s}
+#screen .cxtModes button.active{background:#61375e;border-color:#f197c9;color:#fff;box-shadow:inset 0 0 0 1px #e4a2cc44}
+#screen .cxtEntry{border:1px solid #714e79;background:linear-gradient(150deg,#372341,#21192f);border-radius:9px;
+ padding:22px 17px;margin:13px 0;text-align:center}
+#screen .cxtEntry h3{font-size:19px;color:#fff;margin:0 0 10px}
+#screen .cxtEntry p{font-size:12px;line-height:1.7;color:#d9bfdc;margin:9px 0 16px}
+#screen .cxtPrimary{display:block;width:100%;min-height:47px;margin:12px 0 0;font-weight:900}
+#screen .cxtJoin{display:flex;gap:8px;margin-top:15px}
+#screen .cxtJoin input{width:100%;min-width:0;background:#20172d;border:1px solid #816189;
+ color:#fff;border-radius:6px;padding:12px;font-size:16px;letter-spacing:2px;text-transform:uppercase}
+#screen .cxtJoin button{padding:8px 17px}
+#screen .cxtTableHeader{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
+ border-bottom:1px solid #6e4772;padding:0 0 12px}
+#screen .cxtTableHeader small{font-size:10px;color:#e5b9d5;letter-spacing:.08em}
+#screen .cxtTableHeader h3{margin:4px 0 0;font-size:17px;color:#fff}
+#screen .cxtActions{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+#screen .cxtActions button{min-height:40px;padding:9px 14px;font-weight:800;font-size:12px}
+#screen .cxtFelt{position:relative;min-height:200px;margin:16px 0 14px;padding:17px 14px;
+ border:7px solid #6d3e57;border-radius:100px 100px 32px 32px;
+ background:radial-gradient(ellipse at 50% 35%,#226954,#154336 65%,#0b2628 100%);
+ box-shadow:inset 0 0 0 3px #c8a57c7a,inset 0 16px 38px #06281999,0 10px 20px #0005;
+ display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px}
+#screen .cxtDealerLabel{display:flex;align-items:center;justify-content:center;gap:12px;color:#ffdeba;
+ font-size:11px;font-weight:900;letter-spacing:.11em}
+#screen .cxtDealerLabel strong{font-size:21px}
+#screen .cxtDealerCards{display:flex;justify-content:center;align-items:center;gap:8px;min-height:85px}
+#screen .cxtFelt p{max-width:260px;text-align:center;color:#cfebdf;font-size:10px;line-height:1.5;margin:5px auto}
+#screen .cxtCard{width:54px;height:75px;background:linear-gradient(135deg,#fffefd,#e9dce7);border:1px solid #dfc6d6;
+ border-radius:6px;box-shadow:0 3px 6px #0004;display:flex;flex-direction:column;align-items:center;
+ justify-content:center;color:#22212c;line-height:1.1;transform-origin:bottom center;animation:cxtCardDeal .23s both}
+#screen .cxtCard strong{font-size:19px;font-weight:950}
+#screen .cxtCard span{font-size:24px}
+#screen .cxtCard.cxtRed{color:#b82e56}
+#screen .cxtCard.cxtBack{background:repeating-linear-gradient(45deg,#b65d96 0 5px,#672c65 5px 10px);
+ color:#ffe0ef;border:3px solid #f4b9d5;font-size:34px;text-shadow:0 1px 5px #3d184f}
+@keyframes cxtCardDeal{from{opacity:0;transform:translateY(-17px) rotate(-5deg)}to{opacity:1;transform:translateY(0)}}
+#screen .cxtSeats{display:grid;grid-template-columns:repeat(auto-fit,minmax(185px,1fr));gap:9px;margin:14px 0}
+#screen .cxtSeat{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px;
+ background:linear-gradient(125deg,#33263e,#261c38);border:1px solid #6f5375;border-radius:8px;min-width:0}
+#screen .cxtSeat.mine{border-color:#ef84b7;background:linear-gradient(130deg,#4c304d,#281d38)}
+#screen .cxtAvatar{flex:0 0 36px;width:36px;height:36px;display:grid;place-items:center;border-radius:50%;
+ background:linear-gradient(125deg,#bd75a9,#6b417c);color:white;font-size:16px;font-weight:950}
+#screen .cxtSeatInfo{flex:1 1 90px;min-width:0}
+#screen .cxtSeatInfo strong{display:block;color:#fff;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#screen .cxtSeatInfo small{display:block;color:#d3b7d3;font-size:10px;margin-top:5px}
+#screen .cxtSeatHand{display:flex;flex:1 0 100%;gap:4px;align-items:center;justify-content:center;min-width:0}
+#screen .cxtSeatHand .cxtCard{width:34px;height:48px}
+#screen .cxtSeatHand .cxtCard strong{font-size:12px}
+#screen .cxtSeatHand .cxtCard span{font-size:15px}
+#screen .cxtHandTotal{color:#f3d0e5;font-size:14px;font-weight:950;margin-left:5px}
+#screen .cxtSeatResult{color:#c2f3cf;background:#26513c;padding:5px 9px;border-radius:4px;font-size:10px}
+#screen .cxtInfo{font-size:12px;line-height:1.65;text-align:center;color:#ebd2e3;padding:9px 0}
+#screen .cxtBet{padding-top:7px;border-top:1px solid #765077}
+#screen .cxtBet .cxnSelections{margin-bottom:10px}
+#screen .cxtNumberLabel{font-size:12px;color:#e6c9df}
+#screen .cxtNumberLabel select{background:#30223f;border:1px solid #865481;color:#fff;padding:8px;font-size:16px;border-radius:5px;margin-left:8px}
+#screen .cxtRoundEnd{padding:16px;border:1px solid #95714e;background:linear-gradient(120deg,#503047,#382638);
+ border-radius:8px;text-align:center;margin:13px 0}
+#screen .cxtRoundEnd h3{margin:0 0 6px;color:#ffdfab}
+#screen .cxtRoundEnd p{font-size:11px;color:#e8d2e0;line-height:1.5}
+#screen .cxtFooterActions{margin-top:15px;padding-top:13px;border-top:1px solid #6c4b72;justify-content:center}
+#screen .cxtMessage{margin-top:12px;padding:10px;background:#572f45;border:1px solid #ca729f;
+ border-radius:6px;color:#ffd5e6;font-size:12px}
+#screen .cxtCommonStage{margin:16px 0;padding:19px 12px;border:5px solid #674752;border-radius:70px;
+ background:radial-gradient(ellipse at center,#205845,#0e2d30);box-shadow:inset 0 0 0 2px #abac806e;
+ display:flex;flex-direction:column;align-items:center;text-align:center;gap:9px}
+#screen .cxtCommonStage h3{font-size:15px;color:#fff;margin:0}
+#screen .cxtCommonStage p{font-size:11px;color:#e6e6d4;margin:0}
+#screen .cxtSharedWheel{height:142px;width:142px;border:9px ridge #d7ad78;border-radius:50%;
+ background:repeating-conic-gradient(#c13d57 0deg 10deg,#211f2b 10deg 20deg);
+ display:grid;place-items:center;box-shadow:0 6px 19px #0007}
+#screen .cxtSharedWheelInner{height:63px;width:63px;border:5px solid #d5ad91;border-radius:50%;
+ display:grid;place-items:center;background:#46274b;color:#fff;font-size:25px;font-weight:900}
+#screen .cxtSharedCoin{height:130px;width:130px;border-radius:50%;display:grid;place-items:center;
+ border:12px double #f8d9a0;background:radial-gradient(circle at 30% 26%,#fff8a8,#d09c5a 60%,#77463a);
+ box-shadow:0 8px 19px #0007;font-weight:950;color:#663843;font-size:19px}
+#screen .cxtSharedWheel.settled,#screen .cxtSharedCoin.settled{animation:cxtResultPop .75s cubic-bezier(.21,.72,.18,1)}
+@keyframes cxtResultPop{0%{transform:scale(.86) rotate(-180deg);filter:blur(2px)}70%{transform:scale(1.06) rotate(8deg)}100%{transform:none}}
+#screen .cxtTurn button{flex:1}
+@media(max-width:550px){
+ #screen .cxtTableHeader{align-items:flex-start}
+ #screen .cxtTableHeader .cxtActions button{min-height:38px}
+ #screen .cxtModes{gap:6px}
+ #screen .cxtModes button{font-size:11px;padding:9px 5px}
+ #screen .cxtFelt{min-height:172px;border-radius:80px 80px 26px 26px}
+ #screen .cxtSeats{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+ #screen .cxtSeat{padding:9px 7px;gap:6px}
+ #screen .cxtSeatInfo strong{font-size:10px}
+ #screen .cxtSeatInfo small{font-size:9px}
+ #screen .cxtAvatar{flex-basis:28px;width:28px;height:28px;font-size:13px}
+ #screen .cxtSeatHand .cxtCard{width:27px;height:39px}
+ #screen .cxtSeatHand .cxtCard strong{font-size:10px}
+ #screen .cxtSeatHand .cxtCard span{font-size:12px}
+}
+@media(prefers-reduced-motion:reduce){
+ #screen .cxtCard,#screen .cxtSharedWheel.settled,#screen .cxtSharedCoin.settled{animation:none!important}
+ #screen .cxtModes button{transition:none!important}
+}
