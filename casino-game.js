@@ -273,6 +273,33 @@ function slotsPanel(){
   +'</div><p class="cxnInputLabel">Alinha os símbolos para ganhar</p>'
   +'<p class="cxnOdds">3 iguais: 8× · 2 iguais: 1,5× · Sem correspondência: 0×</p>';
 }
+function autoPanel(){
+ if(mode!=="slots")return "";
+ const running=autoSession?.active===true,summary=running?autoSession:autoSummary;
+ const locked=autoStake!==null,canStart=locked&&!running&&!playing&&!loading&&wallet!==null&&wallet>=autoStake;
+ return '<section class="cxnAutoPanel" aria-label="Giros automáticos">'
+  +'<div class="cxnAutoHead"><div><span class="cxnAutoEyebrow">AUTO SPIN</span><h3>Slots automáticos</h3></div>'
+  +'<span class="cxnAutoStatus">'+(running?'Em execução':locked?'Aposta bloqueada':'Configurar')+'</span></div>'
+  +'<p class="cxnAutoHint">Fixa a aposta por giro e escolhe quantas vezes queres rodar. Podes parar após o giro atual.</p>'
+  +'<div class="cxnAutoLock"><div><span>Aposta fixa por giro</span><strong>'+fmt(locked?autoStake:stake)+' XP</strong></div>'
+  +'<button type="button" class="secondary" data-cxn-auto-lock '+(running||playing?'disabled':'')+'>'
+  +(locked?'Desbloquear aposta':'Bloquear '+fmt(stake)+' XP')+'</button></div>'
+  +'<p class="cxnInputLabel">Quantidade de giros</p><div class="cxnAutoCounts" role="group" aria-label="Escolher giros automáticos">'
+  +[5,10,25,50,100].map(n=>'<button type="button" data-cxn-auto-count="'+n+'" class="'+(autoCount===n?'selected':'')+'" '+(running||playing?'disabled':'')+'>'+n+'</button>').join("")
+  +'</div>'
+  +(running
+   ?'<button type="button" class="cxnAutoStop" data-cxn-auto-stop '+(autoSession.stop?'disabled':'')+'>'
+     +(autoSession.stop?'A terminar o giro atual…':'Parar giros automáticos')+'</button>'
+   :'<button type="button" class="primary cxnAutoStart" data-cxn-auto-start '+(canStart?'':'disabled')+'>Iniciar '+autoCount+' giros · '+fmt(autoStake??stake)+' XP cada</button>')
+  +(summary?'<div class="cxnAutoSummary" role="status" aria-live="polite"><div><strong>'+summary.done+' / '+summary.planned+' giros</strong>'
+    +'<span>Lucro líquido: <b class="'+(summary.profit>=0?'cxnGain':'cxnLoss')+'">'+(summary.profit>0?'+':'')+fmt(summary.profit)+' XP</b></span></div>'
+    +'<div class="cxnAutoTrack"><span style="width:'+Math.min(100,Math.max(0,summary.done/summary.planned*100))+'%"></span></div>'
+    +(running?'<small>'+(summary.stop?'A parar…':'A rodar automaticamente…')+'</small>'
+      :'<small>'+(summary.reason?esc(summary.reason):'Sequência concluída.')+' · '+summary.wins+' giros com lucro</small>')
+    +'</div>':'')
+  +'<small class="cxnAutoFootnote">Só é usado XP virtual disponível. Cada giro é validado pelo servidor. A sequência termina se faltar saldo, houver erro ou saíres do casino.</small>'
+  +'</section>';
+}
 function controls(){
  return '<div class="cxnStakes"><p class="cxnInputLabel">Valor a jogar</p><div class="cxnSelections cxnStakeOptions">'
   +limits.map(x=>'<button type="button" data-cxn-stake="'+x+'" class="'+(stake===x?'selected':'')+'" '+(playing||loading?'disabled':'')+'>'+x+' XP</button>').join("")
