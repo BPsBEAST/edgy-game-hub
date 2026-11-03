@@ -124,3 +124,106 @@
  #screen .cxnCoinPlayed,#screen .cxnWheelPlayed,#screen .cxnReelsPlayed>span,#screen .cxnOutcome{animation:none!important}
  #screen .cxnGameTabs button,#screen .cxnSelections button{transition:none!important}
 }
+
+/* Casino presentation v2 — physical, animated game surfaces. */
+#screen .cxnCasinoPanel{background:radial-gradient(ellipse at 50% 0%,#452951 0%,#291d39 52%,#1b162b 100%);box-shadow:0 12px 34px #100b1b48,inset 0 1px 0 #f5b8de24}
+#screen .cxnPanelTitle h2{letter-spacing:-.025em}
+#screen .cxnOutcome{background:linear-gradient(120deg,#452e51,#2f2441);border-color:#935a88}
+#screen .cxnOutcome.cxnOutcomeWin{border-color:#e8b168;box-shadow:0 0 27px #ffc77d20}
+#screen .cxnOutcomeEyebrow{display:inline-block;font-size:11px;font-weight:850;color:#ffcded;letter-spacing:.13em}
+#screen .cxnCareerReward{background:#28283c;border:1px solid #626176;border-radius:6px;padding:10px 12px;color:#d7f4df!important}
+#screen .cxnCareerReward strong{color:#9af0bb;font-size:14px}
+#screen .cxnPlay{background:linear-gradient(105deg,#dd60a3,#ba4599);box-shadow:0 5px 18px #b43c8840;transition:filter .2s ease,transform .2s ease}
+#screen .cxnPlay:not(:disabled):active{transform:scale(.99)}
+#screen .cxnPlay:not(:disabled):hover{filter:brightness(1.09)}
+#screen .cxnVisualResult{text-align:center;color:#ffd5ec;font-weight:850;font-size:12px;letter-spacing:.12em;margin:-3px 0 10px}
+
+#screen .cxnSlotMachine{width:min(100%,450px);margin:14px auto 22px;padding:11px 13px 14px;
+ position:relative;border:3px solid #cc82af;border-radius:22px 22px 13px 13px;
+ background:linear-gradient(140deg,#6c305e,#321c48 53%,#4a2858);
+ box-shadow:0 16px 30px #10091ca6,inset 0 0 0 2px #f1c6d43d,inset 0 16px 25px #f9b2ce14}
+#screen .cxnSlotMachine::before,#screen .cxnSlotMachine::after{content:"";position:absolute;top:41%;width:7px;height:55px;
+ border-radius:4px;background:linear-gradient(#f4bade,#772f7f,#ffc4a4);box-shadow:0 0 11px #d886ad66}
+#screen .cxnSlotMachine::before{left:-7px}
+#screen .cxnSlotMachine::after{right:-7px}
+#screen .cxnSlotMarquee{display:flex;align-items:center;justify-content:center;gap:14px;min-height:48px;margin-bottom:9px;
+ border:1px solid #a36389;border-radius:12px;background:radial-gradient(ellipse at center,#77365e,#40223f 80%);
+ color:#ffe6a9;text-shadow:0 0 13px #fbafd880;letter-spacing:.1em;font-size:clamp(12px,2.1vw,19px);
+ box-shadow:inset 0 0 10px #d57ebd50}
+#screen .cxnSlotMarquee>span{font-size:18px;color:#fff3b9}
+#screen .cxnSlotGlass{position:relative;background:linear-gradient(180deg,#180f29,#3d274c 45%,#150e20);
+ padding:13px 11px;border:2px solid #cb93bb;border-radius:12px;box-shadow:inset 0 10px 15px #0e0925a8,0 4px 12px #110c1f66}
+#screen .cxnReelMachine{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+#screen .cxnReelWindow{--cxn-cell:clamp(82px,10vw,110px);height:var(--cxn-cell);position:relative;min-width:0;overflow:hidden;
+ background:linear-gradient(90deg,#d9d2df,#fffafa 35%,#fff6fa 70%,#c7bad2);border:3px solid #9f7eaa;border-radius:6px;
+ box-shadow:inset 0 10px 12px #2520393b,inset 0 -8px 11px #3c244338}
+#screen .cxnReelTrack{display:flex;flex-direction:column;will-change:transform}
+#screen .cxnReelSymbol{flex:0 0 var(--cxn-cell);height:var(--cxn-cell);display:grid;place-items:center;
+ font-size:clamp(42px,6vw,69px);line-height:1;filter:drop-shadow(0 3px 3px #0003)}
+#screen .cxnReelTrack.is-spinning{animation:cxnReelContinuous .48s linear infinite;filter:blur(1.3px)}
+#screen .cxnSlotPayline{pointer-events:none;position:absolute;left:7px;right:7px;top:50%;height:2px;
+ background:linear-gradient(90deg,transparent,#ff89c0aa 18%,#ff89c0aa 82%,transparent);box-shadow:0 0 7px #ff85bb80}
+#screen .cxnSlotFooter{display:flex;justify-content:space-between;align-items:center;gap:7px;padding:12px 7px 0;
+ color:#d7a1ce;font-size:10px;letter-spacing:.16em}
+#screen .cxnSlotFooter strong{color:#ffe3a3;font-size:11px}
+#screen .cxnSlotMachine.is-spinning .cxnSlotMarquee{animation:cxnMarqueePulse .45s ease-in-out infinite alternate}
+#screen .cxnSlotMachine.is-winner .cxnSlotMarquee{box-shadow:inset 0 0 18px #ffd48e90,0 0 25px #ffc88050}
+@keyframes cxnReelContinuous{from{transform:translateY(0)}to{transform:translateY(-50%)}}
+@keyframes cxnMarqueePulse{to{filter:brightness(1.3);text-shadow:0 0 20px #ffe3b1}}
+
+#screen .cxnCoinWrap{min-height:200px}
+#screen .cxnCoinPerspective{perspective:850px}
+#screen .cxnCoin{position:relative;width:154px;height:154px;border:0;background:none;box-shadow:none;
+ transform-style:preserve-3d;display:block}
+#screen .cxnCoinFace{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+ border:9px ridge #f0c780;border-radius:50%;backface-visibility:hidden;-webkit-backface-visibility:hidden;
+ background:radial-gradient(circle at 30% 25%,#fff4bc,#ecb758 55%,#bb6c43);
+ box-shadow:inset 0 0 0 4px #fff4b4a8,inset 0 -12px 15px #95532d77,0 17px 30px #0a081980;
+ color:#6f3b45;text-shadow:0 1px #ffe3bd}
+#screen .cxnCoinFace>span{font-size:57px;line-height:1}
+#screen .cxnCoinFace>small{font-size:13px;font-weight:950;letter-spacing:.12em}
+#screen .cxnCoinBack{transform:rotateY(180deg);background:radial-gradient(circle at 32% 25%,#fae7b3,#d59b6d 60%,#9c4863)}
+#screen .cxnCoin.is-spinning{animation:cxnCoinContinuous .7s linear infinite}
+@keyframes cxnCoinContinuous{to{transform:rotateY(360deg)}}
+
+#screen .cxnWheelWrap{min-height:286px;padding:11px 0 17px}
+#screen .cxnRouletteTable{position:relative;display:grid;place-items:center;width:258px;height:258px;
+ border:9px solid #d6a875;border-radius:50%;background:#26172e;
+ box-shadow:inset 0 0 0 4px #6c4260,0 14px 30px #0c0919a8,0 0 0 5px #513050}
+#screen .cxnWheelRotor{--cxn-wheel-radius:98px;position:absolute;inset:5px;border:7px solid #342033;
+ border-radius:50%;box-shadow:inset 0 0 0 6px #e4be986b;will-change:transform}
+#screen .cxnWheelRotor::after{content:"";position:absolute;inset:34px;border:5px solid #bd8f75;border-radius:50%;
+ background:radial-gradient(circle,#7b3b63,#432445);box-shadow:0 0 15px #170e23a8}
+#screen .cxnWheelPocket{position:absolute;left:50%;top:50%;z-index:1;display:grid;place-items:center;width:17px;height:17px;
+ color:#fff5f5;font-size:9px;font-weight:900;text-shadow:0 1px 2px #0009;
+ transform:translate(-50%,-50%) rotate(var(--angle)) translateY(calc(-1 * var(--cxn-wheel-radius))) rotate(calc(-1 * var(--angle)))}
+#screen .cxnWheelHub{position:absolute;display:grid;place-items:center;z-index:2;width:65px;height:65px;
+ background:radial-gradient(circle at 35% 28%,#b76994,#4e2d55);border:4px double #e6ba91;border-radius:50%;
+ color:#ffe8be;font-size:28px;font-weight:900;box-shadow:0 2px 14px #140e20bb}
+#screen .cxnRoulettePointer{position:absolute;top:-16px;left:50%;transform:translateX(-50%);z-index:5;
+ width:0;height:0;border-left:11px solid transparent;border-right:11px solid transparent;border-top:21px solid #ffdb8d;
+ filter:drop-shadow(0 2px 2px #100b20)}
+#screen .cxnWheelRotor.is-spinning{animation:cxnWheelContinuous .9s linear infinite}
+@keyframes cxnWheelContinuous{to{transform:rotate(360deg)}}
+
+@media(max-width:799px){
+ #screen .cxnWheelWrap{min-height:250px}
+ #screen .cxnRouletteTable{width:218px;height:218px;border-width:7px}
+ #screen .cxnWheelRotor{--cxn-wheel-radius:82px;border-width:5px}
+ #screen .cxnWheelPocket{font-size:8px;width:14px;height:14px}
+ #screen .cxnWheelHub{width:58px;height:58px}
+ #screen .cxnCoin{width:134px;height:134px}
+ #screen .cxnCoinFace>span{font-size:49px}
+ #screen .cxnCoinWrap{min-height:177px}
+ #screen .cxnSlotMachine{margin:10px auto 17px;padding:9px 10px 12px}
+ #screen .cxnSlotGlass{padding:10px 8px}
+ #screen .cxnReelMachine{gap:6px}
+ #screen .cxnReelWindow{--cxn-cell:clamp(74px,19vw,103px)}
+ #screen .cxnReelSymbol{font-size:clamp(39px,12vw,60px)}
+ #screen .cxnSlotMarquee{min-height:42px;letter-spacing:.06em}
+}
+@media(prefers-reduced-motion:reduce){
+ #screen .cxnReelTrack.is-spinning,#screen .cxnSlotMachine.is-spinning .cxnSlotMarquee,
+ #screen .cxnWheelRotor.is-spinning,#screen .cxnCoin.is-spinning{animation:none!important}
+ #screen .cxnPlay{transition:none!important}
+}
