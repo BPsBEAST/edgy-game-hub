@@ -103,7 +103,7 @@ async function action(method,extra={}){
   const {error}=await api().rpc(call[0],call[1]);
   if(error)throw error;
   if(ticket!==token||code!==oldCode)return;
-  if(method==="cancel"||method==="leave"){clear();selected[kind||"blackjack"]="friends";draw();return}
+  if(method==="cancel"||method==="leave"){const previousKind=kind;clear();selected[previousKind]="friends";draw();return}
   await refresh(true);
  }catch(e){if(ticket===token)message=e.message||"A ação não foi concluída"}
  finally{if(ticket===token){busy=false;draw()}}
@@ -151,9 +151,9 @@ function gameStage(){
  if(kind!=="blackjack"){
   const outcome=room?.outcome||{},round=room?.round||0,ended=room?.status==="finished";
   return '<div class="cxtCommonStage">'
-   +(kind==="roulette"?'<div class="cxtSharedWheel'+(ended?' settled':'')+'"><div class="cxtSharedWheelInner"><span>'+esc(ended?outcome.number:"✦")+'</span></div></div>'
-      :'<div class="cxtSharedCoin'+(ended?' settled':'')+'"><span>'+esc(ended?(outcome.face==="cara"?"CARA":"COROA"):"✦")+'</span></div>')
-   +'<h3>'+(ended?'Resultado da ronda '+round:kind==="roulette"?"Uma roleta, várias apostas":"Uma moeda, dois jogadores")+'</h3>'
+   +(kind==="roulette"?'<div class="cxtSharedWheel'+(busy?' spinning':ended?' settled':'')+'"><div class="cxtSharedWheelInner"><span>'+esc(ended?outcome.number:"✦")+'</span></div></div>'
+      :'<div class="cxtSharedCoin'+(busy?' spinning':ended?' settled':'')+'"><span>'+esc(ended?(outcome.face==="cara"?"CARA":"COROA"):"✦")+'</span></div>')
+   +'<h3>'+(ended?'Resultado da ronda '+round:kind==="roulette"?"Uma roleta, várias apostas":"Cara ou Coroa · lados opostos")+'</h3>'
    +'<p>'+(!ended?'Todos participam no mesmo sorteio.':kind==="roulette"?'Saiu o número '+esc(outcome.number)+' ('+esc(outcome.color)+')':'Saiu '+esc(outcome.face))+'</p>'
    +'</div>';
  }
