@@ -331,7 +331,9 @@ function render(){
  }else{
   const balanceText=wallet===null?"—":fmt(wallet);
   const levelXP=total===null?"—":fmt(total);
-  content='<section class="cxnBalances"><div><span><span class="cxnMark">✦</span> XP Total</span><strong>'+levelXP+'</strong><small>Define o nível e nunca é gasto</small></div>'
+  const career=total===null?null:window.EDGY_levelInfo?.(total);
+  const levelHint=career?'Nível '+career.level+' · '+fmt(career.progress)+'/'+fmt(career.required)+' XP':'Define o nível e nunca é gasto';
+  content='<section class="cxnBalances"><div><span><span class="cxnMark">✦</span> XP Total</span><strong>'+levelXP+'</strong><small>'+levelHint+'</small></div>'
    +'<div><span><span class="cxnMark">◈</span> XP Disponível</span><strong>'+balanceText+'</strong><small>Saldo virtual para gastar</small></div></section>'
    +'<div class="cxnGameTabs" role="group" aria-label="Escolher minijogo">'
    +games.map(g=>'<button type="button" data-cxn-mode="'+g.id+'" class="'+(mode===g.id?'active':'')+'"><span>'+g.icon+'</span><strong>'+g.name+'</strong><small>'+g.desc+'</small></button>').join("")+'</div>'
