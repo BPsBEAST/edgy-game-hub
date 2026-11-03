@@ -11,7 +11,10 @@ const GAMES=Object.freeze({
  tic:Object.freeze({id:"tic",title:"Jogo do Galo",display:"Jogo do Galo online",category:"Estratégia",mode:"1–2 jogadores · Online/local",icon:"✕",online:true,create:"edgy_tic_create",join:"edgy_tic_join",cancel:"edgy_tic_cancel",table:"tic_rooms",param:"tic"}),
  contexto:Object.freeze({id:"contexto",title:"Contexto",display:"Contexto",category:"Palavras",mode:"1 jogador · Ilimitado",icon:"◎",online:false}),
  wordle:Object.freeze({id:"wordle",title:"Wordle",display:"Wordle",category:"Palavras",mode:"1 jogador · Ilimitado",icon:"▦",online:false}),
- casino:Object.freeze({id:"casino",title:"Casino EDGY",display:"Casino EDGY",category:"Arcade",mode:"Roleta · Coinflip · Slots",icon:"✦",online:false}),
+ casino_blackjack:Object.freeze({id:"casino_blackjack",title:"Blackjack",display:"Blackjack com amigos",category:"Multiplayer",mode:"Até 6 jogadores · XP virtual",icon:"♠",online:true,hidden:true,create:"edgy_casino_room_create",join:"edgy_casino_room_join",cancel:"edgy_casino_room_cancel",param:"casino"}),
+ casino_roulette:Object.freeze({id:"casino_roulette",title:"Roleta",display:"Roleta com amigos",category:"Multiplayer",mode:"Até 6 jogadores · XP virtual",icon:"◉",online:true,hidden:true,create:"edgy_casino_room_create",join:"edgy_casino_room_join",cancel:"edgy_casino_room_cancel",param:"casino"}),
+ casino_coinflip:Object.freeze({id:"casino_coinflip",title:"Cara ou Coroa",display:"Cara ou Coroa com amigos",category:"Multiplayer",mode:"2 jogadores · XP virtual",icon:"◒",online:true,hidden:true,create:"edgy_casino_room_create",join:"edgy_casino_room_join",cancel:"edgy_casino_room_cancel",param:"casino"}),
+ casino:Object.freeze({id:"casino",title:"Casino EDGY",display:"Casino EDGY",category:"Arcade",mode:"Blackjack · Roleta · Coinflip · Slots",icon:"✦",online:false}),
  reaction:Object.freeze({id:"reaction",title:"Reflexos",display:"Reflexos",category:"Arcade",mode:"1 jogador",icon:"◴",online:false})
 });
 const client=()=>window.EDGY_auth?.getClient?.();
@@ -23,6 +26,7 @@ function call(name,parameters){return db().rpc(name,parameters)}
 const rooms={
  create(id,options={}){
   const game=online(id);
+  if(game.id.startsWith("casino_"))return call(game.create,{p_game:game.id.slice(7),p_bot:false});
   if(game.id==="chess"){
    const base=Number(options.base??game.defaultTime),increment=Number(options.increment??0);
    if(![180,300,600,900].includes(base)||![0,2,10].includes(increment))throw new Error("Ritmo de jogo não suportado");
