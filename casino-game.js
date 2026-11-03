@@ -17,11 +17,12 @@ const games=Object.freeze([
 const limits=[10,25,50,100];
 let active=false,uid="",mode="coinflip",stake=25,face="cara",roulette="red",number=17;
 let wallet=null,total=null,items=[],loading=false,playing=false,result=null,message="",session=0,shownResult=0;
+let autoStake=null,autoCount=10,autoSession=null,autoSummary=null;
 const acknowledgementKey=()=> "edgy_casino_18_ack_"+(me()?.id||"local");
 function accepted(){try{return localStorage.getItem(acknowledgementKey())==="yes"}catch{return false}}
 function acknowledge(){try{localStorage.setItem(acknowledgementKey(),"yes")}catch{}render()}
-function forgetAccount(){wallet=null;total=null;items=[];result=null;message="";uid=me()?.id||""}
-function close(){active=false;session++;playing=false;loading=false;result=null;window.EDGY_casinoTables?.close?.()}
+function forgetAccount(){wallet=null;total=null;items=[];result=null;message="";autoStake=null;autoSession=null;autoSummary=null;uid=me()?.id||""}
+function close(){if(autoSession)autoSession.stop=true;autoSession=null;active=false;session++;playing=false;loading=false;result=null;window.EDGY_casinoTables?.close?.()}
 function choice(){return mode==="coinflip"?face:mode==="roulette"?(roulette==="number"?"n:"+number:roulette):"spin"}
 async function refresh(silent=false){
  const identity=me()?.id||"",ticket=session;
@@ -46,7 +47,7 @@ async function open(){
  if(identity)await refresh();
 }
 function chooseMode(next){
- if(playing||!games.some(g=>g.id===next))return;
+ if(playing||autoSession?.active||!games.some(g=>g.id===next))return;
  mode=next;window.EDGY_casinoTables?.chooseKind?.(next);message="";result=null;render();
 }
 async function openRoom(next,code){
@@ -123,41 +124,91 @@ async function animateResult(selectedMode,out,host){
  rotor.style.transform="rotate("+end+"deg)";animation.cancel();
 }
 
-async function play(){
- if(playing||loading||!active)return;
- if(!me()||me().is_anonymous)return showMessage("Entra numa conta EDGY registada para utilizar a carteira.");
- if(!accepted())return showMessage("Confirma primeiro que tens 18 anos ou mais.");
- if(wallet===null)return showMessage("A carteira ainda não foi carregada.");
- if(wallet<stake)return showMessage("Saldo insuficiente. Ganha XP a jogar ou a treinar.");
+function lockAutoStake(){
+ if(mode!=="slots"||playing||autoSession?.active)return;
+ autoStake=autoStake===null?stake:null;autoSummary=null;message="";render();
+}
+function selectAutoCount(n){
+ if(mode!=="slots"||autoSession?.active||![5,10,25,50,100].includes(n))return;
+ autoCount=n;autoSummary=null;render();
+}
+function stopAuto(){
+ if(!autoSession?.active)return;
+ autoSession.stop=true;
+ const button=document.querySelector?.("[data-cxn-auto-stop]");
+ if(button){button.disabled=true;button.textContent="A terminar o giro atual…"}
+}
+async function runAuto(){
+ if(mode!=="slots"||autoSession?.active||playing||loading||!active)return;
+ if(autoStake===null)return showMessage("Bloqueia primeiro um valor de aposta para os giros automáticos.");
+ if(!me()||me().is_anonymous||!accepted())return showMessage("Entra na tua conta EDGY para utilizar os Slots.");
+ if(wallet===null||wallet<autoStake)return showMessage("XP disponível insuficiente para começar.");
+ const identity=me().id,ticket=session;
+ const batch={active:true,stop:false,done:0,planned:autoCount,stake:autoStake,profit:0,wins:0,reason:"",identity,ticket};
+ autoSession=batch;autoSummary=null;stake=autoStake;message="";render();
+ try{
+  while(batch.done<batch.planned&&!batch.stop&&active&&ticket===session&&me()?.id===identity){
+   if(wallet<batch.stake){batch.reason="Saldo de XP insuficiente para continuar.";break}
+   const data=await play(true);
+   if(!data){batch.reason=message||"Sequência interrompida por um erro.";break}
+   batch.done++;
+   batch.profit+=Number(data.delta)||0;
+   if(Number(data.delta)>0)batch.wins++;
+   if(!active||ticket!==session||me()?.id!==identity)break;
+   if(batch.done<batch.planned&&!batch.stop)render();
+  }
+ }finally{
+  if(autoSession===batch){
+   batch.active=false;
+   if(batch.stop&&!batch.reason)batch.reason="Sequência interrompida por ti.";
+   autoSummary={done:batch.done,planned:batch.planned,stake:batch.stake,profit:batch.profit,wins:batch.wins,reason:batch.reason};
+   autoSession=null;
+   if(active&&ticket===session&&me()?.id===identity){
+    render();
+    await refresh(true);
+    try{await window.EDGY_auth?.refreshProfile?.()}catch(e){console.warn("EDGY auto slots profile:",e)}
+   }
+  }
+ }
+}
+async function play(autoMode=false){
+ const isAuto=autoMode===true;
+ if(playing||loading||!active||(!isAuto&&autoSession?.active))return null;
+ if(!me()||me().is_anonymous){showMessage("Entra numa conta EDGY registada para utilizar a carteira.");return null}
+ if(!accepted()){showMessage("Confirma primeiro que tens 18 anos ou mais.");return null}
+ if(wallet===null){showMessage("A carteira ainda não foi carregada.");return null}
+ if(wallet<stake){showMessage("Saldo insuficiente. Ganha XP a jogar ou a treinar.");return null}
  const ticket=session,identity=me().id,selectedMode=mode,selectedStake=stake,selectedChoice=choice();
+ if(!isAuto)autoSummary=null;
  playing=true;message="";result=null;render();
  const host=document.querySelector?.("#screen .cxnCasinoPanel");
  visualStart(selectedMode,host);
- let completed=false;
+ let completed=false,completedData=null;
  try{
   const {data,error}=await db().rpc("edgy_arcade_play",{
    p_game:selectedMode,p_choice:selectedChoice,p_stake:selectedStake,p_request:crypto.randomUUID()
   });
   if(error)throw error;
-  if(ticket!==session||me()?.id!==identity)return;
+  if(ticket!==session||me()?.id!==identity)return null;
   if(data?.game!==selectedMode)throw new Error("Resultado da jogada inválido.");
   try{await animateResult(selectedMode,data.result||{},host)}catch(e){console.warn("EDGY casino animation:",e)}
-  if(ticket!==session||me()?.id!==identity)return;
+  if(ticket!==session||me()?.id!==identity)return null;
   result=data;shownResult++;
   wallet=Math.max(0,Number(data.balance)||0);
   total=Math.max(0,Number(data.total_xp)||0);
   window.EDGY_setWallet?.(wallet,identity);
-  completed=true;
+  completedData=data;completed=true;
  }catch(err){if(ticket===session)message=err?.message||"A jogada não pôde ser concluída.";}
  finally{
   if(ticket===session){
    playing=false;render();
-   if(completed){
+   if(completed&&!isAuto){
     await refresh(true);
     try{await window.EDGY_auth?.refreshProfile?.()}catch(err){console.warn("EDGY casino profile:",err)}
    }
   }
  }
+ return completedData;
 }
 function historyItem(t){
  const kind={opening:"Saldo inicial",earned:"XP ganho",roulette:"Roleta",coinflip:"Coinflip",slots:"Slots",blackjack:"Blackjack",blackjack_payout:"Prémio Blackjack"}[t.kind]||"Movimento";
