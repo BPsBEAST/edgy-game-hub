@@ -147,7 +147,7 @@ begin
    v_color:=case when v_num=0 then 'green' when v_num=any(v_red) then 'red' else 'black' end;
    v_face:=case when ('x'||substr(replace(gen_random_uuid()::text,'-',''),1,8))::bit(32)::bigint%2=0 then 'cara' else 'coroa' end;
    if v_room.game='blackjack' then
-     select jsonb_agg(n order by gen_random_uuid()) into v_deck from generate_series(0,51) n;
+     select jsonb_agg(n % 52 order by gen_random_uuid()) into v_deck from generate_series(0,311) n;
      v_pos:=0;
      for rec in select * from public.edgy_casino_seats where room_id=v_room.id order by seat loop
        v_hand:=jsonb_build_array((v_deck->>v_pos)::integer,(v_deck->>(v_pos+1))::integer);
@@ -201,7 +201,7 @@ begin
  if v_seat.done then raise exception 'A tua mão já terminou';end if;
  if p_action='hit' then
    v_deck:=v_room.state->'deck';v_pos:=(v_room.state->>'pos')::integer;
-   if v_pos>=52 then raise exception 'Baralho esgotado';end if;
+   if v_pos>=jsonb_array_length(v_deck) then raise exception 'Baralho esgotado';end if;
    v_hand:=v_seat.hand||jsonb_build_array((v_deck->>v_pos)::integer);
    update public.edgy_casino_seats set hand=v_hand,
       done=(edgy_internal.edgy_casino_hand_value(v_hand)>=21)
@@ -236,6 +236,10 @@ begin
  then raise exception 'Aposta inválida';end if;
  select wallet_xp into v_balance from public.profiles where id=v_uid;
  if v_balance<p_stake then raise exception 'XP insuficiente';end if;
+ if v_room.game='coinflip' and exists(
+   select 1 from public.edgy_casino_seats s where s.room_id=v_room.id
+    and s.user_id<>v_uid and s.choice=p_choice
+ ) then raise exception 'O outro jogador escolheu esse lado. Escolhe o oposto.';end if;
  update public.edgy_casino_seats set stake=p_stake,choice=p_choice where room_id=v_room.id and user_id=v_uid;
  update public.edgy_casino_rooms set updated_at=now() where id=v_room.id;
  return true;
