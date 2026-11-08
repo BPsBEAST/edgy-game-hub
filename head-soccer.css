@@ -1,0 +1,110 @@
+/* EDGY Head Soccer — original animated arcade football, responsive and touch-first. */
+#screen .hsPage{max-width:1160px;margin:0 auto}
+#screen .hsLayout{align-items:start;gap:16px;min-width:0}
+#screen .hsGamePanel{min-width:0}
+#screen .hsStage{background:radial-gradient(ellipse at 50% -20%,#4c2b55,#241a36 70%);
+ border:1px solid #73567e;padding:13px;border-radius:7px;
+ box-shadow:0 12px 30px #0c0a1b4a,inset 0 1px 0 #ffdaf02a;min-width:0}
+#screen .hsScoreboard{display:grid;grid-template-columns:1fr 110px 1fr;align-items:stretch;gap:10px;margin-bottom:10px}
+#screen .hsSideScore{display:flex;align-items:center;justify-content:flex-end;gap:13px;
+ padding:9px 14px;border:1px solid #9b6b98;border-radius:6px;background:linear-gradient(100deg,#3b294b,#542f58)}
+#screen .hsSideScore span{font-size:13px;font-weight:900;letter-spacing:.1em;color:#f8b8d9}
+#screen .hsSideScore strong{font-size:35px;color:#fff;font-weight:1000;line-height:1;font-variant-numeric:tabular-nums}
+#screen .hsSideScore.rival{justify-content:flex-start;background:linear-gradient(100deg,#2c405c,#273047);border-color:#638caa}
+#screen .hsSideScore.rival span{color:#b7e9fc}
+#screen .hsTime{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+ background:#201827;border-radius:7px;border:1px solid #a88389}
+#screen .hsTime small{font-size:9px;font-weight:900;color:#d5a4d3;letter-spacing:.02em;text-align:center}
+#screen .hsTime strong{font-size:26px;font-variant-numeric:tabular-nums;color:#ffe4ac;font-weight:950;line-height:1.15}
+#screen .hsPowerRow{display:flex;gap:16px;justify-content:space-between;margin:0 0 11px}
+#screen .hsMeter{display:grid;grid-template-columns:95px minmax(40px,1fr) 31px;gap:7px;align-items:center;min-width:0;flex:1}
+#screen .hsMeter span,#screen .hsMeter small{font-size:9px;font-weight:900;color:#f6c5df}
+#screen .hsMeter>div{height:9px;background:#4e3a59;border:1px solid #a481a8;border-radius:10px;overflow:hidden}
+#screen .hsMeter i{display:block;width:0;height:100%;background:linear-gradient(90deg,#9f4aab,#e1a8c8,#ffc9a3);
+ box-shadow:0 0 9px #ffc59f8a;transition:width .16s linear}
+#screen .hsMeter.rival{direction:rtl}
+#screen .hsMeter.rival>*{direction:ltr}
+#screen .hsMeter.rival i{background:linear-gradient(90deg,#4592a7,#7de0df)}
+#screen .hsMeter.rival span,#screen .hsMeter.rival small{color:#b7e9fc}
+#screen .hsArena{position:relative;overflow:hidden;aspect-ratio:960/510;border-radius:7px;
+ border:3px solid #a77f9c;background:#221b33;box-shadow:inset 0 0 24px #1118278c,0 8px 17px #0f0b20a3}
+#screen .hsArena canvas{display:block;width:100%;height:100%;object-fit:contain;touch-action:none}
+#screen .hsOverlay[hidden]{display:none!important}
+#screen .hsOverlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+ flex-direction:column;gap:10px;text-align:center;padding:20px;
+ background:radial-gradient(ellipse at 50% 36%,#281a3ae8,#100e23ec);
+ backdrop-filter:blur(3px);z-index:4}
+#screen .hsOverlayEyebrow{font-size:11px;color:#e6b1d8;letter-spacing:.16em;font-weight:950}
+#screen .hsOverlay h2{font-weight:1000;font-size:clamp(22px,4.1vw,47px);margin:0;line-height:1.1;
+ color:#fff;text-shadow:0 2px 20px #f9a5d54d;letter-spacing:.03em}
+#screen .hsOverlay p{font-size:clamp(10px,1.5vw,14px);color:#e5cfdf;line-height:1.5;margin:0;max-width:420px}
+#screen .hsBegin{font-size:12px;font-weight:950;min-height:43px;padding:10px 22px;margin-top:7px;
+ background:linear-gradient(110deg,#d65eaa,#864ead);border-radius:5px;box-shadow:0 5px 14px #2c152d91}
+#screen .hsBelow{display:flex;align-items:center;justify-content:space-between;gap:9px;
+ flex-wrap:wrap;margin:12px 0 10px}
+#screen .hsBelow>span{font-size:11px;font-weight:700;color:#d7bbd3}
+#screen .hsBelow>div{display:flex;gap:7px}
+#screen .hsBelow button{font-size:11px;min-height:38px;padding:7px 12px}
+#screen .hsTouchControls{display:flex;flex-direction:column;gap:11px}
+#screen .hsControlSet{display:flex;flex-direction:column;gap:7px;min-width:0}
+#screen .hsControlTitle{font-size:9px;letter-spacing:.15em;font-weight:900;color:#e4b3d2}
+#screen .hsButtons{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:7px}
+#screen .hsControl{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:3px;
+ border:1px solid #896692;border-radius:7px;min-width:0;min-height:52px;
+ background:linear-gradient(145deg,#51365d,#382b47);color:#fff5fa;touch-action:none;
+ user-select:none;-webkit-user-select:none;cursor:pointer;-webkit-tap-highlight-color:transparent}
+#screen .hsControl>span{font-size:24px;line-height:1.1}
+#screen .hsControl small{font-size:9px;color:#e7d1e2;font-weight:850}
+#screen .hsControl-kick{background:linear-gradient(140deg,#9d467a,#714175);border-color:#f4a4c4}
+#screen .hsControl-power{background:linear-gradient(140deg,#886047,#5e4363);border-color:#c4a178}
+#screen .hsControl.is-ready{border-color:#ffe29b;box-shadow:0 0 0 1px #ffce6f,0 0 13px #f7c86c55}
+#screen .hsControl.is-pressed,#screen .hsControl:active{transform:scale(.96);filter:brightness(1.3);background:#9c649e}
+#screen .hsChoiceRow{display:flex;flex-wrap:wrap;gap:5px;margin:8px 0 12px}
+#screen .hsChoiceRow button{flex:1 1 70px;min-width:0;border:1px solid #785e82;
+ border-radius:5px;background:#382842;color:#f0dded;min-height:38px;padding:7px 8px;
+ font-size:11px;font-weight:850}
+#screen .hsChoiceRow button.selected{background:#73436d;border-color:#f3b1d5;color:#fff}
+#screen .hsChoiceRow button:disabled{opacity:.65}
+#screen .hsOptions .edgyMatchSide{min-width:0}
+#screen .hsControlText{font-size:12px;color:#e9bddb;font-weight:850;margin:12px 0 3px}
+#screen .hsRecords{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+#screen .hsRecords>span{display:flex;align-items:center;flex-direction:column;gap:5px;
+ background:#382943;border:1px solid #674e72;padding:11px 4px;border-radius:4px}
+#screen .hsRecords strong{font-size:20px;color:#fff;font-variant-numeric:tabular-nums}
+#screen .hsRecords small{font-size:9px;text-align:center;color:#c9b2d0}
+#screen .hsOptions p{font-size:12px;line-height:1.7;color:#decbdc}
+@media(max-width:800px){
+ #screen .hsStage{padding:8px}
+ #screen .hsScoreboard{grid-template-columns:1fr 74px 1fr;gap:5px}
+ #screen .hsSideScore{gap:7px;padding:7px 8px}
+ #screen .hsSideScore span{font-size:10px}
+ #screen .hsSideScore strong{font-size:26px}
+ #screen .hsTime strong{font-size:20px}
+ #screen .hsTime small{font-size:8px}
+ #screen .hsMeter{grid-template-columns:67px minmax(12px,1fr) 25px;gap:4px}
+ #screen .hsMeter span,#screen .hsMeter small{font-size:8px}
+ #screen .hsPowerRow{gap:8px}
+ #screen .hsControl{min-height:56px}
+ #screen .hsTouchControls{padding:0 1px}
+}
+@media(max-width:420px){
+ #screen .hsStage{padding:5px}
+ #screen .hsArena{border-width:2px}
+ #screen .hsScoreboard{grid-template-columns:1fr 68px 1fr}
+ #screen .hsSideScore strong{font-size:23px}
+ #screen .hsSideScore span{font-size:9px}
+ #screen .hsMeter{grid-template-columns:50px minmax(10px,1fr) 23px;gap:3px}
+ #screen .hsMeter span,#screen .hsMeter small{font-size:7px}
+ #screen .hsButtons{gap:5px}
+ #screen .hsControl{min-height:51px}
+ #screen .hsControl>span{font-size:20px}
+ #screen .hsControl small{font-size:8px}
+ #screen .hsOverlay{padding:9px;gap:5px}
+ #screen .hsOverlay p{font-size:10px}
+ #screen .hsBegin{min-height:35px;padding:7px 11px;font-size:10px}
+ #screen .hsBelow>span{font-size:10px}
+}
+@media(prefers-reduced-motion:reduce){
+ #screen .hsMeter i{transition:none!important}
+ #screen .hsControl{transition:none!important}
+}
