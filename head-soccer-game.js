@@ -459,15 +459,13 @@ function tick(now){
    PHYS().step(session,commands,dt);accum-=dt;cycles++;
   }
   if(networkMatch()&&net?.role==="host"&&net.connected&&
-    net.room?.status==="active"&&session.frame>0&&session.frame%3===0){
-   // 20 state frames per second; no database writes on each physics tick.
-   if(onlineLastSnapshot!==session.frame){
-    onlineLastSnapshot=session.frame;
-    NET().frame(snapshot(),++onlineFrames);
-    if(session.frame%120===0){
-     try{localStorage.setItem("edgy_hs_resume_"+net.room.code,
-      JSON.stringify({token:net.room.match_token,state:snapshot(),seq:onlineFrames}))}catch{}
-    }
+    net.room?.status==="active"&&now-onlineLastSnapshot>=50){
+   // ~20 realtime snapshots per second, including during goal celebrations.
+   onlineLastSnapshot=now;
+   NET().frame(snapshot(),++onlineFrames);
+   if(onlineFrames%40===0){
+    try{localStorage.setItem("edgy_hs_resume_"+net.room.code,
+     JSON.stringify({token:net.room.match_token,state:snapshot(),seq:onlineFrames}))}catch{}
    }
   }
  }
