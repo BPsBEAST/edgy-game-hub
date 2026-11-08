@@ -144,7 +144,7 @@ function snapshot(){
  const st=session;
  return {players:st.players.map(p=>({...p})),ball:{...st.ball},score:[...st.score],
   seconds:st.seconds,status:st.status,suddenDeath:st.suddenDeath,goalPause:st.goalPause,
-  winner:st.winner,celebration:st.celebration,frame:st.frame,hero:st.hero};
+  winner:st.winner,celebration:st.celebration,frame:st.frame,hero:st.hero,heroGuest:st.heroGuest};
 }
 function onlineFrame(frame){
  if(!active||!networkMatch()||!frame||NET().get().role!=="guest")return;
@@ -185,6 +185,7 @@ function animateRemote(){
  session.score=[...t.score];session.seconds=t.seconds;session.suddenDeath=!!t.suddenDeath;
  session.goalPause=t.goalPause;session.winner=t.winner;session.frame=t.frame;
  session.celebration=t.celebration;session.hero=t.hero||cfg.hero;
+ session.heroGuest=t.heroGuest||"frost";
  if(session.status!==t.status){session.status=t.status;syncOverlay()}
 }
 function recordOnline(meta){
@@ -369,7 +370,7 @@ function render(){
   +'<div class="hsBelow"><span>⏱ 60s ·'+(online?" Online 1×1":cfg.mode==="cpu"?" Vs. robô":" 2 jogadores")+' · Golo de ouro</span>'
   +'<div><button type="button" class="secondary" data-hs-pause '+(online&&net.role!=="host"?"disabled":"")+'>Pausa</button>'
   +'<button type="button" class="secondary" data-hs-restart '+(online?"disabled":"")+'>Recomeçar</button></div></div>'
-  +'<div class="hsTouchControls">'+controls("p1","JOGADOR 1")
+  +'<div class="hsTouchControls">'+controls("p1",online&&net.role==="guest"?"JOGADOR 2 (TU)":"JOGADOR 1")
   +(cfg.mode==="local"?controls("p2","JOGADOR 2"):"")+'</div></section>';
  const pick=(name,choices,actual)=>
   '<div class="hsChoiceRow'+(name==="hero"?" hsHeroSelect":"")+'" role="group" aria-label="'+name+'">'+choices.map(([value,label])=>
@@ -441,7 +442,7 @@ function tick(now){
  if(networkMatch()&&net?.role==="guest"){
   animateRemote();
   if(net.room?.status==="active"&&net.connected&&now-onlineLastSnapshot>=65){
-   NET().input(sample().p1,++onlineInputFrames);
+   NET().input(sample().p1,++onlineInputFrames,cfg.hero);
    onlineLastSnapshot=now;
   }
  }else{
@@ -449,6 +450,7 @@ function tick(now){
    const commands=sample();
    if(networkMatch()&&net?.role==="host"){
     commands.p2=net.input;
+    if(net.remoteHero)session.heroGuest=net.remoteHero;
     if(!net.guestConnected&&session.status==="playing"&&session.secondsPlayed>2){
      // No one should score while the remote player has dropped offline.
      session.status="paused";NET().control("pause");syncOverlay();
@@ -568,7 +570,8 @@ function goalPost(x,isLeft){
  ctx.lineCap="butt";
 }
 function headSoccerAvatar(p,side){
- const type=side===0?cfg.hero:(cfg.hero==="frost"?"bolt":"frost");
+ const primary=session.hero||cfg.hero;
+ const type=side===0?primary:(session.heroGuest|| (primary==="frost"?"bolt":"frost"));
  const palette=PALETTES[type],x=p.x,y=p.y,face=p.face;
  const t=session.frame/60;
  ctx.save();ctx.translate(x,y);ctx.scale(face,1);
