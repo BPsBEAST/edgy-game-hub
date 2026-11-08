@@ -36,7 +36,7 @@ test("Head Soccer canvas renderer boots with two players and ball (no undefined 
  const ctx=new Proxy({
   createLinearGradient:grad,createRadialGradient:grad,
   fillText:(...args)=>drawCalls.push(args),drawImage:noop,strokeText:noop,
-  roundRect:noop,beginPath:noop,moveTo:noop,lineTo:noop,stroke:noop,fill:noop,
+  roundRect:noop,beginPath:noop,moveTo:noop,lineTo:noop,quadraticCurveTo:noop,rect:noop,stroke:noop,fill:noop,
   fillRect:noop,clearRect:noop,ellipse:noop,arc:noop,closePath:noop,
   save:noop,restore:noop,translate:noop,scale:noop,rotate:noop
  },{get(target,k){return k in target?target[k]:undefined},set(target,k,v){target[k]=v;return true}});
