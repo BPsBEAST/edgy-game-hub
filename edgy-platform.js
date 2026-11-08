@@ -9,7 +9,7 @@ const GAMES=Object.freeze({
  party:Object.freeze({id:"party",title:"Cartas Contra Tugas",display:"Cartas Contra Tugas",category:"Multiplayer",mode:"3–8 jogadores · Online",icon:"▣",online:true,create:"edgy_party_create",join:"edgy_party_join",cancel:"edgy_party_cancel",table:"party_rooms",param:"party"}),
  barricade:Object.freeze({id:"barricade",title:"Barricade",display:"Barricade online",category:"Estratégia",mode:"2 jogadores · Online",icon:"▦",online:true,create:"edgy_barricade_create",join:"edgy_barricade_join",cancel:"edgy_barricade_cancel",table:"barricade_rooms",param:"barricade"}),
  tic:Object.freeze({id:"tic",title:"Jogo do Galo",display:"Jogo do Galo online",category:"Estratégia",mode:"1–2 jogadores · Online/local",icon:"✕",online:true,create:"edgy_tic_create",join:"edgy_tic_join",cancel:"edgy_tic_cancel",table:"tic_rooms",param:"tic"}),
- headSoccer:Object.freeze({id:"headSoccer",title:"Head Soccer",display:"Head Soccer",category:"Arcade",mode:"1–2 jogadores · CPU/local",icon:"⚽",online:false}),
+ headSoccer:Object.freeze({id:"headSoccer",title:"Head Soccer",display:"Head Soccer online",category:"Arcade",mode:"1–2 jogadores · CPU/local/online",icon:"⚽",online:true,create:"edgy_head_soccer_create",join:"edgy_head_soccer_join",cancel:"edgy_head_soccer_cancel",table:"edgy_head_soccer_rooms",param:"headSoccer"}),
  twenty48:Object.freeze({id:"twenty48",title:"2048",display:"2048",category:"Estratégia",mode:"1 jogador · Puzzle 4×4",icon:"▦",online:false}),
  contexto:Object.freeze({id:"contexto",title:"Contexto",display:"Contexto",category:"Palavras",mode:"1 jogador · Ilimitado",icon:"◎",online:false}),
  wordle:Object.freeze({id:"wordle",title:"Wordle",display:"Wordle",category:"Palavras",mode:"1 jogador · Ilimitado",icon:"▦",online:false}),
