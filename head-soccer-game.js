@@ -2,6 +2,7 @@
 (function(){
 "use strict";
 const PHYS=()=>window.EDGY_headSoccerPhysics;
+const NET=()=>window.EDGY_headSoccerOnline;
 const UI=()=>window.EDGY_gameUI;
 const SAVE="edgy_head_soccer_v1_";
 const W=960,H=510,FLOOR=440;
@@ -14,6 +15,8 @@ const defaultCfg={mode:"cpu",difficulty:"normal",hero:"neon"};
 let cfg={...defaultCfg},stats={played:0,wins:0,losses:0,best:0};
 let active=false,session=null,canvas=null,ctx=null,root=null,stadium=null;
 let frameId=0,lastFrame=0,accum=0,recorded=false,previousStatus="",flash=0;
+let onlineTarget=null,onlineFrames=0,onlineInputFrames=0,onlineFinishing=false;
+let onlineLastMeta="",onlineError="",onlineLastSnapshot=0,onlineAcceptedToken="";
 const keyboard=new Set(),touch=new Set();
 const currentUser=()=>window.EDGY_auth?.getUser?.()?.id||"local";
 const key=()=>SAVE+currentUser();
@@ -23,7 +26,7 @@ function readStorage(){
  try{
   const data=JSON.parse(localStorage.getItem(key())||"null")||{};
   cfg={...defaultCfg,...Object.fromEntries(Object.entries(data.cfg||{}).filter(([k])=>Object.hasOwn(defaultCfg,k)))};
-  if(!["cpu","local"].includes(cfg.mode))cfg.mode="cpu";
+  if(!["cpu","local","online"].includes(cfg.mode))cfg.mode="cpu";
   if(!["easy","normal","hard"].includes(cfg.difficulty))cfg.difficulty="normal";
   if(!Object.hasOwn(PALETTES,cfg.hero))cfg.hero="neon";
   stats={played:0,wins:0,losses:0,best:0};
@@ -38,7 +41,7 @@ function sample(){
  const has=(codes)=>codes.some(c=>keyboard.has(c));
  const pressed=(player,action,codes)=>
   touch.has(player+"-"+action)||has(codes);
- const cpu=cfg.mode==="cpu";
+ const cpu=cfg.mode!=="local";
  return {p1:{
   left:pressed("p1","left",cpu?["KeyA","ArrowLeft"]:["KeyA"]),
   right:pressed("p1","right",cpu?["KeyD","ArrowRight"]:["KeyD"]),
@@ -64,20 +67,37 @@ function onKeyDown(e){
 function onKeyUp(e){if(!active)return;if(keyboard.has(e.code)){keyboard.delete(e.code);e.preventDefault()}}
 function onBlur(){clearInputs();if(session?.status==="playing")PHYS().pause(session)}
 function onVisibility(){if(document.hidden)onBlur()}
+function networkMatch(){
+ return cfg.mode==="online";
+}
+async function onlineStart(){
+ const net=NET().get();
+ if(!active||!networkMatch()||net.role!=="host"||net.room?.status!=="waiting")return;
+ onlineError="";
+ try{
+  await NET().start();
+  if(!active||!networkMatch())return;
+  session=PHYS().create({...cfg,mode:"local"});PHYS().launch(session);
+  onlineTarget=null;onlineFrames=0;onlineInputFrames=0;onlineFinishing=false;recorded=false;
+  previousStatus="";lastFrame=0;accum=0;
+  render();NET().frame(snapshot(),++onlineFrames);
+ }catch(e){onlineError=e.message||"Não foi possível iniciar a partida";render()}
+}
 function start(){
  if(!active||!session)return;
+ if(networkMatch()){onlineStart();return}
  if(session.status==="finished"){newMatch();return}
  if(session.status==="paused"){PHYS().pause(session);syncOverlay();return}
- PHYS().launch(session);
- lastFrame=0;accum=0;previousStatus="";syncOverlay();
+ PHYS().launch(session);lastFrame=0;accum=0;previousStatus="";syncOverlay();
 }
 function newMatch(){
  if(!active)return;
- clearInputs();session=PHYS().create(cfg);recorded=false;previousStatus="";flash=0;lastFrame=0;accum=0;
+ clearInputs();session=PHYS().create({...cfg,mode:networkMatch()?"local":cfg.mode});
+ recorded=false;previousStatus="";flash=0;lastFrame=0;accum=0;onlineTarget=null;
  syncOverlay();syncHud();paint();
 }
 async function reset(){
- if(!active||!session)return;
+ if(!active||!session||networkMatch())return;
  if(["playing","paused","goal"].includes(session.status)){
   const confirm=window.EDGY_platform?.confirmAction;
   const ok=confirm?await confirm({title:"Recomeçar a partida?",message:"A partida atual será abandonada sem XP nem histórico.",confirmLabel:"Recomeçar"}):
@@ -87,7 +107,10 @@ async function reset(){
  newMatch();
 }
 function mode(next){
- if(!["cpu","local"].includes(next)||session?.status!=="ready")return;
+ if(!["cpu","local","online"].includes(next)||session?.status!=="ready")return;
+ const state=NET()?.get?.();
+ if(cfg.mode==="online"&&state?.room?.status==="active")return;
+ if(cfg.mode==="online"&&next!=="online")NET()?.close?.();
  cfg.mode=next;persist();newMatch();render();
 }
 function difficulty(next){
@@ -96,19 +119,124 @@ function difficulty(next){
 }
 function hero(next){
  if(!Object.hasOwn(PALETTES,next)||session?.status!=="ready")return;
- cfg.hero=next;persist();render();
+ cfg.hero=next;session.hero=next;persist();render();
 }
 function togglePause(){
  if(!active||!session)return;
- if(PHYS().pause(session)){clearInputs();syncOverlay()}
+ if(networkMatch()&&NET().get().role!=="host")return;
+ if(PHYS().pause(session)){
+  clearInputs();syncOverlay();
+  if(networkMatch())NET().control(session.status==="paused"?"pause":"resume");
+ }
+}
+function snapshot(){
+ const st=session;
+ return {players:st.players.map(p=>({...p})),ball:{...st.ball},score:[...st.score],
+  seconds:st.seconds,status:st.status,suddenDeath:st.suddenDeath,goalPause:st.goalPause,
+  winner:st.winner,celebration:st.celebration,frame:st.frame,hero:st.hero};
+}
+function onlineFrame(frame){
+ if(!active||!networkMatch()||!frame||NET().get().role!=="guest")return;
+ if(frame.control){
+  if(session&&["pause","resume"].includes(frame.control)){
+   session.status=frame.control==="pause"?"paused":"playing";
+   syncOverlay();
+  }
+  return;
+ }
+ if(!Array.isArray(frame.players)||frame.players.length!==2||!frame.ball||!Array.isArray(frame.score))return;
+ if(!frame.players.every(p=>Number.isFinite(p.x)&&Number.isFinite(p.y))||
+   !Number.isFinite(frame.ball.x)||!Number.isFinite(frame.ball.y))return;
+ if(!session||session.status==="ready"||(!onlineTarget&&session.status==="paused")){
+  session=PHYS().create({...cfg,mode:"local"});
+  session.status=frame.status||"playing";
+  render();
+  // Start at the host positions rather than interpolating from the default kickoff.
+  for(let i=0;i<2;i++)Object.assign(session.players[i],frame.players[i]);
+  Object.assign(session.ball,frame.ball);
+ }
+ onlineTarget=frame;
+}
+function lerp(a,b,t){return a+(b-a)*t}
+function animateRemote(){
+ const t=onlineTarget;if(!t||!session)return;
+ const blend=.48;
+ const pos=["x","y"];
+ for(let i=0;i<2;i++){
+  const dest=t.players[i],p=session.players[i];
+  for(const key of pos)p[key]=lerp(Number(p[key])||0,Number(dest[key])||0,blend);
+  for(const k of ["face","energy","kickTime","kickCooldown","powerTime","grounded","hitTime","vx","vy"])
+   if(k in dest)p[k]=dest[k];
+ }
+ for(const k of pos)session.ball[k]=lerp(Number(session.ball[k])||0,Number(t.ball[k])||0,blend);
+ for(const k of ["spin","power","trail","vx","vy","effect"])
+  if(k in t.ball)session.ball[k]=t.ball[k];
+ session.score=[...t.score];session.seconds=t.seconds;session.suddenDeath=!!t.suddenDeath;
+ session.goalPause=t.goalPause;session.winner=t.winner;session.frame=t.frame;
+ session.celebration=t.celebration;session.hero=t.hero||cfg.hero;
+ if(session.status!==t.status){session.status=t.status;syncOverlay()}
+}
+function recordOnline(meta){
+ if(!meta||meta.status!=="finished"||!meta.match_token)return;
+ const id=window.EDGY_auth?.getUser?.()?.id;
+ if(!id)return;
+ const saveKey="edgy_hs_record_"+id+"_"+meta.code+"_"+meta.match_token;
+ try{if(localStorage.getItem(saveKey)==="1")return;localStorage.setItem(saveKey,"1")}catch{}
+ const side=meta.host===id?0:1,won=meta.winner_side===side;
+ const score=meta.left_score+"–"+meta.right_score;
+ try{window.EDGY_recordLocalMatch?.("Head Soccer",(won?"Vitória online ":"Derrota online ")+score,0)}
+ catch(e){console.warn("Head Soccer online history:",e)}
+ window.EDGY_auth?.refreshProfile?.()?.catch?.(()=>{});
+ window.EDGY_casino?.refresh?.(true);
+}
+function onlineChanged(data){
+ if(!active||!networkMatch())return;
+ if(data?.command==="start"){onlineStart();return}
+ const meta=data?.room;
+ if(meta?.status==="finished"){
+  onlineFinishing=false;
+  recordOnline(meta);
+  if(session){session.score=[meta.left_score,meta.right_score];session.winner=meta.winner_side;session.status="finished";}
+ }
+ if(meta?.status==="waiting"&&session?.status!=="ready"){
+  session=PHYS().create({...cfg,mode:"local"});recorded=false;onlineTarget=null;
+  previousStatus="";onlineFinishing=false;onlineFrames=0;onlineInputFrames=0;
+ }
+ if(meta?.status==="active"&&session?.status==="ready"){
+  if(data?.role==="host"){
+   // A host who reconnects after reloading can resume its last locally cached snapshot.
+   let recovered=null;
+   try{recovered=JSON.parse(localStorage.getItem("edgy_hs_resume_"+meta.code)||"null")}catch{}
+   if(recovered?.token===meta.match_token&&recovered.state?.players?.length===2){
+    session=recovered.state;session.mode="local";onlineFrames=Number(recovered.seq)||0;
+   }else{
+    session=PHYS().create({...cfg,mode:"local"});PHYS().launch(session);
+    session.seconds=Math.max(0,60-(Date.now()-Date.parse(meta.started_at))/1000);
+   }
+  }else{
+   session=PHYS().create({...cfg,mode:"local"});session.status="paused";
+  }
+ }
+ const label=[meta?.code,meta?.status,meta?.guest,meta?.match_token,data?.connected,data?.guestConnected,data?.hostConnected,data?.error].join("|");
+ if(label!==onlineLastMeta){
+  onlineLastMeta=label;render();
+ }else if(meta?.status==="finished"){syncOverlay();syncHud()}
 }
 function finish(){
  if(recorded||session?.status!=="finished")return;
+ if(networkMatch()){
+  if(NET().get().role==="host"&&!onlineFinishing&&NET().get().room?.status==="active"){
+   onlineFinishing=true;NET().frame(snapshot(),++onlineFrames);
+   NET().finish(session.score[0],session.score[1]).catch(e=>{
+    onlineFinishing=false;onlineError=e.message||"Não foi possível guardar o resultado";render();
+   });
+  }
+  return;
+ }
  recorded=true;
  const won=session.winner===0,local=cfg.mode==="local",earned=local?0:won?40:10;
  stats.played++;if(!local){if(won)stats.wins++;else stats.losses++}
- stats.best=Math.max(stats.best,session.score[0]);
- persist();
+ stats.best=Math.max(stats.best,session.score[0]);persist();
  const label=local?"2 jogadores · "+session.score.join("–"):
   won?"Vitória "+session.score.join("–"):"Derrota "+session.score.join("–");
  try{window.EDGY_recordLocalMatch?.("Head Soccer",label,earned)}
