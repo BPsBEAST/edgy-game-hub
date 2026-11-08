@@ -65,7 +65,14 @@ function onKeyDown(e){
  keyboard.add(e.code);
 }
 function onKeyUp(e){if(!active)return;if(keyboard.has(e.code)){keyboard.delete(e.code);e.preventDefault()}}
-function onBlur(){clearInputs();if(session?.status==="playing")PHYS().pause(session)}
+function onBlur(){
+ clearInputs();
+ if(session?.status==="playing"&&(!networkMatch()||NET()?.get?.().role==="host")){
+  PHYS().pause(session);
+  if(networkMatch())NET()?.control?.("pause");
+  syncOverlay();
+ }
+}
 function onVisibility(){if(document.hidden)onBlur()}
 function networkMatch(){
  return cfg.mode==="online";
@@ -393,17 +400,28 @@ function render(){
 }
 function open(){
  close();
- active=true;readStorage();session=PHYS().create(cfg);recorded=false;
+ active=true;readStorage();session=PHYS().create({...cfg,mode:cfg.mode==="online"?"local":cfg.mode});recorded=false;
+ NET()?.handlers?.({change:onlineChanged,frame:onlineFrame,connection:()=>{
+  if(active&&networkMatch())updateText("[data-hs-net]",NET().get().connected?"● Ligado à partida":"◌ A reconectar…");
+ }});
  window.addEventListener("keydown",onKeyDown,{passive:false});
  window.addEventListener("keyup",onKeyUp,{passive:false});
  window.addEventListener("blur",onBlur);
  document.addEventListener("visibilitychange",onVisibility);
  render();frameId=requestAnimationFrame(tick);
 }
+async function openRoom(code){
+ open();
+ cfg.mode="online";persist();newMatch();render();
+ await NET().open(code);
+}
 function close(){
  active=false;session=null;root=null;canvas=null;ctx=null;
  if(frameId)cancelAnimationFrame(frameId);
- frameId=0;lastFrame=0;accum=0;recorded=false;previousStatus="";clearInputs();
+ frameId=0;lastFrame=0;accum=0;recorded=false;previousStatus="";
+ onlineTarget=null;onlineFrames=0;onlineInputFrames=0;onlineLastMeta="";onlineError="";
+ onlineFinishing=false;clearInputs();
+ NET()?.close?.();
  window.removeEventListener("keydown",onKeyDown);window.removeEventListener("keyup",onKeyUp);
  window.removeEventListener("blur",onBlur);document.removeEventListener("visibilitychange",onVisibility);
 }
@@ -412,11 +430,38 @@ function tick(now){
  if(!lastFrame)lastFrame=now;
  accum=Math.min(.1,accum+Math.max(0,Math.min(.09,(now-lastFrame)/1000)));
  lastFrame=now;
- const dt=1/60;
- let cycles=0;
- while(accum>=dt&&cycles<6){
-  PHYS().step(session,sample(),dt);
-  accum-=dt;cycles++;
+ const dt=1/60;let cycles=0;
+ const net=networkMatch()?NET().get():null;
+ if(networkMatch()&&net?.role==="guest"){
+  animateRemote();
+  if(net.room?.status==="active"&&net.connected&&now-onlineLastSnapshot>=65){
+   NET().input(sample().p1,++onlineInputFrames);
+   onlineLastSnapshot=now;
+  }
+ }else{
+  while(accum>=dt&&cycles<6){
+   const commands=sample();
+   if(networkMatch()&&net?.role==="host"){
+    commands.p2=net.input;
+    if(!net.guestConnected&&session.status==="playing"&&session.secondsPlayed>2){
+     // No one should score while the remote player has dropped offline.
+     session.status="paused";NET().control("pause");syncOverlay();
+    }
+   }
+   PHYS().step(session,commands,dt);accum-=dt;cycles++;
+  }
+  if(networkMatch()&&net?.role==="host"&&net.connected&&
+    net.room?.status==="active"&&session.frame>0&&session.frame%3===0){
+   // 20 state frames per second; no database writes on each physics tick.
+   if(onlineLastSnapshot!==session.frame){
+    onlineLastSnapshot=session.frame;
+    NET().frame(snapshot(),++onlineFrames);
+    if(session.frame%120===0){
+     try{localStorage.setItem("edgy_hs_resume_"+net.room.code,
+      JSON.stringify({token:net.room.match_token,state:snapshot(),seq:onlineFrames}))}catch{}
+    }
+   }
+  }
  }
  if(session.status!==previousStatus){
   if(session.status==="finished")finish();
@@ -679,6 +724,6 @@ function paint(){
  ballDraw();
  celebrationDraw();
 }
-const api=Object.freeze({open,close,render,start,reset,pause:togglePause});
+const api=Object.freeze({open,openRoom,close,render,start,reset,pause:togglePause});
 window.EDGY_headSoccer=api;
 })();
