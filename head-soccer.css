@@ -192,3 +192,19 @@
  #screen .hsBegin{margin-top:2px}
 }
 @media(prefers-reduced-motion:reduce){#screen .hsPad .hsControl.is-ready{animation:none!important}}
+
+@media(max-width:420px){
+ #screen .hsOverlay p{display:none}
+ #screen .hsOverlay{gap:3px}
+ #screen .hsReadyHead{width:54px;height:49px}
+ #screen .hsReadyFaces{margin:1px 0}
+ #screen .hsBegin{margin-top:3px}
+}
+@media(max-height:480px) and (orientation:landscape){
+ #screen .hsStage{padding:5px}
+ #screen .hsArena{max-height:calc(100dvh - 128px);width:auto;max-width:100%;margin:auto}
+ #screen .hsScoreboard{margin-bottom:3px}
+ #screen .hsPowerRow{margin-bottom:3px}
+ #screen .hsPad .hsControl{min-height:43px}
+ #screen .hsPad .hsControl>span{font-size:18px}
+}
