@@ -103,14 +103,14 @@ test("Head Soccer canvas controller and PWA are integrated into EDGY",()=>{
  assert.ok(app.includes('if(id==="headSoccer"){window.EDGY_headSoccer?.open()'));
  assert.ok(app.includes('if(game==="headSoccer")return window.EDGY_headSoccer?.render()'));
  assert.ok(app.includes('"Head Soccer":"headSoccer"'));
- for(const asset of ["head-soccer-physics.js?v=69","head-soccer-game.js?v=69","head-soccer.css?v=69"]){
+ for(const asset of ["head-soccer-physics.js?v=70","head-soccer-game.js?v=70","head-soccer.css?v=70"]){
   assert.ok(html.includes(asset),"HTML missing "+asset);
   assert.ok(sw.includes(asset),"SW missing "+asset);
  }
  const scripts=[...html.matchAll(/<script[^>]+src="([^"]+)"/g)].map(x=>x[1]);
- assert.ok(scripts.indexOf("./head-soccer-physics.js?v=69")>=0);
- assert.ok(scripts.indexOf("./head-soccer-physics.js?v=69")<scripts.indexOf("./head-soccer-game.js?v=69"));
- assert.ok(html.indexOf("edgy-platform.js?v=69")<html.indexOf("head-soccer-game.js?v=69"));
+ assert.ok(scripts.indexOf("./head-soccer-physics.js?v=70")>=0);
+ assert.ok(scripts.indexOf("./head-soccer-physics.js?v=70")<scripts.indexOf("./head-soccer-game.js?v=70"));
+ assert.ok(html.indexOf("edgy-platform.js?v=69")<html.indexOf("head-soccer-game.js?v=70"));
 });
 
 test("EDGY 2048 follows classic single-merge rules and supports autosave/one XP award",()=>{
