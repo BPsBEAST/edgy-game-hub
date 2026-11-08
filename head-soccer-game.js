@@ -143,8 +143,9 @@ function overlayText(){
  if(s.status==="playing")return "";
  if(s.status==="goal")return "";
  if(s.status==="ready")
-  return '<span class="hsOverlayEyebrow">EDGY FOOTBALL</span><h2>HEAD SOCCER</h2>'
-   +'<p>Partidas de 60 segundos. Marca mais golos que o adversário e usa o super-remate quando a energia chegar a 100%.</p>'
+  return '<span class="hsOverlayEyebrow">EDGY · ARCADE FOOTBALL</span><h2>HEAD SOCCER</h2>'
+   +'<div class="hsReadyFaces"><span class="hsReadyPortrait hsFace-'+cfg.hero+'"><i class="hsReadyHead"></i><b>'+esc(PALETTES[cfg.hero].name)+'</b></span><span class="hsVersus">VS</span><span class="hsReadyPortrait hsFace-'+(cfg.hero==="frost"?"bolt":"frost")+'"><i class="hsReadyHead"></i><b>'+(cfg.mode==="cpu"?"CPU":"P2")+'</b></span></div>'
+   +'<p>Futebol de cabeças gigantes! Salta, remata, marca golos e liberta o super-remate quando a energia chega a 100%.</p>'
    +'<button type="button" class="primary hsBegin" data-hs-start>COMEÇAR PARTIDA</button>';
  if(s.status==="paused")return '<span class="hsOverlayEyebrow">PARTIDA EM PAUSA</span><h2>PAUSA</h2>'
   +'<button type="button" class="primary hsBegin" data-hs-start>RETOMAR</button>';
@@ -188,10 +189,11 @@ function handleTouchButtons(){
  });
 }
 function controls(player,title){
- const buttons=[["left","←","Esquerda"],["right","→","Direita"],["jump","↑","Saltar"],["kick","⚽","Rematar"],["power","✦","Poder"]];
- return '<div class="hsControlSet"><span class="hsControlTitle">'+title+'</span><div class="hsButtons">'
-  +buttons.map(([type,icon,name])=>'<button type="button" class="hsControl hsControl-'+type+'" data-hs-press="'+player+'-'+type+'"'
-   +' aria-label="'+title+' · '+name+'"><span aria-hidden="true">'+icon+'</span><small>'+name+'</small></button>').join("")
+ const btn=(type,icon,name)=>'<button type="button" class="hsControl hsControl-'+type+'" data-hs-press="'+player+'-'+type+'"'
+  +' aria-label="'+title+' · '+name+'"><span aria-hidden="true">'+icon+'</span><small>'+name+'</small></button>';
+ return '<div class="hsControlSet"><span class="hsControlTitle">'+title+'</span><div class="hsPad">'
+  +'<div class="hsMovePad">'+btn("left","◀","Esquerda")+btn("right","▶","Direita")+'</div>'
+  +'<div class="hsActionPad">'+btn("jump","↑","Saltar")+btn("kick","⚽","Rematar")+btn("power","⚡","Super")+'</div>'
   +'</div></div>';
 }
 function render(){
@@ -205,7 +207,7 @@ function render(){
   +'<div class="hsSideScore rival"><strong data-hs-score-b>'+session.score[1]+'</strong><span>'+(cfg.mode==="cpu"?"CPU":"P2")+'</span></div>'
   +'</div><div class="hsPowerRow"><div class="hsMeter"><span>✦ P1 · SUPER</span><div><i data-hs-bar-a></i></div><small data-hs-energy-a>0%</small></div>'
   +'<div class="hsMeter rival"><span>✦ '+(cfg.mode==="cpu"?"CPU":"P2")+'</span><div><i data-hs-bar-b></i></div><small data-hs-energy-b>0%</small></div></div>'
-  +'<div class="hsArena" data-hs-arena><canvas data-hs-canvas width="'+W+'" height="'+H+'" aria-label="Campo de Head Soccer com duas personagens e uma bola"></canvas>'
+  +'<div class="hsArena" data-hs-arena><canvas data-hs-canvas width="'+W+'" height="'+H+'" aria-label="Campo de futebol arcade com duas personagens de cabeças grandes e uma bola"></canvas>'
   +'<div class="hsOverlay" data-hs-overlay></div></div>'
   +'<div class="hsBelow"><span>⏱ 60s ·'+(cfg.mode==="cpu"?" Vs. robô":" 2 jogadores")+' · Golo de ouro</span>'
   +'<div><button type="button" class="secondary" data-hs-pause>Pausa</button>'
@@ -213,9 +215,11 @@ function render(){
   +'<div class="hsTouchControls">'+controls("p1","JOGADOR 1")
   +(cfg.mode==="local"?controls("p2","JOGADOR 2"):"")+'</div></section>';
  const pick=(name,choices,actual)=>
-  '<div class="hsChoiceRow" role="group" aria-label="'+name+'">'+choices.map(([value,label])=>
+  '<div class="hsChoiceRow'+(name==="hero"?" hsHeroSelect":"")+'" role="group" aria-label="'+name+'">'+choices.map(([value,label])=>
    '<button type="button" data-hs-'+name+'="'+value+'" class="'+(actual===value?"selected":"")+'"'
-   +(session.status!=="ready"?' disabled':'')+'>'+label+'</button>').join("")+'</div>';
+   +(session.status!=="ready"?' disabled':'')+'>'
+   +(name==="hero"?'<span class="hsHeroFace hsFace-'+value+'" aria-hidden="true"><i></i></span>':'')
+   +label+'</button>').join("")+'</div>';
  const side=UI().card("Modo de jogo",'<p>Escolhe o modo antes de começar a partida.</p>'
   +pick("mode",[["cpu","Contra robô"],["local","2 jogadores"]],cfg.mode)
   +(cfg.mode==="cpu"?'<p class="hsControlText">Dificuldade do robô</p>'+pick("difficulty",[["easy","Fácil"],["normal","Normal"],["hard","Difícil"]],cfg.difficulty):"")
