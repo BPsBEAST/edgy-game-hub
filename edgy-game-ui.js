@@ -8,6 +8,7 @@ const details=Object.freeze({
  party:{title:"Cartas Contra Tugas",icon:"▣",intro:"Cartas originais · Júri rotativo · 3–8 jogadores"},
  barricade:{title:"Barricade",icon:"▦",intro:"9×9 · Corrida estratégica · 10 barreiras"},
  tic:{title:"Jogo do Galo",icon:"⊗",intro:"3×3 · 2 jogadores · Online ou local"},
+ twenty48:{title:"2048",icon:"▦",intro:"Puzzle 4×4 · Junta os números · Sem limite de tempo"},
  contexto:{title:"Contexto",icon:"◎",intro:"Palavras · Significado · Tentativas ilimitadas"},
  wordle:{title:"Wordle",icon:"▦",intro:"Cinco letras · Seis tentativas · Rondas ilimitadas"},
  casino:{title:"Casino EDGY",icon:"✦",intro:"Blackjack · Roleta · Coinflip · Slots · XP virtual"},
