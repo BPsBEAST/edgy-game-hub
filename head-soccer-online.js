@@ -58,6 +58,7 @@ async function refresh(){
   const data=await rpc("edgy_head_soccer_state",{p_code:current});
   if(ticket!==version||current!==code)return;
   const changed=JSON.stringify(room)!==JSON.stringify(data);
+  if(room?.match_token!==data.match_token){lastSeq=-1;sendCount=0;remoteButtons=emptyInputs();remoteInputTime=0}
   room=data;
   error="";
   if(changed)emit();
