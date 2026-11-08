@@ -270,6 +270,15 @@ function overlayText(){
  const s=session;
  if(s.status==="playing")return "";
  if(s.status==="goal")return "";
+ if(networkMatch()&&s.status==="ready"){
+  const net=NET().get(),meta=net.room;
+  if(!meta)return '<span class="hsOverlayEyebrow">EDGY HEAD SOCCER · ONLINE</span><h2>DESAFIA UM AMIGO</h2>'
+   +'<p>Cria uma sala privada ou entra num convite para jogar contra outro utilizador em tempo real.</p>';
+  if(meta.status==="active")return '<span class="hsOverlayEyebrow">A LIGAR…</span><h2>SINCRONIZAÇÃO</h2>'
+   +'<p>A estabelecer a ligação de jogo com o anfitrião.</p>';
+  return '<span class="hsOverlayEyebrow">SALA '+esc(meta.code)+'</span><h2>'+ (meta.guest?"PRONTOS PARA JOGAR":"À ESPERA DO ADVERSÁRIO")+'</h2>'
+   +'<p>'+(meta.guest?"O anfitrião pode começar a partida.":"Convida outro jogador da EDGY ou partilha o código da sala.")+'</p>';
+ }
  if(s.status==="ready")
   return '<span class="hsOverlayEyebrow">EDGY · ARCADE FOOTBALL</span><h2>HEAD SOCCER</h2>'
    +'<div class="hsReadyFaces"><span class="hsReadyPortrait hsFace-'+cfg.hero+'"><i class="hsReadyHead"></i><b>'+esc(PALETTES[cfg.hero].name)+'</b></span><span class="hsVersus">VS</span><span class="hsReadyPortrait hsFace-'+(cfg.hero==="frost"?"bolt":"frost")+'"><i class="hsReadyHead"></i><b>'+(cfg.mode==="cpu"?"CPU":"P2")+'</b></span></div>'
@@ -280,9 +289,14 @@ function overlayText(){
  if(s.status==="finished"){
   const victory=cfg.mode==="local"?(s.winner===0?"JOGADOR 1 VENCEU!":"JOGADOR 2 VENCEU!"):
    (s.winner===0?"VENCESTE!":"PERDESTE!");
-  const xp=cfg.mode==="local"?0:s.winner===0?40:10;
-  return '<span class="hsOverlayEyebrow">APITO FINAL · '+s.score.join(" – ")+'</span><h2>'+victory+'</h2>'
-   +'<p>'+(cfg.mode==="local"?"Partida local · sem XP":"Recompensa EDGY: +"+xp+" XP · resultado guardado no Histórico")+'</p>'
+  const playerSide=networkMatch()&&NET().get().role==="guest"?1:0;
+  const xp=cfg.mode==="local"?0:s.winner===playerSide?40:10;
+  const label=networkMatch()?(NET().get().room?.status==="finished"?
+    "Resultado confirmado · XP creditado pelo servidor":"A guardar o resultado no servidor…"):
+    (cfg.mode==="local"?"Partida local · sem XP":"Recompensa EDGY: +"+xp+" XP · resultado guardado no Histórico");
+  return '<span class="hsOverlayEyebrow">APITO FINAL · '+s.score.join(" – ")+'</span><h2>'+ (networkMatch()?
+      (s.winner===playerSide?"VENCESTE!":"PERDESTE!"):victory)+'</h2>'
+   +'<p>'+label+'</p>'
    +'<button type="button" class="primary hsBegin" data-hs-start>NOVA PARTIDA</button>';
  }
  return "";
