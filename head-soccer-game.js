@@ -92,7 +92,11 @@ async function onlineStart(){
 }
 function start(){
  if(!active||!session)return;
- if(networkMatch()){onlineStart();return}
+ if(networkMatch()){
+  if(session.status==="paused"&&NET().get().role==="host")togglePause();
+  else onlineStart();
+  return;
+ }
  if(session.status==="finished"){newMatch();return}
  if(session.status==="paused"){PHYS().pause(session);syncOverlay();return}
  PHYS().launch(session);lastFrame=0;accum=0;previousStatus="";syncOverlay();
@@ -292,7 +296,9 @@ function overlayText(){
    +'<p>Futebol de cabeças gigantes! Salta, remata, marca golos e liberta o super-remate quando a energia chega a 100%.</p>'
    +'<button type="button" class="primary hsBegin" data-hs-start>COMEÇAR PARTIDA</button>';
  if(s.status==="paused")return '<span class="hsOverlayEyebrow">PARTIDA EM PAUSA</span><h2>PAUSA</h2>'
-  +'<button type="button" class="primary hsBegin" data-hs-start>RETOMAR</button>';
+  +(networkMatch()&&NET().get().role==="guest"
+   ?'<p>Aguarda que o anfitrião retome a partida.</p>'
+   :'<button type="button" class="primary hsBegin" data-hs-start>RETOMAR</button>');
  if(s.status==="finished"){
   const victory=cfg.mode==="local"?(s.winner===0?"JOGADOR 1 VENCEU!":"JOGADOR 2 VENCEU!"):
    (s.winner===0?"VENCESTE!":"PERDESTE!");
