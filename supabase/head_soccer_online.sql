@@ -60,7 +60,7 @@ create or replace function public.edgy_head_soccer_state(p_code text)
 declare uid uuid:=(select auth.uid());r public.edgy_head_soccer_rooms%rowtype;
 begin
  select * into r from public.edgy_head_soccer_rooms where code=upper(trim(coalesce(p_code,'')));
- if not found or uid is null or uid not in(r.host_id,r.guest_id) then
+ if not found or uid is null or (uid is distinct from r.host_id and uid is distinct from r.guest_id) then
   raise exception 'Não pertences à sala';end if;
  return jsonb_build_object('code',r.code,'status',r.status,'host',r.host_id,
   'guest',r.guest_id,'my_id',uid,'match_token',r.match_token,
@@ -125,7 +125,7 @@ create or replace function public.edgy_head_soccer_leave(p_code text)
 declare uid uuid:=(select auth.uid());r public.edgy_head_soccer_rooms%rowtype;
 begin
  select * into r from public.edgy_head_soccer_rooms where code=upper(trim(p_code)) for update;
- if not found or uid is null or uid not in(r.host_id,r.guest_id)
+ if not found or uid is null or (uid is distinct from r.host_id and uid is distinct from r.guest_id)
  then raise exception 'Não pertences a esta sala';end if;
  if r.status='active' then raise exception 'A partida está ativa; não podes abandonar sem terminar';end if;
  if uid=r.host_id then update public.edgy_head_soccer_rooms set status='closed',updated_at=now() where id=r.id;
@@ -188,7 +188,7 @@ create or replace function public.edgy_head_soccer_forfeit(p_code text)
 declare uid uuid:=(select auth.uid());r public.edgy_head_soccer_rooms%rowtype;v_left integer;v_right integer;v_winner integer;v_award boolean;
 begin
  select * into r from public.edgy_head_soccer_rooms where code=upper(trim(p_code)) for update;
- if not found or uid is null or uid not in(r.host_id,r.guest_id) then raise exception 'Sala indisponível';end if;
+ if not found or uid is null or (uid is distinct from r.host_id and uid is distinct from r.guest_id) then raise exception 'Sala indisponível';end if;
  if r.status<>'active' then raise exception 'Não há partida ativa para abandonar';end if;
  v_winner:=case when uid=r.host_id then 1 else 0 end;
  v_left:=case when v_winner=0 then greatest(r.left_score,r.right_score+1) else r.left_score end;
