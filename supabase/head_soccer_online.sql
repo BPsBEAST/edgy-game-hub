@@ -179,3 +179,28 @@ grant execute on function public.edgy_head_soccer_finish(text,integer,integer) t
 grant execute on function public.edgy_head_soccer_cancel(text) to authenticated;
 grant execute on function public.edgy_head_soccer_leave(text) to authenticated;
 grant execute on function public.edgy_head_soccer_rematch(text) to authenticated;
+
+
+-- A participant may abandon an active match; the opponent wins.
+-- Early abandons (<45 s) cannot mint XP.
+create or replace function public.edgy_head_soccer_forfeit(p_code text)
+ returns jsonb language plpgsql security definer set search_path='' as $fn$
+declare uid uuid:=(select auth.uid());r public.edgy_head_soccer_rooms%rowtype;v_left integer;v_right integer;v_winner integer;v_award boolean;
+begin
+ select * into r from public.edgy_head_soccer_rooms where code=upper(trim(p_code)) for update;
+ if not found or uid is null or uid not in(r.host_id,r.guest_id) then raise exception 'Sala indisponível';end if;
+ if r.status<>'active' then raise exception 'Não há partida ativa para abandonar';end if;
+ v_winner:=case when uid=r.host_id then 1 else 0 end;
+ v_left:=case when v_winner=0 then greatest(r.left_score,r.right_score+1) else r.left_score end;
+ v_right:=case when v_winner=1 then greatest(r.right_score,r.left_score+1) else r.right_score end;
+ v_award:=r.started_at<=now()-interval '45 seconds';
+ update public.edgy_head_soccer_rooms set status='finished',finished_at=now(),
+  updated_at=now(),left_score=v_left,right_score=v_right,winner_side=v_winner where id=r.id;
+ if v_award then
+  update public.profiles set xp=xp+(case when v_winner=0 then 40 else 10 end),updated_at=now() where id=r.host_id;
+  update public.profiles set xp=xp+(case when v_winner=1 then 40 else 10 end),updated_at=now() where id=r.guest_id;
+ end if;
+ return jsonb_build_object('ok',true,'forfeit',true,'xp_awarded',v_award);
+end$fn$;
+revoke all on function public.edgy_head_soccer_forfeit(text) from public;
+grant execute on function public.edgy_head_soccer_forfeit(text) to authenticated;
