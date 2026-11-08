@@ -12,7 +12,7 @@ const PALETTES=Object.freeze({
 });
 const defaultCfg={mode:"cpu",difficulty:"normal",hero:"neon"};
 let cfg={...defaultCfg},stats={played:0,wins:0,losses:0,best:0};
-let active=false,session=null,canvas=null,ctx=null,root=null;
+let active=false,session=null,canvas=null,ctx=null,root=null,stadium=null;
 let frameId=0,lastFrame=0,accum=0,recorded=false,previousStatus="",flash=0;
 const keyboard=new Set(),touch=new Set();
 const currentUser=()=>window.EDGY_auth?.getUser?.()?.id||"local";
@@ -512,11 +512,23 @@ function celebrationDraw(){
   ctx.fillStyle="#ffe8a4";ctx.fillText("⚡ GOLO DE OURO ⚡",W/2,83);
  }
 }
+function ensureStadium(){
+ if(stadium||!ctx||typeof document?.createElement!=="function")return;
+ try{
+  const image=document.createElement("canvas");image.width=W;image.height=H;
+  const target=image.getContext("2d");if(!target)return;
+  const live=ctx;ctx=target;
+  try{background();goalPost(10,true);goalPost(W-10,false)}
+  finally{ctx=live}
+  stadium=image;
+ }catch(e){console.warn("EDGY Head Soccer background:",e)}
+}
 function paint(){
  if(!ctx||!canvas||!session)return;
+ ensureStadium();
  ctx.clearRect(0,0,W,H);
- background();
- goalPost(10,true);goalPost(W-10,false);
+ if(stadium)ctx.drawImage(stadium,0,0);
+ else{background();goalPost(10,true);goalPost(W-10,false)}
  headSoccerAvatar(session.players[0],0);headSoccerAvatar(session.players[1],1);
  ballDraw();
  celebrationDraw();
