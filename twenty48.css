@@ -1,0 +1,78 @@
+/* EDGY 2048 — mobile-first 4×4 puzzle in the shared EDGY UI. */
+#screen .t48Page{max-width:1120px;margin:0 auto}
+#screen .t48Layout{align-items:start;gap:20px}
+#screen .t48Stage{padding:20px;border:1px solid #79577e;border-radius:7px;
+ background:radial-gradient(ellipse at 35% -10%,#463152,#251b35 65%,#1b1528);
+ box-shadow:0 13px 36px #0003;width:100%;min-width:0}
+#screen .t48Top{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:17px}
+#screen .t48Caption{font-size:10px;letter-spacing:.13em;color:#d0a1c7;font-weight:850;max-width:160px;line-height:1.55}
+#screen .t48Scores{display:flex;gap:7px;margin-left:auto}
+#screen .t48Scores>div{display:flex;flex-direction:column;gap:4px;align-items:center;min-width:84px;
+ padding:9px 12px;border:1px solid #895c81;border-radius:6px;background:#3e284b}
+#screen .t48Scores small{font-size:9px;color:#efbfdc;font-weight:900;letter-spacing:.075em}
+#screen .t48Scores strong{color:#fff;line-height:1.1;font-size:20px;font-weight:950;font-variant-numeric:tabular-nums}
+#screen .t48BoardHolder{position:relative;max-width:510px;margin:auto}
+#screen .t48Board{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));aspect-ratio:1;gap:9px;padding:9px;
+ width:100%;background:#4b3556;border:3px solid #997098;border-radius:8px;touch-action:none;
+ user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;outline-offset:3px}
+#screen .t48Cell{display:grid;place-items:center;aspect-ratio:1;min-width:0;
+ background:#644968;border-radius:5px;font-weight:1000;color:#fff;font-size:clamp(20px,5vw,40px);
+ font-variant-numeric:tabular-nums;overflow:hidden}
+#screen .t48Cell.has-tile{background:#866582;box-shadow:inset 0 1px 0 #ffffff36,0 1px 5px #1b142f42}
+#screen .t48Cell[data-value="2"]{background:#9e7f9c;color:#fff}
+#screen .t48Cell[data-value="4"]{background:#a17caa}
+#screen .t48Cell[data-value="8"]{background:#ad629e}
+#screen .t48Cell[data-value="16"]{background:#c75a9a}
+#screen .t48Cell[data-value="32"]{background:#d15b87}
+#screen .t48Cell[data-value="64"]{background:#da685f}
+#screen .t48Cell[data-value="128"]{background:#c58566}
+#screen .t48Cell[data-value="256"]{background:#d39e61}
+#screen .t48Cell[data-value="512"]{background:#cfa74b}
+#screen .t48Cell[data-value="1024"]{background:#d7b654;font-size:clamp(16px,4vw,34px)}
+#screen .t48Cell[data-value="2048"]{background:linear-gradient(135deg,#f3c86c,#e99e5a);color:#39222f;
+ box-shadow:0 0 16px #ffc07c83; font-size:clamp(16px,4vw,34px)}
+#screen .t48Cell[data-value="super"]{background:linear-gradient(130deg,#fa85be,#d6a8ed);color:#312138;
+ font-size:clamp(12px,3.2vw,27px)}
+#screen .t48Cell.newly{animation:t48Appear .22s ease-out both}
+#screen .t48Cell.merged{animation:t48Merge .22s ease-out both}
+@keyframes t48Appear{from{opacity:.2;transform:scale(.65)}to{opacity:1;transform:scale(1)}}
+@keyframes t48Merge{from{transform:scale(1.15)}to{transform:scale(1)}}
+#screen .t48Bottom{display:flex;align-items:center;justify-content:space-between;gap:10px;
+ margin:16px auto 0;max-width:510px;color:#e0bfd9;font-size:12px}
+#screen .t48Bottom button{min-height:40px;min-width:114px;font-weight:850}
+#screen .t48Overlay{position:absolute;inset:0;z-index:3;display:flex;flex-direction:column;
+ justify-content:center;align-items:center;text-align:center;padding:18px;
+ background:#24192de8;border:2px solid #d3a0b7;border-radius:8px;backdrop-filter:blur(5px)}
+#screen .t48Overlay h3{font-size:clamp(21px,4.8vw,34px);color:#fff;margin:7px 0}
+#screen .t48Overlay p{color:#ead2df;font-size:13px;line-height:1.5}
+#screen .t48Overlay button{min-height:44px;margin-top:16px;padding:10px 25px}
+#screen .t48WinIcon{font-size:50px;color:#ffcb83}
+#screen .t48Arrows{display:flex;flex-direction:column;align-items:center;gap:5px;margin:15px 0 0}
+#screen .t48Arrows>div{display:flex;gap:5px}
+#screen .t48Arrows button{width:48px;height:42px;border:1px solid #8e6b94;border-radius:6px;
+ background:#432d53;color:#f6dbeb;font-size:22px;font-weight:800}
+#screen .t48Arrows button:active{background:#8a528b}
+#screen .t48Message{margin:12px auto 0;max-width:510px;background:#43314b;
+ border:1px solid #8f7391;border-radius:6px;color:#ffe2ed;padding:11px;text-align:center;font-size:12px}
+#screen .t48Stats{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+#screen .t48Stats>span{display:flex;flex-direction:column;align-items:center;padding:11px;
+ border:1px solid #71547a;background:#33273d;border-radius:5px}
+#screen .t48Stats strong{font-size:22px;color:#fff}
+#screen .t48Stats small{font-size:11px;color:#ceadd0}
+#screen .t48Sidebar .edgyGamePanel p{font-size:12px;line-height:1.7;color:#d2c2d4}
+@media(max-width:799px){
+ #screen .t48Stage{padding:14px}
+ #screen .t48Board{gap:7px;padding:7px;border-width:2px}
+ #screen .t48Page{padding-bottom:13px}
+}
+@media(max-width:400px){
+ #screen .t48Stage{padding:10px}
+ #screen .t48Caption{font-size:9px;max-width:120px}
+ #screen .t48Scores>div{min-width:70px;padding:8px}
+ #screen .t48Scores strong{font-size:17px}
+ #screen .t48Board{gap:5px;padding:5px}
+ #screen .t48Cell{font-size:clamp(19px,6vw,28px)}
+}
+@media(prefers-reduced-motion:reduce){
+ #screen .t48Cell.newly,#screen .t48Cell.merged{animation:none!important}
+}
