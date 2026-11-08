@@ -85,6 +85,7 @@ window.EDGY_openRoom=(name,code)=>{
  if(!window.EDGY_platform?.games[name]?.online||!/^[A-F0-9]{8}$/i.test(code||""))return;
  nav("games");screen.classList.remove("edgyLibraryPage");document.querySelector(".main")?.classList.remove("edgyLibraryViewport");game=name.startsWith("casino_")?"casino":name;rememberGame(game);if(name==="tic")ticMode="online";
  if(name.startsWith("casino_"))window.EDGY_casino?.openRoom(name.slice(7),String(code).toUpperCase());
+ else if(name==="headSoccer")window.EDGY_headSoccer?.openRoom(String(code).toUpperCase());
  else if(name==="chess")window.EDGY_chess?.open(String(code).toUpperCase());
  else if(name==="checkers")window.EDGY_checkers?.open(String(code).toUpperCase());
  else if(name==="barricade")window.EDGY_barricade?.open(String(code).toUpperCase());
