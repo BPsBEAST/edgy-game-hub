@@ -342,18 +342,20 @@ function render(){
  if(!active||typeof game!=="string"||game!=="headSoccer"||!session)return;
  const screen=document.getElementById("screen");if(!screen)return;
  screen.classList.remove("edgyLobby");
- const title=cfg.mode==="cpu"?"EDGY VS CPU":"JOGADOR 1 VS JOGADOR 2";
+ const online=networkMatch(),net=NET()?.get?.()||{};
+ const title=online?"ONLINE · 1×1":cfg.mode==="cpu"?"EDGY VS CPU":"JOGADOR 1 VS JOGADOR 2";
  const stage='<section class="hsStage"><div class="hsScoreboard">'
   +'<div class="hsSideScore"><span>EDGY</span><strong data-hs-score-a>'+session.score[0]+'</strong></div>'
   +'<div class="hsTime"><small>'+title+'</small><strong data-hs-clock>'+clock()+'</strong></div>'
-  +'<div class="hsSideScore rival"><strong data-hs-score-b>'+session.score[1]+'</strong><span>'+(cfg.mode==="cpu"?"CPU":"P2")+'</span></div>'
-  +'</div><div class="hsPowerRow"><div class="hsMeter"><span>✦ P1 · SUPER</span><div><i data-hs-bar-a></i></div><small data-hs-energy-a>0%</small></div>'
-  +'<div class="hsMeter rival"><span>✦ '+(cfg.mode==="cpu"?"CPU":"P2")+'</span><div><i data-hs-bar-b></i></div><small data-hs-energy-b>0%</small></div></div>'
+  +'<div class="hsSideScore rival"><strong data-hs-score-b>'+session.score[1]+'</strong><span>'+(online?"ONLINE":cfg.mode==="cpu"?"CPU":"P2")+'</span></div>'
+  +'</div>'+(online?'<div class="hsNetworkInfo" data-hs-net>'+ (net.connected?"● Ligado à partida":"◌ A ligar ao servidor")+ '</div>':"")
+  +'<div class="hsPowerRow"><div class="hsMeter"><span>✦ P1 · SUPER</span><div><i data-hs-bar-a></i></div><small data-hs-energy-a>0%</small></div>'
+  +'<div class="hsMeter rival"><span>✦ '+(online?"P2":cfg.mode==="cpu"?"CPU":"P2")+'</span><div><i data-hs-bar-b></i></div><small data-hs-energy-b>0%</small></div></div>'
   +'<div class="hsArena" data-hs-arena><canvas data-hs-canvas width="'+W+'" height="'+H+'" aria-label="Campo de futebol arcade com duas personagens de cabeças grandes e uma bola"></canvas>'
   +'<div class="hsOverlay" data-hs-overlay></div></div>'
-  +'<div class="hsBelow"><span>⏱ 60s ·'+(cfg.mode==="cpu"?" Vs. robô":" 2 jogadores")+' · Golo de ouro</span>'
-  +'<div><button type="button" class="secondary" data-hs-pause>Pausa</button>'
-  +'<button type="button" class="secondary" data-hs-restart>Recomeçar</button></div></div>'
+  +'<div class="hsBelow"><span>⏱ 60s ·'+(online?" Online 1×1":cfg.mode==="cpu"?" Vs. robô":" 2 jogadores")+' · Golo de ouro</span>'
+  +'<div><button type="button" class="secondary" data-hs-pause '+(online&&net.role!=="host"?"disabled":"")+'>Pausa</button>'
+  +'<button type="button" class="secondary" data-hs-restart '+(online?"disabled":"")+'>Recomeçar</button></div></div>'
   +'<div class="hsTouchControls">'+controls("p1","JOGADOR 1")
   +(cfg.mode==="local"?controls("p2","JOGADOR 2"):"")+'</div></section>';
  const pick=(name,choices,actual)=>
@@ -363,20 +365,22 @@ function render(){
    +(name==="hero"?'<span class="hsHeroFace hsFace-'+value+'" aria-hidden="true"><i></i></span>':'')
    +label+'</button>').join("")+'</div>';
  const side=UI().card("Modo de jogo",'<p>Escolhe o modo antes de começar a partida.</p>'
-  +pick("mode",[["cpu","Contra robô"],["local","2 jogadores"]],cfg.mode)
+  +pick("mode",[["cpu","Contra robô"],["local","2 jogadores"],["online","Online 1×1"]],cfg.mode)
   +(cfg.mode==="cpu"?'<p class="hsControlText">Dificuldade do robô</p>'+pick("difficulty",[["easy","Fácil"],["normal","Normal"],["hard","Difícil"]],cfg.difficulty):"")
   +'<p class="hsControlText">Personagem EDGY</p>'+pick("hero",[["neon","Neon"],["bolt","Volt"],["frost","Frost"]],cfg.hero))
+  +(online?UI().card("Sala e convites · Online",NET().panel()):"")
   +UI().card("Controlos e regras",'<p><strong>Jogador 1:</strong> A/D para mover, W para saltar, J para rematar e K para o poder especial.</p>'
    +'<p><strong>Jogador 2:</strong> setas para mover/saltar, Enter para rematar, Shift direito para o especial.</p>'
    +'<p>Contra o robô, também podes usar as setas, Espaço para rematar e L para o poder especial.</p>'
    +'<p>Ganhas energia durante a partida. Quando a barra chegar a 100%, ativa o poder e remata.</p>'
-   +'<p>Quando os 60 segundos terminam empatados, o próximo golo vence.</p>')
+   +'<p>Quando os 60 segundos terminam empatados, o próximo golo vence.</p>'
+   +(online?'<p><strong>Online:</strong> as teclas A/D ou setas movem a tua personagem, W salta, J/Espaço remata e K/L ativa o poder. Os dois jogadores usam dispositivos separados.</p>':""))
   +UI().card("XP e histórico",'<div class="hsRecords"><span><strong>'+fmt(stats.played)+'</strong><small>Partidas</small></span>'
    +'<span><strong>'+fmt(stats.wins)+'</strong><small>Vitórias CPU</small></span>'
    +'<span><strong>'+fmt(stats.best)+'</strong><small>Máx. golos</small></span></div>'
-   +'<p>Vitória contra CPU: <strong>40 XP</strong>. Derrota: <strong>10 XP</strong>. Dois jogadores locais: sem XP.</p>'
+   +'<p>Contra CPU ou online: <strong>40 XP</strong> por vitória e <strong>10 XP</strong> por derrota. Dois jogadores locais: sem XP. No modo online, a base de dados atribui os prémios uma vez, após confirmar a partida.</p>'
    +'<p class="sub">O Histórico da EDGY regista os resultados das partidas terminadas.</p>');
- screen.innerHTML='<div class="edgyGamePage hsPage">'+UI().header("headSoccer",{intro:"Futebol arcade · 1 contra 1 · CPU ou local"})
+ screen.innerHTML='<div class="edgyGamePage hsPage">'+UI().header("headSoccer",{intro:"Futebol arcade 1×1 · Robô, local ou multiplayer online"})
   +UI().match({game:"headSoccer",stage,side,layoutClass:"hsLayout",stageClass:"hsGamePanel",sideClass:"hsOptions"})+'</div>';
  root=screen;
  canvas=root.querySelector("[data-hs-canvas]");ctx=canvas?.getContext("2d");
@@ -385,7 +389,7 @@ function render(){
  root.querySelector("[data-hs-restart]")?.addEventListener("click",reset);
  for(const option of ["mode","difficulty","hero"])
   root.querySelectorAll("[data-hs-"+option+"]").forEach(b=>b.addEventListener("click",()=>({mode,difficulty,hero})[option](b.dataset["hs"+option[0].toUpperCase()+option.slice(1)])));
- handleTouchButtons();syncHud();syncOverlay();paint();
+ handleTouchButtons();NET()?.bind?.(root);syncHud();syncOverlay();paint();
 }
 function open(){
  close();
