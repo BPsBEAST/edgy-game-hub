@@ -23,7 +23,7 @@ function kick(st,p,special){
  const boost=special?1120:700;
  ball.vx=direction*boost+p.vx*.23;
  ball.vy=clamp(-205+dy*.54+(special?120:0),special?-285:-360,80);
- ball.spin=direction*(special?15:8);ball.power=special?1.8:0;ball.trail=special?1.7:0;ball.effect=special?(p.id===0?st.hero:"frost"):null;
+ ball.spin=direction*(special?15:8);ball.power=special?1.8:0;ball.trail=special?1.7:0;ball.effect=special?(p.id===0?st.hero:(st.heroGuest||"frost")):null;
  p.hitTime=.16;
  if(special)p.powerTime=0;
  p.energy=clamp(p.energy+(special?0:15),0,100);
