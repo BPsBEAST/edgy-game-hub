@@ -9,7 +9,7 @@ const dir=path.resolve(path.dirname(fileURLToPath(import.meta.url)),"..");
 const read=file=>fs.readFileSync(path.join(dir,file),"utf8");
 const html=read("index.html");
 const app=read("app.js");
-const gameFiles=["twenty48-rules.js","twenty48-game.js","edgy-levels.js","app.js","edgy-platform.js","edgy-game-ui.js","casino-tables.js","players.js","social.js","history.js","chess-online.js","checkers-replay.js","checkers-online.js","tic-online.js","barricade-online.js","party-online.js","poker-online.js","casino-game.js","wordle-data.js","wordle-rules.js","edgy-seen-words.js","wordle-game.js","contexto-data.js","contexto-rules.js","contexto-game.js","auth.js","sw.js"];
+const gameFiles=["head-soccer-physics.js","head-soccer-game.js","twenty48-rules.js","twenty48-game.js","edgy-levels.js","app.js","edgy-platform.js","edgy-game-ui.js","casino-tables.js","players.js","social.js","history.js","chess-online.js","checkers-replay.js","checkers-online.js","tic-online.js","barricade-online.js","party-online.js","poker-online.js","casino-game.js","wordle-data.js","wordle-rules.js","edgy-seen-words.js","wordle-game.js","contexto-data.js","contexto-rules.js","contexto-game.js","auth.js","sw.js"];
 test("All app scripts and inline bootstrap parse successfully",()=>{
  for(const file of gameFiles)assert.doesNotThrow(()=>new vm.Script(read(file),{filename:file}),file);
  const scripts=[...html.matchAll(/<script([^>]*)>([\s\S]*?)<\/script>/g)];
@@ -22,13 +22,82 @@ test("Every local asset referenced by the bootstrap exists",()=>{
  assert.ok(assets);
  const names=[...assets.matchAll(/"([^"]+)"/g)].map(m=>m[1]);
  for(const name of names)assert.ok(fs.existsSync(path.join(dir,name.split("?")[0])),name);
- assert.ok(names.includes("./edgy-platform.js?v=67"),"shared platform cached");
- assert.ok(names.includes("./app.js?v=67"),"bootstrap cached");
+ assert.ok(names.includes("./edgy-platform.js?v=69"),"shared platform cached");
+ assert.ok(names.includes("./app.js?v=69"),"bootstrap cached");
  assert.ok(names.includes("./base.css?v=29"),"base stylesheet cached");
  assert.ok(names.includes("./edgy-theme.css?v=34"),"design cached");
  assert.ok(names.includes("./tic-online.js?v=40"),"online tic cached");
  assert.ok(names.includes("./checkers-replay.js?v=33"),"checkers replay cached");
 });
+test("Head Soccer arcade engine supports CPU, local, power shots, 60 seconds and golden goal",()=>{
+ const sandbox={window:{}};vm.runInNewContext(read("head-soccer-physics.js"),sandbox);
+ const engine=sandbox.window.EDGY_headSoccerPhysics;
+ let s=engine.create();
+ assert.equal(s.status,"ready");assert.equal(s.seconds,60);
+ assert.equal(s.players.length,2);assert.equal(s.score.join(","),"0,0");
+ engine.step(s,{p1:{right:true}},1/60);
+ assert.equal(s.players[0].x,205,"players do not move before kickoff");
+ engine.launch(s);engine.step(s,{p1:{right:true}},1/60);
+ assert.ok(s.players[0].x>205,"player should move while playing");
+ s.players[0].energy=100;
+ s.ball.x=s.players[0].x+78;s.ball.y=s.players[0].y-71;s.ball.vx=0;s.ball.vy=0;
+ engine.step(s,{p1:{power:true,kick:true}},1/60);
+ assert.ok(s.ball.power>0,"charged power kick should activate projectile effect");
+ assert.equal(s.players[0].energy,0,"power consumes available energy");
+ engine.pause(s);const before=s.seconds;
+ engine.step(s,{p1:{left:true}},1/60);
+ assert.equal(s.seconds,before,"pausing must freeze match timer");
+ engine.pause(s);assert.equal(s.status,"playing");
+ s.ball.x=-3;s.ball.y=engine.GOAL_TOP+70;s.ball.vx=-260;s.ball.vy=0;
+ engine.step(s,{},1/60);
+ assert.equal(s.score[1],1,"left-goal entry awards a point to the opponent");
+ assert.equal(s.status,"goal");
+ for(let i=0;i<83;i++)engine.step(s,{},1/60);
+ assert.equal(s.status,"playing","kickoff resets after celebration");
+ s.score=[1,0];s.seconds=.001;
+ engine.step(s,{},1/60);
+ assert.equal(s.status,"finished");assert.equal(s.winner,0);
+ s=engine.create({mode:"local",difficulty:"hard"});
+ engine.launch(s);s.seconds=.001;
+ engine.step(s,{},1/60);
+ assert.equal(s.suddenDeath,true,"a tie at full time triggers sudden death");
+ assert.equal(s.status,"playing");
+ s.ball.x=engine.W+3;s.ball.y=engine.GOAL_TOP+70;s.ball.vx=260;s.ball.vy=0;
+ engine.step(s,{},1/60);
+ assert.equal(s.winner,0);assert.equal(s.status,"finished");
+ s=engine.create({mode:"cpu",difficulty:"hard"});
+ engine.launch(s);s.ball.x=500;s.ball.y=325;
+ const old=s.players[1].x;
+ for(let i=0;i<11;i++)engine.step(s,{p1:{}},1/60);
+ assert.ok(s.players[1].x<old,"CPU should track the ball autonomously");
+});
+test("Head Soccer canvas controller and PWA are integrated into EDGY",()=>{
+ const physics=read("head-soccer-physics.js"),client=read("head-soccer-game.js"),style=read("head-soccer.css");
+ const platform=read("edgy-platform.js"),ui=read("edgy-game-ui.js"),app=read("app.js"),sw=read("sw.js");
+ assert.ok(physics.includes("goal(st,scorer)")&&physics.includes("function cpu(st,dt)"));
+ assert.ok(client.includes('window.EDGY_recordLocalMatch?.("Head Soccer"'));
+ assert.ok(client.includes('data-hs-press="'));
+ assert.ok(client.includes('pointerdown')&&client.includes('pointercancel'));
+ assert.ok(client.includes("requestAnimationFrame(tick)")&&client.includes("cancelAnimationFrame(frameId)"));
+ assert.ok(client.includes('addEventListener("visibilitychange"'));
+ assert.ok(client.includes("data-hs-canvas")&&client.includes("ctx.fill"));
+ assert.ok(client.includes('2 jogadores locais')||client.includes('2 jogadores'));
+ assert.ok(style.includes("@media(max-width:420px)")&&style.includes("touch-action:none"));
+ assert.ok(platform.includes('headSoccer:Object.freeze({id:"headSoccer"'));
+ assert.ok(ui.includes('headSoccer:{title:"Head Soccer"'));
+ assert.ok(app.includes('if(id==="headSoccer"){window.EDGY_headSoccer?.open()'));
+ assert.ok(app.includes('if(game==="headSoccer")return window.EDGY_headSoccer?.render()'));
+ assert.ok(app.includes('"Head Soccer":"headSoccer"'));
+ for(const asset of ["head-soccer-physics.js?v=69","head-soccer-game.js?v=69","head-soccer.css?v=69"]){
+  assert.ok(html.includes(asset),"HTML missing "+asset);
+  assert.ok(sw.includes(asset),"SW missing "+asset);
+ }
+ const scripts=[...html.matchAll(/<script[^>]+src="([^"]+)"/g)].map(x=>x[1]);
+ assert.ok(scripts.indexOf("./head-soccer-physics.js?v=69")>=0);
+ assert.ok(scripts.indexOf("./head-soccer-physics.js?v=69")<scripts.indexOf("./head-soccer-game.js?v=69"));
+ assert.ok(html.indexOf("edgy-platform.js?v=69")<html.indexOf("head-soccer-game.js?v=69"));
+});
+
 test("EDGY 2048 follows classic single-merge rules and supports autosave/one XP award",()=>{
  const storage=new Map(),root={innerHTML:"",classList:{remove(){}},querySelector(){return null},querySelectorAll(){return []}};
  const user={id:"2048-user"};
@@ -606,7 +675,7 @@ test("Cartas Contra Tugas is a 3–8 player registered game with dedicated mobil
  for(const asset of ["party-online.js?v=59","party.css?v=58"]){
   assert.ok(html.includes(asset)&&assets.includes(asset));
  }
- assert.ok(scripts.indexOf("./party-online.js?v=59")>scripts.indexOf("./app.js?v=67"));
+ assert.ok(scripts.indexOf("./party-online.js?v=59")>scripts.indexOf("./app.js?v=69"));
 });
 test("Cartas Contra Tugas privacy, scoring, history and room status are owned by server RPC",()=>{
  const party=read("party-online.js");
@@ -832,7 +901,7 @@ test("Progressive XP levels retain pre-migration progress and use increasing tie
  assert.ok(sql.includes("edgy_player_profile")&&sql.includes("edgy_list_players")&&sql.includes("edgy_wallet_status"));
  assert.ok(html.includes('edgy-levels.js?v=66'));
  assert.ok(read("sw.js").includes('edgy-levels.js?v=66'));
- assert.ok(html.indexOf("edgy-levels.js?v=66")<html.indexOf("app.js?v=67"));
+ assert.ok(html.indexOf("edgy-levels.js?v=66")<html.indexOf("app.js?v=69"));
 });
 test("Slots autoplay locks stake, spins the selected count and keeps XP server-authoritative",async()=>{
  const events={},storage=new Map([["edgy_casino_18_ack_user-A","yes"]]),calls=[];
@@ -910,7 +979,7 @@ function platformFixture(){
 }
 test("Single registry serves all online games and rejects invalid codes",async()=>{
  const {platform,calls}=platformFixture();
- assert.deepEqual(Object.keys(platform.games).sort(),["barricade","casino","casino_blackjack","casino_coinflip","casino_roulette","checkers","chess","contexto","party","poker","reaction","tic","twenty48","wordle"]);
+ assert.deepEqual(Object.keys(platform.games).sort(),["barricade","casino","casino_blackjack","casino_coinflip","casino_roulette","checkers","chess","contexto","headSoccer","party","poker","reaction","tic","twenty48","wordle"]);
  assert.equal(platform.code(" aB41cD23 "),"AB41CD23");
  assert.throws(()=>platform.code("oops"),/8 caracteres/);
  assert.throws(()=>platform.rooms.create("reaction"),/não suporta/);
@@ -1104,8 +1173,8 @@ test("Stable footer, profile replay links and chess mobile actions",()=>{
 
 test("Game library uses a single registry loaded before bootstrap",()=>{
  const scripts=[...html.matchAll(/<script[^>]*src="([^"]+)"/g)].map(m=>m[1]);
- const platform=scripts.indexOf("./edgy-platform.js?v=67");
- const bootstrap=scripts.indexOf("./app.js?v=67");
+ const platform=scripts.indexOf("./edgy-platform.js?v=69");
+ const bootstrap=scripts.indexOf("./app.js?v=69");
  assert.ok(platform>=0&&bootstrap>=0&&platform<bootstrap);
  const app=read("app.js"),defs=read("edgy-platform.js");
  assert.ok(app.includes("Object.values(window.EDGY_platform.games).filter(g=>!g.hidden).map("));
@@ -1228,7 +1297,7 @@ test("Chess shares the match shell, drawer binder and move controls",()=>{
 });
 test("All games share one header, lobby cards and match presentation",()=>{
  const html=read("index.html"),ui=read("edgy-game-ui.js"),css=read("edgy-game-layout.css");
- assert.ok(html.includes('edgy-game-ui.js?v=67'));
+ assert.ok(html.includes('edgy-game-ui.js?v=69'));
  assert.ok(html.includes('edgy-game-layout.css?v=47'));
  for(const game of ["chess","checkers","tic","reaction","casino","barricade","party","poker","wordle","contexto"])assert.ok(ui.includes(game+':{title:'));
  for(const file of ["chess-online.js","checkers-online.js","tic-online.js","barricade-online.js","app.js"]){
@@ -1344,7 +1413,7 @@ test("Home and Biblioteca render exactly the same reusable game cards",()=>{
  assert.ok(css.includes('grid-auto-rows:1fr'),"all cards in the grid stretch equally");
  assert.ok(css.includes('.main.edgyLibraryViewport>.foot'),"library footer follows the cards in the main scroller");
  assert.ok(html.includes('edgy-game-layout.css?v=47'));
- assert.ok(html.includes('app.js?v=67'));
+ assert.ok(html.includes('app.js?v=69'));
 });
 test("EDGY v36: chess title is short and empty join notice does not reserve space",()=>{
  const chess=read("chess-online.js"),ui=read("edgy-game-ui.js"),css=read("edgy-game-layout.css");
