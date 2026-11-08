@@ -108,3 +108,87 @@
  #screen .hsMeter i{transition:none!important}
  #screen .hsControl{transition:none!important}
 }
+
+
+/* V2 — exaggerated, bright arcade presentation and classic left/right vs action gamepad. */
+#screen .hsStage{background:linear-gradient(155deg,#354965,#222943 59%,#27304c);border-color:#8295bf}
+#screen .hsScoreboard{gap:6px;margin-bottom:8px}
+#screen .hsSideScore{background:linear-gradient(100deg,#8c395e,#c45f75);border:2px solid #f6bfbc;
+ box-shadow:inset 0 1px 0 #ffe9ed6b,0 4px 10px #131b3759}
+#screen .hsSideScore.rival{background:linear-gradient(100deg,#3e7ba1,#2f5d97);border-color:#abebfd}
+#screen .hsSideScore span,#screen .hsSideScore.rival span{color:#fff}
+#screen .hsTime{background:linear-gradient(180deg,#25344c,#181b33);border:2px solid #f4cc92}
+#screen .hsPowerRow{margin:0 0 8px}
+#screen .hsArena{border:4px solid #dde9f1;box-shadow:inset 0 0 12px #153d6566,0 7px 0 #233752,0 15px 24px #141b2e9e}
+#screen .hsOverlay{background:linear-gradient(180deg,#142c4eea,#171d3ee0);gap:10px}
+#screen .hsOverlayEyebrow{color:#ffcf93}
+#screen .hsOverlay h2{color:#fff3bc;font-style:italic;letter-spacing:-.02em;
+ text-shadow:3px 4px 0 #64395b,0 0 17px #ffb27a99}
+#screen .hsOverlay p{max-width:520px;color:#edf5ff}
+#screen .hsReadyFaces{display:flex;align-items:center;justify-content:center;gap:17px;margin:5px 0 3px}
+#screen .hsReadyPortrait{display:flex;flex-direction:column;align-items:center;gap:4px;color:#fff;
+ font-size:10px;font-weight:950;letter-spacing:.09em}
+#screen .hsReadyHead{display:block;width:82px;height:77px;position:relative;border:4px solid #fff2e8;border-radius:48% 48% 45% 45%;
+ background:radial-gradient(circle at 34% 36%,#fff2de,#dba98f 82%);
+ box-shadow:0 7px 0 #0c203459,0 0 0 3px #243b6b}
+#screen .hsReadyHead::before{content:"";position:absolute;left:-7px;right:-7px;top:-13px;height:38px;
+ border-radius:55% 55% 20% 30%;background:#352b5d;
+ clip-path:polygon(0 36%,12% 8%,30% 30%,44% 0,57% 31%,79% 4%,92% 28%,100% 18%,95% 93%,76% 80%,54% 99%,29% 76%,12% 98%)}
+#screen .hsReadyHead::after{content:"";position:absolute;left:18px;top:36px;width:10px;height:15px;
+ border-radius:50%;background:#2f3549;box-shadow:24px 0 #2f3549,-2px -4px 0 7px #fff,22px -4px 0 7px #fff}
+#screen .hsReadyPortrait.hsFace-bolt .hsReadyHead::before{background:#fad16c}
+#screen .hsReadyPortrait.hsFace-frost .hsReadyHead::before{background:#acf3fd}
+#screen .hsVersus{font-size:28px;font-style:italic;font-weight:1000;color:#ffd787;text-shadow:2px 3px #3b476d}
+#screen .hsPad{display:flex;justify-content:space-between;gap:18px;align-items:center;min-width:0}
+#screen .hsMovePad,#screen .hsActionPad{display:flex;align-items:center;gap:7px;min-width:0}
+#screen .hsMovePad{flex:0 1 44%}
+#screen .hsActionPad{flex:0 1 auto;margin-left:auto}
+#screen .hsPad .hsControl{flex:1;min-width:0;min-height:67px;max-width:84px;
+ border-radius:12px;border:2px solid #b1bcd4;background:linear-gradient(145deg,#4a688c,#33486f);
+ box-shadow:0 4px 0 #1b2943,inset 0 1px 0 #ffffff55}
+#screen .hsPad .hsControl>span{font-size:26px}
+#screen .hsPad .hsControl small{font-size:9px}
+#screen .hsPad .hsControl-jump{background:linear-gradient(145deg,#4a9bb2,#2d698c);border-color:#c7ebfb}
+#screen .hsPad .hsControl-kick{background:linear-gradient(145deg,#e97d99,#a44679);border-color:#ffcad5}
+#screen .hsPad .hsControl-power{background:linear-gradient(145deg,#f9d477,#b77d57);border-color:#ffefbd;color:#432944}
+#screen .hsPad .hsControl-power small{color:#432944}
+#screen .hsPad .hsControl.is-ready{box-shadow:0 0 0 2px #ffeb9d,0 0 19px #ffda628a;animation:hsReadyPulse .9s ease-in-out infinite alternate}
+#screen .hsPad .hsControl.is-pressed{transform:translateY(3px) scale(.98);box-shadow:0 1px 0 #1b2943}
+@keyframes hsReadyPulse{to{filter:brightness(1.18)}}
+#screen .hsHeroSelect button{display:flex;flex-direction:column;justify-content:center;align-items:center;gap:6px;min-height:75px}
+#screen .hsHeroFace{display:block;position:relative;width:40px;height:38px;border-radius:50% 50% 46% 46%;
+ border:2px solid #3b3146;background:radial-gradient(circle at 37% 30%,#ffe2c4,#d8aa94 75%);
+ box-shadow:0 3px 5px #191a3259;overflow:visible}
+#screen .hsHeroFace::before{content:"";position:absolute;left:-5px;right:-5px;top:-7px;height:22px;
+ background:#35304c;clip-path:polygon(0 55%,15% 0,32% 40%,46% 0,61% 35%,83% 0,100% 40%,95% 100%,48% 83%,5% 100%)}
+#screen .hsHeroFace::after{content:"";position:absolute;top:20px;left:11px;width:5px;height:7px;
+ background:#354053;border-radius:50%;box-shadow:13px 0 #354053,0 -3px 0 3px #fff,13px -3px 0 3px #fff}
+#screen .hsFace-bolt::before{background:#f2c45c}
+#screen .hsFace-frost::before{background:#a8e6f5}
+#screen .hsHeroSelect button.selected{border-color:#ffdc93;background:#674c6e}
+@media(max-width:800px){
+ #screen .hsPad{gap:10px}
+ #screen .hsMovePad,#screen .hsActionPad{gap:6px}
+ #screen .hsPad .hsControl{min-height:60px}
+ #screen .hsPad .hsControl>span{font-size:23px}
+ #screen .hsReadyHead{width:65px;height:61px}
+ #screen .hsReadyHead::after{transform:scale(.78);transform-origin:top left}
+ #screen .hsReadyFaces{gap:10px}
+}
+@media(max-width:420px){
+ #screen .hsStage{padding:5px}
+ #screen .hsPad{gap:7px}
+ #screen .hsMovePad,#screen .hsActionPad{gap:4px}
+ #screen .hsPad .hsControl{min-height:53px;border-radius:9px}
+ #screen .hsPad .hsControl>span{font-size:20px}
+ #screen .hsPad .hsControl small{font-size:8px}
+ #screen .hsReadyFaces{gap:8px;margin:0}
+ #screen .hsReadyHead{width:54px;height:49px}
+ #screen .hsReadyPortrait{font-size:8px}
+ #screen .hsVersus{font-size:21px}
+ #screen .hsOverlay p{font-size:9px;line-height:1.3}
+ #screen .hsOverlay h2{font-size:22px}
+ #screen .hsOverlayEyebrow{font-size:8px}
+ #screen .hsBegin{margin-top:2px}
+}
+@media(prefers-reduced-motion:reduce){#screen .hsPad .hsControl.is-ready{animation:none!important}}
