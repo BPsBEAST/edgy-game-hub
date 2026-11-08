@@ -744,7 +744,7 @@ test("EDGY casino provides all three XP-only games with cloud wallet and control
  assert.ok(casino.includes('async function animateResult('));
  assert.ok(casino.includes('xp_awarded'));
  assert.ok(!casino.includes('intervalo mínimo de 5 segundos'));
- for(const asset of ['casino-game.js?v=67','casino.css?v=67','casino-tables.js?v=65','casino-tables.css?v=65']){
+ for(const asset of ['casino-game.js?v=68','casino.css?v=67','casino-tables.js?v=65','casino-tables.css?v=65']){
   assert.ok(html.includes(asset),asset);
   assert.ok(sw.includes(asset),asset);
  }
