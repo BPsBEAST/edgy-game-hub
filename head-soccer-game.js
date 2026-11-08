@@ -376,7 +376,7 @@ function headSoccerAvatar(p,side){
  const t=session.frame/60;
  ctx.save();ctx.translate(x,y);ctx.scale(face,1);
  const bounce=(!p.grounded?2:Math.sin(t*10+side)*.6);
- ellipse(0,FLOOR-y+5,44,8,"#214d3880");
+ ellipse(0,PHYS().FLOOR-y+5,44,8,"#214d3880");
  if(p.powerTime>0){
   const r=ctx.createRadialGradient(0,-133,27,0,-133,103);
   r.addColorStop(0,type==="frost"?"#76e5f96c":type==="bolt"?"#ffe27879":"#ffa76c8a");
