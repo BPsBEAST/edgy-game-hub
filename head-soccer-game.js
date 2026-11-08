@@ -4,7 +4,7 @@
 const PHYS=()=>window.EDGY_headSoccerPhysics;
 const UI=()=>window.EDGY_gameUI;
 const SAVE="edgy_head_soccer_v1_";
-const W=960,H=510;
+const W=960,H=510,FLOOR=440;
 const PALETTES=Object.freeze({
  neon:{name:"NEON",shirt:"#f77abb",accent:"#ffd5ed",skin:"#f2bca6",hair:"#38203c",eye:"#2e1c38"},
  bolt:{name:"VOLT",shirt:"#f1b35b",accent:"#fff1b8",skin:"#dfab89",hair:"#332e4f",eye:"#241f39"},
