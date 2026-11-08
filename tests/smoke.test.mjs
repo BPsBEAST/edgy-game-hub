@@ -74,6 +74,7 @@ test("Head Soccer multiplayer is private and integrated with EDGY invitations",(
  }
  assert.ok(sql.includes("revoke all on public.edgy_head_soccer_rooms"));
  assert.ok(sql.includes("alter table public.edgy_head_soccer_rooms enable row level security"));
+ assert.ok(sql.includes("uid is distinct from r.host_id"),"membership checks reject outsiders with a vacant guest seat");
  assert.ok(sql.includes("create policy edgy_hs_read on realtime.messages"));
  assert.ok(sql.includes("create policy edgy_hs_write on realtime.messages"));
  assert.ok(sql.includes("status='finished'"),"game result persisted once");
@@ -89,12 +90,12 @@ test("Head Soccer multiplayer is private and integrated with EDGY invitations",(
  assert.ok(game.includes("async function openRoom(code)")&&game.includes("window.EDGY_recordLocalMatch"));
  assert.ok(app.includes('else if(name==="headSoccer")window.EDGY_headSoccer?.openRoom('));
  assert.ok(read("edgy-platform.js").includes('online:true,create:"edgy_head_soccer_create"'));
- for(const file of ["head-soccer-online.js?v=71","head-soccer-game.js?v=71","head-soccer.css?v=71"]){
+ for(const file of ["head-soccer-online.js?v=72","head-soccer-game.js?v=72","head-soccer.css?v=72"]){
   assert.ok(html.includes(file),file+" missing from index");
   assert.ok(read("sw.js").includes(file),file+" missing from offline cache");
  }
  const scripts=[...html.matchAll(/<script[^>]+src="([^"]+)"/g)].map(x=>x[1]);
- assert.ok(scripts.indexOf("./head-soccer-online.js?v=71")<scripts.indexOf("./head-soccer-game.js?v=71"));
+ assert.ok(scripts.indexOf("./head-soccer-online.js?v=72")<scripts.indexOf("./head-soccer-game.js?v=72"));
 });
 
 test("Head Soccer arcade engine supports CPU, local, power shots, 60 seconds and golden goal",()=>{
@@ -171,14 +172,14 @@ test("Head Soccer canvas controller and PWA are integrated into EDGY",()=>{
  assert.ok(app.includes('if(id==="headSoccer"){window.EDGY_headSoccer?.open()'));
  assert.ok(app.includes('if(game==="headSoccer")return window.EDGY_headSoccer?.render()'));
  assert.ok(app.includes('"Head Soccer":"headSoccer"'));
- for(const asset of ["head-soccer-physics.js?v=70","head-soccer-game.js?v=71","head-soccer.css?v=71"]){
+ for(const asset of ["head-soccer-physics.js?v=72","head-soccer-game.js?v=72","head-soccer.css?v=72"]){
   assert.ok(html.includes(asset),"HTML missing "+asset);
   assert.ok(sw.includes(asset),"SW missing "+asset);
  }
  const scripts=[...html.matchAll(/<script[^>]+src="([^"]+)"/g)].map(x=>x[1]);
- assert.ok(scripts.indexOf("./head-soccer-physics.js?v=70")>=0);
- assert.ok(scripts.indexOf("./head-soccer-physics.js?v=70")<scripts.indexOf("./head-soccer-game.js?v=71"));
- assert.ok(html.indexOf("edgy-platform.js?v=71")<html.indexOf("head-soccer-game.js?v=71"));
+ assert.ok(scripts.indexOf("./head-soccer-physics.js?v=72")>=0);
+ assert.ok(scripts.indexOf("./head-soccer-physics.js?v=72")<scripts.indexOf("./head-soccer-game.js?v=72"));
+ assert.ok(html.indexOf("edgy-platform.js?v=71")<html.indexOf("head-soccer-game.js?v=72"));
 });
 
 test("EDGY 2048 follows classic single-merge rules and supports autosave/one XP award",()=>{
