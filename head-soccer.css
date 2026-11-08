@@ -208,3 +208,41 @@
  #screen .hsPad .hsControl{min-height:43px}
  #screen .hsPad .hsControl>span{font-size:18px}
 }
+
+/* Head Soccer online private lobby and connection status, responsive to phone widths. */
+#screen .hsNetworkInfo{margin:-3px 0 8px;font-size:10px;font-weight:800;letter-spacing:.07em;color:#b9ebd0;text-align:center}
+#screen .hsOnlineCard{display:flex;flex-direction:column;gap:11px;min-width:0}
+#screen .hsOnlineCard h3{margin:0;color:#fff;font-size:15px}
+#screen .hsOnlineCard>p{font-size:12px;line-height:1.55;color:#d7c7da;margin:0}
+#screen .hsOnlineCard button{min-height:38px;padding:8px 12px;font-size:11px;font-weight:800}
+#screen .hsOnlineCard .hsRoomMain{width:100%;margin:2px 0}
+#screen .hsRoomJoin{display:flex;gap:7px;align-items:stretch;min-width:0}
+#screen .hsRoomJoin input{width:100%;min-width:0;min-height:43px;background:#201b30;
+ border:1px solid #9a6a99;border-radius:5px;color:#fff;padding:8px 11px;
+ font-size:16px;letter-spacing:.12em;text-transform:uppercase}
+#screen .hsRoomJoin button{flex-shrink:0}
+#screen .hsRoomHeading{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:5px}
+#screen .hsRoomHeading small{color:#d6a5cb;font-size:9px;font-weight:950;letter-spacing:.13em}
+#screen .hsRoomBadge{font-size:10px;font-weight:850;color:#9de6cf;background:#254637;border-radius:13px;padding:5px 8px}
+#screen .hsRoomCode{display:flex;align-items:center;justify-content:space-between;gap:6px;
+ width:100%;border:1px dashed #ddadc9!important;background:#2d2143!important;
+ padding:9px 12px!important;color:#ffe5f1!important;font-size:17px!important;letter-spacing:.13em;
+ font-weight:950!important;min-height:45px}
+#screen .hsRoomCode span{font-size:10px;color:#cba9c3;letter-spacing:0}
+#screen .hsRoomPlayers{display:grid;grid-template-columns:minmax(0,1fr) 28px minmax(0,1fr);gap:6px;align-items:center}
+#screen .hsRoomPlayers>span{display:flex;flex-direction:column;gap:5px;align-items:center;justify-content:center;
+ padding:10px 4px;border:1px solid #765a88;border-radius:5px;background:#362844;min-width:0}
+#screen .hsRoomPlayers>span:last-child{background:#233449;border-color:#5d799b}
+#screen .hsRoomPlayers b{font-size:9px;color:#f7bad6}
+#screen .hsRoomPlayers strong{font-size:11px;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+#screen .hsRoomPlayers em{color:#ffd491;font-weight:950;font-style:normal;text-align:center}
+#screen .hsRoomButtons{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+#screen .hsRoomExit{margin-top:3px}
+#screen .hsOnlineError{border:1px solid #d77ca0;background:#562d47;color:#ffdaeb;padding:9px;border-radius:5px;overflow-wrap:anywhere}
+#screen .hsForfeit{border-color:#d78aa0!important;color:#ffb6c6!important}
+#screen .hsOnlineCard button:disabled{opacity:.6;cursor:not-allowed}
+@media(max-width:420px){
+ #screen .hsRoomJoin{gap:5px}
+ #screen .hsRoomJoin input{font-size:16px;padding:8px 7px}
+ #screen .hsOnlineCard button{padding:7px 8px}
+}
