@@ -73,8 +73,8 @@ function visualStart(selectedMode,host){
   host.querySelectorAll(".cxnReelWindow").forEach((win,i)=>{
    const track=win.querySelector(".cxnReelTrack");
    if(!track)return;
-   track.style.setProperty("--cxn-cell",win.clientHeight+"px");
-   track.innerHTML=slotCells([...slotSymbols,...slotSymbols]);
+   track.style.setProperty("--cxn-cell",(win.clientHeight/3)+"px");
+   track.innerHTML=slotCells([...slotSymbols,...slotSymbols,...slotSymbols,...slotSymbols]);
    track.classList.add("is-spinning");
   });
  }else if(selectedMode==="coinflip"){
@@ -89,8 +89,10 @@ async function animateResult(selectedMode,out,host){
   const windows=[...host.querySelectorAll(".cxnReelWindow")];
   await Promise.all(windows.map(async(win,i)=>{
    const track=win.querySelector(".cxnReelTrack");if(!track)return;
-   const size=Math.max(1,win.clientHeight),steps=19+i*5,landing=String(out.symbols?.[i]||"🍒");
-   const cells=Array.from({length:steps+1},(_,j)=>j===steps?landing:slotSymbols[(j*3+i*2+Math.floor(j/4))%slotSymbols.length]);
+   const grid=Array.isArray(out.grid)&&out.grid.length===3?out.grid:[["🍒","🍋","🍇"],out.symbols||["🍒","⭐","💎"],["🍀","⭐","💎"]];
+   const landing=grid.map(row=>String(row?.[i]||"🍒"));
+   const size=Math.max(1,win.clientHeight/3),steps=21+i*6;
+   const cells=Array.from({length:steps},(_,j)=>slotSymbols[(j*3+i*2+Math.floor(j/4))%slotSymbols.length]).concat(landing);
    track.classList.remove("is-spinning");track.style.setProperty("--cxn-cell",size+"px");
    track.innerHTML=slotCells(cells);track.style.transform="translateY(0)";
    const end=-steps*size;
@@ -263,15 +265,25 @@ function roulettePanel(){
   +'<p class="cxnOdds">Vermelho/preto: 2× · Zero/número exato: 36× · Roleta europeia (37 números)</p>';
 }
 function slotsPanel(){
- const symbols=result?.game==="slots"?result.result?.symbols||[]:["🍒","⭐","💎"];
- return '<div class="cxnSlotMachine '+(result?.game==="slots"&&Number(result.delta)>0?'is-winner':'')+'">'
-  +'<div class="cxnSlotMarquee"><span>✦</span><strong>EDGY JACKPOT</strong><span>✦</span></div>'
+ const out=result?.game==="slots"?result.result||{}:{};
+ const grid=Array.isArray(out.grid)&&out.grid.length===3?out.grid:[["🍒","🍇","🍋"],["🍒","⭐","💎"],["🍀","🍋","⭐"]];
+ const hits=Array.isArray(out.lines)?out.lines:[0,0,0];
+ const winner=result?.game==="slots"&&Number(result.delta)>0;
+ return '<div class="cxnSlotMachine cxnSlotThree '+(winner?'is-winner':'')+'">'
+  +'<div class="cxnSlotMarquee"><span>✦</span><strong>EDGY · 3 LINHAS</strong><span>✦</span></div>'
   +'<div class="cxnSlotGlass"><div class="cxnReelMachine">'
-  +symbols.map(s=>'<div class="cxnReelWindow"><div class="cxnReelTrack">'+slotCells([s])+'</div></div>').join("")
-  +'</div><div class="cxnSlotPayline" aria-hidden="true"></div></div>'
-  +'<div class="cxnSlotFooter"><span>✦ ✦ ✦</span><strong>XP SLOTS</strong><span>✦ ✦ ✦</span></div>'
-  +'</div><p class="cxnInputLabel">Alinha os símbolos para ganhar</p>'
-  +'<p class="cxnOdds">3 iguais: 8× · 2 iguais: 1,5× · Sem correspondência: 0×</p>';
+  +Array.from({length:3},(_,col)=>'<div class="cxnReelWindow" aria-label="Rolo '+(col+1)+'">'
+   +'<div class="cxnReelTrack">'+slotCells(grid.map(row=>row?.[col]||"🍒"))+'</div></div>').join("")
+  +'</div><div class="cxnSlotLines" aria-hidden="true">'
+  +[0,1,2].map(row=>'<span class="cxnPayline'+(hits[row]>=2?' is-hit':'')+(hits[row]===3?' is-jackpot':'')+'" style="--cxn-row:'+row+'">'
+     +'<b>'+String(row+1)+'</b></span>').join("")
+  +'</div></div>'
+  +'<div class="cxnSlotFooter"><span>✦ ✦ ✦</span><strong>3 ROLLOS · 3 LINHAS</strong><span>✦ ✦ ✦</span></div>'
+  +'</div>'
+  +(result?.game==="slots"?'<div class="cxnPaylineResults" aria-label="Resultados das três linhas">'
+    +hits.map((v,i)=>'<span class="'+(v>=2?'is-hit':'')+'">Linha '+(i+1)+' · '+(v===3?'3 iguais':v===2?'2 iguais':'Sem prémio')+'</span>').join("")+'</div>':'')
+  +'<p class="cxnInputLabel">Três linhas horizontais premiadas individualmente</p>'
+  +'<p class="cxnOdds">O valor total é dividido pelas 3 linhas · 3 iguais: 8× da linha · 2 iguais: 1,5× da linha. Os prémios somam-se.</p>';
 }
 function autoPanel(){
  if(mode!=="slots")return "";
