@@ -13,7 +13,7 @@ const valid=c=>/^[0-9A-F]{8}$/.test(String(c||"").toUpperCase().trim());
 const noop=()=>{};
 let room=null,code="",channel=null,connected=false,working=false,error="",poll=null,version=0;
 let onUpdate=noop,onFrame=noop,onInput=noop,onConnection=noop;
-let remoteButtons={},remoteInputTime=0,lastSeq=-1;
+let remoteButtons={},remoteHero="frost",remoteInputTime=0,lastSeq=-1;
 let presenceUsers=new Set(),lastFrameTime=0,frameCount=0,sendCount=0;
 const emptyInputs=()=>({left:false,right:false,jump:false,kick:false,power:false});
 const isHost=()=>!!room&&room.host===me()?.id;
@@ -23,7 +23,7 @@ function get(){
  return {room,code,connected,working,error,role:myRole(),
   hostConnected:!!(room?.host&&presenceUsers.has(room.host)),
   guestConnected:!!(room?.guest&&presenceUsers.has(room.guest)),
-  input:Date.now()-remoteInputTime<320?remoteButtons:emptyInputs(),
+  input:Date.now()-remoteInputTime<320?remoteButtons:emptyInputs(),remoteHero,
   remoteSeen:Date.now()-lastFrameTime<3500};
 }
 function handlers(next={}){
@@ -36,7 +36,7 @@ function emit(){try{onUpdate(get())}catch(e){console.error("EDGY Head Soccer UI:
 function stop(){
  version++;clearInterval(poll);poll=null;
  const old=channel;channel=null;connected=false;presenceUsers.clear();
- remoteButtons=emptyInputs();remoteInputTime=0;lastSeq=-1;lastFrameTime=0;frameCount=0;sendCount=0;
+ remoteButtons=emptyInputs();remoteHero="frost";remoteInputTime=0;lastSeq=-1;lastFrameTime=0;frameCount=0;sendCount=0;
  if(old){try{api()?.removeChannel(old)}catch(e){console.warn("Head Soccer Realtime leave:",e)}}
 }
 function close(){stop();room=null;code="";working=false;error="";emit()}
@@ -58,7 +58,7 @@ async function refresh(){
   const data=await rpc("edgy_head_soccer_state",{p_code:current});
   if(ticket!==version||current!==code)return;
   const changed=JSON.stringify(room)!==JSON.stringify(data);
-  if(room?.match_token!==data.match_token){lastSeq=-1;sendCount=0;remoteButtons=emptyInputs();remoteInputTime=0}
+  if(room?.match_token!==data.match_token){lastSeq=-1;sendCount=0;remoteButtons=emptyInputs();remoteHero="frost";remoteInputTime=0}
   room=data;
   error="";
   if(changed)emit();
@@ -109,6 +109,7 @@ async function connect(){
    remoteButtons={left:v.left===true,right:v.right===true,jump:v.jump===true,
     kick:v.kick===true,power:v.power===true};
    remoteInputTime=Date.now();
+   if(["neon","bolt","frost"].includes(payload.hero))remoteHero=payload.hero;
    onInput(remoteButtons);
   });
   ch.on("broadcast",{event:"control"},({payload})=>{
@@ -205,9 +206,9 @@ function broadcast(event,payload){
  }});
  if(promise&&typeof promise.catch==="function")promise.catch(()=>{});
 }
-function input(buttons,seq){
+function input(buttons,seq,hero="frost"){
  if(!isGuest()||room?.status!=="active")return;
- broadcast("input",{buttons,seq});
+ broadcast("input",{buttons,seq,hero});
 }
 function frame(st,seq){
  if(!isHost()||room?.status!=="active")return;
