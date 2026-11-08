@@ -2,28 +2,28 @@
  * Deterministic fixed-timestep simulation, no copied artwork or third-party dependencies. */
 (function(){
 "use strict";
-const W=960,H=510,FLOOR=440,GOAL_TOP=294,BALL_R=18,HEAD_R=32;
+const W=960,H=510,FLOOR=440,GOAL_TOP=276,BALL_R=22,HEAD_R=61;
 const GRAVITY=1030,BALL_GRAVITY=950;
 const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
-const left=()=>({id:0,x:205,y:FLOOR,vx:0,vy:0,face:1,energy:0,kickTime:0,kickCooldown:0,powerTime:0,
+const left=()=>({id:0,x:180,y:FLOOR,vx:0,vy:0,face:1,energy:0,kickTime:0,kickCooldown:0,powerTime:0,
  kickLatch:false,jumpLatch:false,powerLatch:false,grounded:true,hitTime:0});
-const right=()=>({...left(),id:1,x:W-205,face:-1});
+const right=()=>({...left(),id:1,x:W-180,face:-1});
 function create(options={}){
- return {players:[left(),right()],ball:{x:W/2,y:208,vx:0,vy:0,spin:0,power:0,trail:0},
+ return {players:[left(),right()],ball:{x:W/2,y:185,vx:0,vy:0,spin:0,power:0,trail:0,effect:null},
   score:[0,0],seconds:60,mode:options.mode==="local"?"local":"cpu",
   difficulty:["easy","normal","hard"].includes(options.difficulty)?options.difficulty:"normal",
   status:"ready",suddenDeath:false,goalPause:0,lastGoal:-1,winner:-1,
-  secondsPlayed:0,celebration:"",aiWait:0,aiInput:{},frame:0};
+  secondsPlayed:0,celebration:"",aiWait:0,aiInput:{},frame:0,hero:options.hero||"neon"};
 }
 function kick(st,p,special){
  const ball=st.ball;
- const dx=ball.x-p.x,dy=ball.y-(p.y-71);
- if(Math.abs(dx)>111||Math.abs(dy)>113)return false;
+ const dx=ball.x-p.x,dy=ball.y-(p.y-105);
+ if(Math.abs(dx)>132||Math.abs(dy)>140)return false;
  const direction=dx===0?p.face:Math.sign(dx);
- const boost=special?840:570;
+ const boost=special?1120:700;
  ball.vx=direction*boost+p.vx*.23;
- ball.vy=clamp(-245+dy*1.05+(special?-100:0),special?-430:-345,55);
- ball.spin=direction*(special?12:7);ball.power=special?1.15:0;ball.trail=special?1:0;
+ ball.vy=clamp(-205+dy*.54+(special?120:0),special?-285:-360,80);
+ ball.spin=direction*(special?15:8);ball.power=special?1.8:0;ball.trail=special?1.7:0;ball.effect=special?(p.id===0?st.hero:"frost"):null;
  p.hitTime=.16;
  if(special)p.powerTime=0;
  p.energy=clamp(p.energy+(special?0:15),0,100);
@@ -54,7 +54,7 @@ function playerStep(st,p,input,dt){
  p.kickLatch=!!input.kick;
 }
 function headCollision(st,p){
- const b=st.ball,cx=p.x,cy=p.y-91;
+ const b=st.ball,cx=p.x,cy=p.y-130;
  const dx=b.x-cx,dy=b.y-cy,d=Math.hypot(dx,dy);
  const minimum=HEAD_R+BALL_R;
  if(d>=minimum)return;
@@ -69,7 +69,7 @@ function headCollision(st,p){
 }
 function bodyCollision(st,p){
  const b=st.ball;
- const half=21,bodyTop=p.y-59,bodyBottom=p.y-7;
+ const half=28,bodyTop=p.y-83,bodyBottom=p.y-7;
  const nearestX=clamp(b.x,p.x-half,p.x+half),nearestY=clamp(b.y,bodyTop,bodyBottom);
  const dx=b.x-nearestX,dy=b.y-nearestY;
  const dist=Math.hypot(dx,dy);
@@ -106,7 +106,7 @@ function ballStep(st,dt){
  postCollision(b,10);postCollision(b,W-10);
  for(const p of st.players){headCollision(st,p);bodyCollision(st,p)}
  // The goal opening is below the crossbar; outside it the ball rebounds on the side walls.
- const inMouth=b.y>=GOAL_TOP+BALL_R*.4&&b.y<FLOOR-BALL_R*.2;
+ const inMouth=b.y>=GOAL_TOP+BALL_R*.36&&b.y<FLOOR-BALL_R*.2;
  if(b.x<=BALL_R&&!inMouth){b.x=BALL_R;b.vx=Math.abs(b.vx)*.82}
  if(b.x>=W-BALL_R&&!inMouth){b.x=W-BALL_R;b.vx=-Math.abs(b.vx)*.82}
  if(inMouth&&b.x<0)return 1;
@@ -115,7 +115,7 @@ function ballStep(st,dt){
 }
 function reset(st){
  st.players=[left(),right()];
- st.ball={x:W/2,y:210,vx:0,vy:0,spin:0,power:0,trail:0};
+ st.ball={x:W/2,y:185,vx:0,vy:0,spin:0,power:0,trail:0,effect:null};
 }
 function goal(st,scorer){
  st.score[scorer]++;
@@ -131,12 +131,12 @@ function cpu(st,dt){
  st.aiWait={easy:.24,normal:.13,hard:.055}[st.difficulty];
  const target=clamp(b.x+25,80,W-65);
  const ahead=target-cpuP.x;
- const near=Math.abs(b.x-cpuP.x)<105;
- const above=b.y<cpuP.y-120&&b.y>cpuP.y-240;
+ const near=Math.abs(b.x-cpuP.x)<137;
+ const above=b.y<cpuP.y-166&&b.y>cpuP.y-295;
  const danger=b.x>640;
  const input={left:ahead<-18,right:ahead>18,
   jump:near&&above&&cpuP.grounded&&(danger||st.difficulty==="hard"),
-  kick:near&&Math.abs(b.y-(cpuP.y-72))<110&&cpuP.kickCooldown<.09,
+  kick:near&&Math.abs(b.y-(cpuP.y-105))<145&&cpuP.kickCooldown<.09,
   power:cpuP.energy>=100&&near};
  // Press/release actions on successive AI decisions so the key-latches behave correctly.
  if(cpuP.kickLatch)input.kick=false;
