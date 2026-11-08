@@ -276,3 +276,44 @@
 #screen .cxnAutoCustom{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:12px;font-size:11px;color:#e3cbdc}
 #screen .cxnAutoCustom input{min-height:40px;width:88px;max-width:42%;padding:7px 10px;background:#221a31;color:#fff;border:1px solid #9b77a6;border-radius:6px;font-size:16px;font-variant-numeric:tabular-nums}
 #screen .cxnAutoCustom input:focus-visible{outline:2px solid #fdbbdf;outline-offset:1px}
+
+
+/* Three-line slots: three rows are visible on every reel; server chooses all nine symbols. */
+#screen .cxnSlotThree{width:min(100%,470px)}
+#screen .cxnSlotThree .cxnSlotGlass{--cxn-reel-gap:8px}
+#screen .cxnSlotThree .cxnReelWindow{--cxn-cell:clamp(49px,7vw,66px);height:calc(var(--cxn-cell)*3 + 6px)}
+#screen .cxnSlotThree .cxnReelSymbol{font-size:clamp(29px,4.4vw,44px);line-height:1}
+#screen .cxnSlotThree .cxnReelMachine{position:relative;z-index:1}
+#screen .cxnSlotLines{position:absolute;z-index:2;pointer-events:none;inset:13px 11px}
+#screen .cxnPayline{position:absolute;top:calc((var(--cxn-row) + .5)*100%/3);left:-2px;right:-2px;
+ border-top:2px dashed #ffe0b55c;filter:drop-shadow(0 0 3px #ffe1a863);opacity:.75}
+#screen .cxnPayline b{position:absolute;left:0;top:50%;transform:translate(-50%,-50%);
+ width:20px;height:20px;display:grid;place-items:center;border-radius:50%;background:#523357;color:#ffecc4;
+ border:1px solid #d8ab8d;font-size:10px;font-weight:950;text-shadow:0 1px 2px #0007}
+#screen .cxnPayline.is-hit{border-top:3px solid #f7cd83;opacity:1;filter:drop-shadow(0 0 4px #ffd48b)}
+#screen .cxnPayline.is-hit b{background:#bc8851;color:#261b2a}
+#screen .cxnPayline.is-jackpot{border-top-color:#8de7bb;filter:drop-shadow(0 0 5px #8de7bb)}
+#screen .cxnSlotThree .cxnReelWindow{background:
+ linear-gradient(180deg,#d4cbde,#fff8f9 32%,#f9eff5 52%,#fff8f9 70%,#d2cada);
+ box-shadow:inset 0 8px 12px #2b1e3930,inset 0 -9px 12px #3c294540}
+#screen .cxnSlotThree .cxnReelWindow::before,
+#screen .cxnSlotThree .cxnReelWindow::after{
+ content:"";pointer-events:none;position:absolute;z-index:1;left:0;right:0;height:1px;background:#93789278}
+#screen .cxnSlotThree .cxnReelWindow::before{top:33.333%}
+#screen .cxnSlotThree .cxnReelWindow::after{top:66.666%}
+#screen .cxnPaylineResults{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;margin:-10px 0 16px}
+#screen .cxnPaylineResults span{display:block;text-align:center;border:1px solid #715978;background:#32243e;
+ color:#d5bacc;padding:8px 4px;font-size:10px;font-weight:750;border-radius:5px}
+#screen .cxnPaylineResults span.is-hit{background:#3c443c;border-color:#88bc86;color:#c3f2ca}
+@media(max-width:799px){
+ #screen .cxnSlotThree .cxnReelWindow{--cxn-cell:clamp(44px,13vw,63px)}
+ #screen .cxnSlotThree .cxnReelSymbol{font-size:clamp(27px,8vw,42px)}
+ #screen .cxnSlotThree .cxnSlotGlass{padding:10px 8px}
+ #screen .cxnSlotLines{inset:10px 8px}
+ #screen .cxnSlotThree .cxnReelMachine{gap:5px}
+ #screen .cxnPaylineResults span{font-size:9px;padding:7px 2px}
+}
+@media(max-width:350px){
+ #screen .cxnSlotThree .cxnReelWindow{--cxn-cell:42px}
+ #screen .cxnSlotThree .cxnReelSymbol{font-size:26px}
+}
