@@ -275,10 +275,10 @@ function slotsPanel(){
   +Array.from({length:3},(_,col)=>'<div class="cxnReelWindow" aria-label="Rolo '+(col+1)+'">'
    +'<div class="cxnReelTrack">'+slotCells(grid.map(row=>row?.[col]||"🍒"))+'</div></div>').join("")
   +'</div><div class="cxnSlotLines" aria-hidden="true">'
-  +[0,1,2].map(row=>'<span class="cxnPayline'+(hits[row]>=2?' is-hit':'')+(hits[row]===3?' is-jackpot':'')+'" style="--cxn-row:'+row+'">'
+  +[0,1,2].map(row=>'<span class="cxnPayline'+(hits[row]>=2?' is-hit':'')+(hits[row]===3?' is-jackpot':'')+'" style="top:'+((row+.5)*100/3).toFixed(3)+'%">'
      +'<b>'+String(row+1)+'</b></span>').join("")
   +'</div></div>'
-  +'<div class="cxnSlotFooter"><span>✦ ✦ ✦</span><strong>3 ROLLOS · 3 LINHAS</strong><span>✦ ✦ ✦</span></div>'
+  +'<div class="cxnSlotFooter"><span>✦ ✦ ✦</span><strong>3 ROLOS · 3 LINHAS</strong><span>✦ ✦ ✦</span></div>'
   +'</div>'
   +(result?.game==="slots"?'<div class="cxnPaylineResults" aria-label="Resultados das três linhas">'
     +hits.map((v,i)=>'<span class="'+(v>=2?'is-hit':'')+'">Linha '+(i+1)+' · '+(v===3?'3 iguais':v===2?'2 iguais':'Sem prémio')+'</span>').join("")+'</div>':'')
