@@ -34,11 +34,12 @@ test("Head Soccer arcade engine supports CPU, local, power shots, 60 seconds and
  const engine=sandbox.window.EDGY_headSoccerPhysics;
  let s=engine.create();
  assert.equal(s.status,"ready");assert.equal(s.seconds,60);
+ assert.ok(engine.HEAD_R>=55&&engine.BALL_R>=20,"exaggerated characters and bigger ball should match arcade proportions");
  assert.equal(s.players.length,2);assert.equal(s.score.join(","),"0,0");
  engine.step(s,{p1:{right:true}},1/60);
- assert.equal(s.players[0].x,205,"players do not move before kickoff");
+ assert.equal(s.players[0].x,180,"players do not move before kickoff");
  engine.launch(s);engine.step(s,{p1:{right:true}},1/60);
- assert.ok(s.players[0].x>205,"player should move while playing");
+ assert.ok(s.players[0].x>180,"player should move while playing");
  s.players[0].energy=100;
  s.ball.x=s.players[0].x+78;s.ball.y=s.players[0].y-71;s.ball.vx=0;s.ball.vy=0;
  engine.step(s,{p1:{power:true,kick:true}},1/60);
@@ -71,6 +72,20 @@ test("Head Soccer arcade engine supports CPU, local, power shots, 60 seconds and
  for(let i=0;i<11;i++)engine.step(s,{p1:{}},1/60);
  assert.ok(s.players[1].x<old,"CPU should track the ball autonomously");
 });
+test("Head Soccer v2 uses expressive large characters, bright stadium and mobile arcade controls",()=>{
+ const src=read("head-soccer-game.js"),css=read("head-soccer.css");
+ for(const functionName of ["function headSoccerAvatar(","function background(","function goalPost(","function ballDraw(","function ensureStadium("])
+  assert.ok(src.includes(functionName),functionName);
+ assert.ok(src.includes('const hair=type==="bolt"')&&src.includes('const skin=ctx.createRadialGradient('));
+ assert.ok(src.includes("ctx.drawImage(stadium,0,0)"),"stadium rendering should be cached rather than repainted 60fps");
+ assert.ok(src.includes("hsReadyFaces")&&src.includes("hsHeroFace"));
+ assert.ok(src.includes('data-hs-press="')&&src.includes("hsMovePad")&&src.includes("hsActionPad"));
+ assert.ok(css.includes(".hsPad")&&css.includes(".hsReadyHead"));
+ assert.ok(css.includes(".hsArena")&&css.includes("aspect-ratio:960/510"));
+ assert.ok(css.includes("max-width:420px"));
+ assert.ok(!src.includes("function playerDraw("),"replace simplistic stick-man body drawing");
+});
+
 test("Head Soccer canvas controller and PWA are integrated into EDGY",()=>{
  const physics=read("head-soccer-physics.js"),client=read("head-soccer-game.js"),style=read("head-soccer.css");
  const platform=read("edgy-platform.js"),ui=read("edgy-game-ui.js"),app=read("app.js"),sw=read("sw.js");
